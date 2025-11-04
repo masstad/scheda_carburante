@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="it">
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<title>Carburante</title>
+		<meta name="apple-mobile-web-app-capable" content="yes">
+		<style>
+		  :root { --space:14px; }
+		  body{ font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif; margin:var(--space); }
+		  h2{ margin:0 0 10px; }
+		  label{ display:block; margin:12px 0 6px; font-size:14px; }
+		  input,textarea,button{ width:100%; font-size:16px; padding:10px; box-sizing:border-box; }
+		  .row{ display:flex; gap:12px; }
+		  .row>div{ flex:1; }
+		  button{ margin-top:16px; border-radius:10px; border:1px solid #ddd; }
+		  .ok{ color:green; margin-top:8px; }
+		  .err{ color:#b00020; margin-top:8px; }
+		  .muted{ color:#666; font-size:12px; margin-top:6px; }
+		  .badge{ display:inline-block; font-size:12px; padding:2px 8px; border-radius:999px; border:1px solid #aaa; margin-left:8px; }
+		</style>
+	</head>
+	
+	<body>
+		<h2>⛽️ Carburante <span id="qBadge" class="badge" hidden>offline: 0</span></h2>
+
+		<label>Data</label>
+		<input id="data" type="date" required>
+
+		<label>Importo (€)</label>
+		<input id="importo" type="number" inputmode="decimal" step="0.01" placeholder="es. 65,30" required>
+
+		<div class="row">
+			<div>
+				<label>Stazione</label>
+				<input id="stazione" type="text" placeholder="es. IP via Roma">
+			</div>
+			
+			<div>
+				<label>Km</label>
+				<input id="km" type="number" inputmode="numeric" placeholder="opzionale">
+			</div>
+		</div>
+
+	<label>Note</label>
+	<textarea id="note" rows="2" placeholder="opzionale"></textarea>
+
+	<button id="saveBtn">Salva</button>
+	<div id="msg" role="status" aria-live="polite"></div>
+	<div class="muted">Suggerimento: aggiungila alla Home (Condividi → “Aggiungi a Home”).</div>
+
+<script>
+const ENDPOINT = 'YOUR_APPS_SCRIPT_URL';
+const SECRET   = 'YOUR_SECRET_TOKEN';
+
+// Inizializza data a oggi
+(function initDate(){
+  const d=new Date();
+  const pad=n=>String(n).padStart(2,'0');
+  document.getElementById('data').value = `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+})();
+
+// Coda offline semplice (localStorage)
+function getQueue(){ try{ return JSON.parse(localStorage.getItem('carb_queue')||'[]'); }catch{ return []; } }
+function setQueue(arr){ localStorage.setItem('carb_queue', JSON.stringify(arr)); updateBadge(); }
+function updateBadge(){
+  const q=getQueue();
+  const b=document.getElementById('qBadge');
+  if(q.length>0){ b.hidden=false; b.textContent=`offline: ${q.length}`; }
+  else { b.hidden=true; }
+}
+updateBadge();
+
+async function sendForm(data) {
+  // Evita preflight: usa form-urlencoded
+  const params = new URLSearchParams(data);
+  const res = await fetch(ENDPOINT, {
+    method: 'POST',
+    headers: { 'Content-Type':'application/x-www-form-urlencoded;charset=UTF-8' },
+    body: params.toString(),
+  });
+  return res.json();
+}
+
+async function flushQueue(){
+  const q=getQueue();
+  if(q.length===0) return;
+  const remaining=[];
+  for(const item of q){
+    try{
+      const out = await sendForm(item);
+      if(!out.ok) remaining.push(item);
+    }catch{
+      remaining.push(item);
+    }
+  }
+  setQueue(remaining);
+}
+
+document.getElementById('saveBtn').addEventListener('click', async () => {
+  const msg = document.getElementById('msg');
+  msg.textContent = '';
+  msg.className = '';
+
+  const data = document.getElementById('data').value;
+  let importo = String(document.getElementById('importo').value).replace(',', '.'); // 65,30 → 65.30
+  const stazione = document.getElementById('stazione').value;
+  const km = document.getElementById('km').value;
+  const note = document.getElementById('note').value;
+
+  if(!data){ msg.textContent='Inserisci la data.'; msg.className='err'; return; }
+  if(!importo || Number(importo) <= 0){ msg.textContent='Importo non valido.'; msg.className='err'; return; }
+
+  const payload = { secret: SECRET, data, importo, stazione, km, note };
+
+  try{
+    const out = await sendForm(payload);
+    if(out.ok){
+      msg.textContent='Salvato ✅';
+      msg.className='ok';
+      // reset per inserimenti rapidi
+      document.getElementById('importo').value='';
+      document.getElementById('note').value='';
+      document.getElementById('importo').focus();
+      // prova a spedire eventuale coda
+      flushQueue();
+    }else{
+      // Metti in coda offline
+      const q=getQueue(); q.push(payload); setQueue(q);
+      msg.textContent='Niente rete? Dato messo in coda ⏳';
+      msg.className='err';
+    }
+  }catch{
+    // Metti in coda offline
+    const q=getQueue(); q.push(payload); setQueue(q);
+    msg.textContent='Sei offline. Dato messo in coda ⏳';
+    msg.className='err';
+  }
+});
+
+// Prova a svuotare coda quando torni online
+window.addEventListener('online', flushQueue);
+</script>
+</body>
+</html>
