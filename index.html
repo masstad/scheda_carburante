@@ -52,9 +52,6 @@
   <label>Km</label>
   <input id="km" type="number" inputmode="numeric" placeholder="opzionale">
 
-  <label>Note</label>
-  <textarea id="note" rows="2" placeholder="opzionale"></textarea>
-
   <button id="saveBtn">Salva</button>
   <div id="msg" role="status" aria-live="polite"></div>
   <div class="muted">Suggerimento: aggiungila alla Home (Condividi → “Aggiungi a Home”).</div>
@@ -128,14 +125,13 @@ document.getElementById('saveBtn').addEventListener('click', async () => {
   let litri = String(document.getElementById('litri').value).replace(',', '.');
   const stazione = document.getElementById('stazione').value;
   const km = document.getElementById('km').value;
-  const note = document.getElementById('note').value;
 
   if(!data){ msg.textContent='Inserisci la data.'; msg.className='err'; return; }
   if(!importo || Number(importo) <= 0){ msg.textContent='Seleziona un importo.'; msg.className='err'; return; }
   if(!prezzo || Number(prezzo) <= 0){ msg.textContent='Prezzo non valido.'; msg.className='err'; return; }
   if(!litri || Number(litri) <= 0){ msg.textContent='Litri non validi.'; msg.className='err'; return; }
 
-  const payload = { secret: SECRET, data, importo, prezzo, litri, stazione, km, note };
+  const payload = { secret: SECRET, data, importo, prezzo, litri, stazione, km };
 
   try{
     const out = await sendForm(payload);
@@ -144,7 +140,6 @@ document.getElementById('saveBtn').addEventListener('click', async () => {
       msg.className = 'ok';
       document.getElementById('prezzo').value='';
       document.getElementById('litri').value='';
-      document.getElementById('note').value='';
       document.getElementById('importo').selectedIndex = 0;
       flushQueue();
     }else{
