@@ -30,7 +30,7 @@
 </head>
 
 <body>
-  <h2>⛽️ Carburante <span id="qBadge" class="badge" hidden>offline: 0</span></h2>
+  <h2>⛽️ Carburante</h2>
 
   <label>Data</label>
   <input id="data" type="date" required>
@@ -47,7 +47,13 @@
   <input id="litri" type="number" inputmode="decimal" step="0.01" placeholder="es. 25,75" required>
 
   <label>Stazione</label>
-  <input id="stazione" type="text" placeholder="es. IP via Roma">
+  <select id="stazione" required>
+    <option value="">Seleziona stazione</option>
+    <option value="Q8 - Via Ardeatina 558 Roma">Q8 - Via Ardeatina 558 Roma</option>
+    <option value="Q8 - Lanuvio">Q8 - Lanuvio</option>
+    <option value="Q8 - Velletri">Q8 - Velletri</option>
+    <option value="Q8 - Altro">Q8 - Altro</option>
+  </select>
 
   <label>Km</label>
   <input id="km" type="number" inputmode="numeric" placeholder="opzionale">
@@ -57,8 +63,8 @@
   <div class="muted">Suggerimento: aggiungila alla Home (Condividi → “Aggiungi a Home”).</div>
 
 <script>
-const ENDPOINT = 'YOUR_APPS_SCRIPT_URL';
-const SECRET   = 'YOUR_SECRET_TOKEN';
+const ENDPOINT = 'https://script.google.com/macros/s/AKfycbwFKEfcSLjdXSodQtDiIyhHPXskdLdOZ9PXTc0Dt5dlXIFxu8hhb80UwrSJpWqmzv-w/exec';
+const SECRET   = 'aX4P-92kLq-55T8b-7Hc0Z';
 
 // Popola il menu Importo con valori da 5 a 100 (passi di 5)
 (function initImportoOptions() {
@@ -78,17 +84,6 @@ const SECRET   = 'YOUR_SECRET_TOKEN';
   document.getElementById('data').value = `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
 })();
 
-// Coda offline semplice (localStorage)
-function getQueue(){ try{ return JSON.parse(localStorage.getItem('carb_queue')||'[]'); }catch{ return []; } }
-function setQueue(arr){ localStorage.setItem('carb_queue', JSON.stringify(arr)); updateBadge(); }
-function updateBadge(){
-  const q = getQueue();
-  const b = document.getElementById('qBadge');
-  if(q.length > 0){ b.hidden = false; b.textContent = `offline: ${q.length}`; }
-  else { b.hidden = true; }
-}
-updateBadge();
-
 async function sendForm(data) {
   const params = new URLSearchParams(data);
   const res = await fetch(ENDPOINT, {
@@ -97,21 +92,6 @@ async function sendForm(data) {
     body: params.toString(),
   });
   return res.json();
-}
-
-async function flushQueue(){
-  const q = getQueue();
-  if(q.length === 0) return;
-  const remaining = [];
-  for(const item of q){
-    try{
-      const out = await sendForm(item);
-      if(!out.ok) remaining.push(item);
-    }catch{
-      remaining.push(item);
-    }
-  }
-  setQueue(remaining);
 }
 
 document.getElementById('saveBtn').addEventListener('click', async () => {
@@ -130,6 +110,7 @@ document.getElementById('saveBtn').addEventListener('click', async () => {
   if(!importo || Number(importo) <= 0){ msg.textContent='Seleziona un importo.'; msg.className='err'; return; }
   if(!prezzo || Number(prezzo) <= 0){ msg.textContent='Prezzo non valido.'; msg.className='err'; return; }
   if(!litri || Number(litri) <= 0){ msg.textContent='Litri non validi.'; msg.className='err'; return; }
+  if(!stazione){ msg.textContent='Seleziona una stazione.'; msg.className='err'; return; }
 
   const payload = { secret: SECRET, data, importo, prezzo, litri, stazione, km };
 
@@ -141,20 +122,16 @@ document.getElementById('saveBtn').addEventListener('click', async () => {
       document.getElementById('prezzo').value='';
       document.getElementById('litri').value='';
       document.getElementById('importo').selectedIndex = 0;
-      flushQueue();
+      document.getElementById('stazione').selectedIndex = 0;
     }else{
-      const q = getQueue(); q.push(payload); setQueue(q);
-      msg.textContent='Niente rete? Dato messo in coda ⏳';
+      msg.textContent='Errore di rete o autorizzazione.';
       msg.className='err';
     }
   }catch{
-    const q = getQueue(); q.push(payload); setQueue(q);
-    msg.textContent='Sei offline. Dato messo in coda ⏳';
+    msg.textContent='Sei offline. Dato non inviato.';
     msg.className='err';
   }
 });
-
-window.addEventListener('online', flushQueue);
 </script>
 </body>
 </html>
