@@ -7,17 +7,28 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <style>
     :root { --space:14px; }
-    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; margin: var(--space); }
+    body { 
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; 
+      margin: var(--space); 
+    }
     h2 { margin: 0 0 10px; }
     label { display: block; margin: 12px 0 6px; font-size: 14px; }
-    select, input, textarea, button { width: 100%; font-size: 16px; padding: 10px; box-sizing: border-box; }
-    button { margin-top: 16px; border-radius: 10px; border: 1px solid #ddd; }
+    select, input, textarea, button { 
+      width: 100%; font-size: 16px; padding: 10px; box-sizing: border-box; 
+    }
+    button { 
+      margin-top: 16px; border-radius: 10px; border: 1px solid #ddd; 
+    }
     .ok { color: green; margin-top: 8px; }
     .err { color: #b00020; margin-top: 8px; }
     .muted { color: #666; font-size: 12px; margin-top: 6px; }
-    .badge { display: inline-block; font-size: 12px; padding: 2px 8px; border-radius: 999px; border: 1px solid #aaa; margin-left: 8px; }
+    .badge { 
+      display: inline-block; font-size: 12px; padding: 2px 8px; 
+      border-radius: 999px; border: 1px solid #aaa; margin-left: 8px; 
+    }
   </style>
 </head>
+
 <body>
   <h2>⛽️ Carburante</h2>
 
@@ -86,9 +97,9 @@ async function initStations() {
     if (data && data.ok && Array.isArray(data.stations)) {
       data.stations.forEach(st => {
         const opt = document.createElement('option');
-        opt.value = st.label;          // inviamo al server il label UPPERCASE
-        opt.textContent = st.label;    // Mostra "MARCHIO - CITTA - INDIRIZZO" in UPPERCASE
-        opt.dataset.id = st.id;        // tieni l'ID per usi futuri
+        opt.value = st.label;         // label UPPERCASE che vedi a schermo e invii come "stazione"
+        opt.textContent = st.label;
+        opt.dataset.id = st.id;       // conserva l'ID per l'invio come "stazioneId"
         sel.appendChild(opt);
       });
       return;
@@ -104,15 +115,16 @@ async function initStations() {
 // Fallback statico se il backend non risponde
 function addFallbackStations(sel) {
   const fallback = [
-    'Q8 - VIA ARDEATINA 558 ROMA',
-    'Q8 - LANUVIO',
-    'Q8 - VELLETRI',
-    'Q8 - ALTRO'
+    { id: 'ALTRO', label: 'Q8 - ALTRO' },
+    { id: 'ARDEATINA_558_ROMA', label: 'Q8 - VIA ARDEATINA 558 ROMA' },
+    { id: 'LANUVIO', label: 'Q8 - LANUVIO' },
+    { id: 'VELLETRI', label: 'Q8 - VELLETRI' }
   ];
-  fallback.forEach(label => {
+  fallback.forEach(st => {
     const opt = document.createElement('option');
-    opt.value = label;
-    opt.textContent = label;
+    opt.value = st.label;
+    opt.textContent = st.label;
+    opt.dataset.id = st.id;
     sel.appendChild(opt);
   });
 }
@@ -142,7 +154,11 @@ document.getElementById('saveBtn').addEventListener('click', async () => {
   let importo = String(document.getElementById('importo').value).replace(',', '.');
   let prezzo = String(document.getElementById('prezzo').value).replace(',', '.');
   let litri = String(document.getElementById('litri').value).replace(',', '.');
-  const stazione = document.getElementById('stazione').value; // label uppercase
+
+  const stSel = document.getElementById('stazione');
+  const stazione = stSel.value;                       // label UPPERCASE
+  const stazioneId = stSel.options[stSel.selectedIndex]?.dataset?.id || '';
+
   const km = document.getElementById('km').value;
 
   if(!data){ msg.textContent='Inserisci la data.'; msg.className='err'; return; }
@@ -151,7 +167,13 @@ document.getElementById('saveBtn').addEventListener('click', async () => {
   if(!litri || Number(litri) <= 0){ msg.textContent='Litri non validi.'; msg.className='err'; return; }
   if(!stazione){ msg.textContent='Seleziona una stazione.'; msg.className='err'; return; }
 
-  const payload = { secret: SECRET, data, importo, prezzo, litri, stazione, km };
+  const payload = { 
+    secret: SECRET, 
+    data, importo, prezzo, litri, 
+    stazione,          // label visibile
+    stazioneId,        // ID_IMPIANTO
+    km 
+  };
 
   try{
     const out = await sendForm(payload);
