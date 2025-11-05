@@ -49,10 +49,6 @@
   <label>Stazione</label>
   <select id="stazione" required>
     <option value="">Seleziona stazione</option>
-    <option value="Q8 - Via Ardeatina 558 Roma">Q8 - Via Ardeatina 558 Roma</option>
-    <option value="Q8 - Lanuvio">Q8 - Lanuvio</option>
-    <option value="Q8 - Velletri">Q8 - Velletri</option>
-    <option value="Q8 - Altro">Q8 - Altro</option>
   </select>
 
   <label>Km</label>
@@ -66,7 +62,9 @@
 const ENDPOINT = 'https://script.google.com/macros/s/AKfycbwFKEfcSLjdXSodQtDiIyhHPXskdLdOZ9PXTc0Dt5dlXIFxu8hhb80UwrSJpWqmzv-w/exec';
 const SECRET   = 'aX4P-92kLq-55T8b-7Hc0Z';
 
-// Popola il menu Importo con valori da 5 a 100 (passi di 5)
+/*───────────────────────────────*
+ *   POPOLA MENU IMPORTO         *
+ *───────────────────────────────*/
 (function initImportoOptions() {
   const select = document.getElementById('importo');
   for(let i=5; i<=100; i+=5){
@@ -77,13 +75,64 @@ const SECRET   = 'aX4P-92kLq-55T8b-7Hc0Z';
   }
 })();
 
-// Imposta la data odierna di default
+/*───────────────────────────────*
+ *   DATA ODIERNA DI DEFAULT     *
+ *───────────────────────────────*/
 (function initDate(){
   const d = new Date();
   const pad = n => String(n).padStart(2, '0');
   document.getElementById('data').value = `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
 })();
 
+/*───────────────────────────────*
+ *   CARICA STAZIONI DA BACKEND  *
+ *───────────────────────────────*/
+async function initStations() {
+  const sel = document.getElementById('stazione');
+  // mantieni solo la prima option
+  sel.length = 1;
+
+  try {
+    const res = await fetch(`${ENDPOINT}?action=stazioni&secret=${encodeURIComponent(SECRET)}`);
+    const data = await res.json();
+    if (data && data.ok && Array.isArray(data.stations)) {
+      data.stations.forEach(name => {
+        const opt = document.createElement('option');
+        opt.value = name;
+        opt.textContent = name;
+        sel.appendChild(opt);
+      });
+      return;
+    }
+    console.warn('Risposta non valida, uso fallback statico');
+    addFallbackStations(sel);
+  } catch (err) {
+    console.warn('Errore di rete, uso fallback statico', err);
+    addFallbackStations(sel);
+  }
+}
+
+// fallback statico se il foglio non risponde
+function addFallbackStations(sel) {
+  const fallback = [
+    'Q8 - Via Ardeatina 558 Roma',
+    'Q8 - Lanuvio',
+    'Q8 - Velletri',
+    'Q8 - Altro'
+  ];
+  fallback.forEach(name => {
+    const opt = document.createElement('option');
+    opt.value = name;
+    opt.textContent = name;
+    sel.appendChild(opt);
+  });
+}
+
+document.addEventListener('DOMContentLoaded', initStations);
+
+/*───────────────────────────────*
+ *   INVIO FORM                  *
+ *───────────────────────────────*/
 async function sendForm(data) {
   const params = new URLSearchParams(data);
   const res = await fetch(ENDPOINT, {
