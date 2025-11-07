@@ -1,46 +1,170 @@
 <!doctype html>
-<html lang="it">
+<html lang="it" data-theme="light">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Carburante</title>
   <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Carburante">
 
-  <!-- No-cache per ridurre ambiguità tra versioni su GitHub Pages -->
+  <!-- No-cache -->
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
 
+  <!-- Imposta il tema PRIMA del paint -->
+  <script>
+    (function(){
+      try{
+        const saved = localStorage.getItem('theme');
+        const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+        const theme = saved || (prefersDark ? 'dark' : 'light');
+        document.documentElement.setAttribute('data-theme', theme);
+      }catch(e){}
+    })();
+  </script>
+
   <style>
-    :root { --space:14px; }
-    body {
-      font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
-      margin: var(--space);
+    :root{
+      --space:14px;
+
+      /* Tema chiaro (default) */
+      --bg: #ffffff;
+      --text: #111827;
+      --muted: #666666;
+      --surface: #ffffff;
+      --border: #dddddd;
+      --divider: #eeeeee;
+      --btn-hover: #f7f7f7;
+
+      /* Drawer / overlay */
+      --drawer-bg: #ffffff;
+      --backdrop: rgba(0,0,0,.15);
     }
+    html[data-theme="dark"]{
+      --bg: #0f1115;
+      --text: #e5e7eb;
+      --muted: #9aa0a6;
+      --surface: #151922;
+      --border: #2a2f3a;
+      --divider: #222834;
+      --btn-hover: #1b2130;
+
+      --drawer-bg: #121723;
+      --backdrop: rgba(0,0,0,.35);
+    }
+    body{ color-scheme: light dark; }
+
+    /* ===== Reset + layout base (come Pellet) ============================== */
+    * { box-sizing: border-box; }
+    html, body { width:100%; max-width:100%; overflow-x:hidden; margin:0; }
+    body{
+      min-height:100dvh;
+      display:flex;
+      flex-direction:column;
+      padding: var(--space);
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+    }
+
+    /* Topbar con titolo centrato e hamburger a sinistra */
+    .topbar{
+      display:grid;
+      grid-template-columns:48px 1fr 48px; /* sx / centro / dx */
+      align-items:center;
+      height:48px;
+      margin-bottom:14px;
+    }
+    .menu-btn{
+      justify-self:start;
+      background:none;
+      border:none;
+      font-size:22px;
+      line-height:1;
+      padding:8px 12px;
+      cursor:pointer;
+      color: var(--text);
+    }
+    .title{
+      margin:0;
+      font-size:22px;
+      text-align:center;
+    }
+
+    /* Drawer identico a Pellet */
+    .drawer{
+      position:fixed; inset:0 35% 0 0;
+      max-width:280px;
+      background: var(--drawer-bg);
+      border-right:1px solid var(--border);
+      transform:translateX(-105%);
+      transition:transform .2s ease;
+      z-index:9998;
+      padding:16px;
+      display:flex; flex-direction:column; gap:10px;
+    }
+    .drawer h3{
+      margin: 6px 0 8px;
+      font-size: 18px;
+    }
+    .navlist{
+      list-style:none; padding:0; margin:0; display:flex; flex-direction:column; gap:6px;
+    }
+    .navlist a, .navlist button{
+      display:flex; align-items:center; gap:8px;
+      text-decoration:none; color:inherit; background:var(--surface);
+      border:1px solid var(--border); border-radius:12px; padding:10px 12px;
+      cursor:pointer; font: inherit;
+    }
+    .navlist a:hover, .navlist button:hover{ background: var(--btn-hover); }
+
+    /* Backdrop e FAB */
+    .backdrop{
+      position:fixed; inset:0; background: var(--backdrop);
+      display:none; z-index:9997;
+    }
+    .fab{
+      position:fixed; left: max(12px, env(safe-area-inset-left)); bottom: calc(12px + env(safe-area-inset-bottom));
+      width:44px; height:44px; border-radius:12px;
+      display:flex; align-items:center; justify-content:center;
+      background: var(--surface);
+      border:1px solid var(--border);
+      box-shadow: 0 4px 16px rgba(0,0,0,.08);
+      cursor:pointer; z-index: 9996;
+      color: var(--text);
+    }
+    .fab:active{ transform: translateY(1px); }
+
+    /* Form */
     h2 { margin: 0 0 10px; }
-    label { display: block; margin: 12px 0 6px; font-size: 14px; }
+    label { display:block; margin:12px 0 6px; font-size:14px; }
     select, input, textarea, button {
       width: 100%; font-size: 16px; padding: 10px; box-sizing: border-box;
+      color: var(--text); background: var(--surface); border:1px solid var(--border); border-radius:10px;
     }
     button {
-      margin-top: 16px; border-radius: 10px; border: 1px solid #ddd;
+      margin-top: 16px; border-radius: 10px;
       display: inline-flex; align-items: center; justify-content: center; gap: 8px;
       cursor: pointer;
     }
-    .ok { color: green; margin-top: 8px; }
-    .err { color: #b00020; margin-top: 8px; }
-    .muted { color: #666; font-size: 12px; }
+    .ok { color: #16a34a; margin-top: 8px; }
+    .err { color: #ef4444; margin-top: 8px; }
+    .muted { color: var(--muted); font-size: 12px; }
     .badge {
       display: inline-block; font-size: 12px; padding: 2px 8px;
-      border-radius: 999px; border: 1px solid #aaa; margin-left: 8px;
+      border-radius: 999px; border: 1px solid var(--border); margin-left: 8px;
+      font-variant-numeric: tabular-nums;
     }
 
     /* Loader overlay */
     .loading-overlay {
-      position: fixed; inset: 0; background: rgba(255,255,255,0.75);
+      position: fixed; inset: 0; background: rgba(0,0,0,0.05);
       display: none; align-items: center; justify-content: center;
       z-index: 9999; backdrop-filter: blur(2px);
     }
+    html[data-theme="dark"] .loading-overlay { background: rgba(0,0,0,0.25); }
     .loading-overlay[aria-hidden="false"] { display: flex; }
     .spinner {
       width: 38px; height: 38px; border: 3px solid rgba(0,0,0,0.2);
@@ -55,72 +179,53 @@
     }
     button[disabled] { opacity: 0.7; cursor: not-allowed; }
 
-    /* Topbar + Drawer (stile Pellet) */
-    .topbar{
-      display:grid;
-      grid-template-columns:48px 1fr 48px; /* [hamburger][titolo][spazio] */
-      align-items:center;
-      height:48px;
-      margin-bottom:14px;
-    }
-    .menu-btn{
-      justify-self:start;
-      background:none;
-      border:none;
-      font-size:22px;
-      line-height:1;
-      padding:8px 12px;
-      cursor:pointer;
-    }
-    .title{
-      margin:0;
-      font-size:22px;
+    /* Versione centrata in fondo */
+    .version-footer{
       text-align:center;
+      padding: 12px 0 calc(12px + env(safe-area-inset-bottom));
+      width:100%;
+      color: var(--muted);
+      margin-top: 12px;
     }
-    .drawer{
-      position:fixed; inset:0 35% 0 0;
-      max-width:280px; background:#fff; border-right:1px solid #eee;
-      transform:translateX(-105%); transition:transform .2s ease;
-      z-index:9998; padding:16px;
-    }
-    .backdrop{
-      position:fixed; inset:0; background:rgba(0,0,0,.15);
-      display:none; z-index:9997;
+
+    /* Overlay full-screen per lista.html */
+    #pageFrame{
+      position:fixed; inset:0; width:100vw; height:100vh; border:0;
+      display:none; background:var(--bg); z-index:9999;
     }
   </style>
 </head>
 
 <body>
 
-  <!-- Top bar -->
+  <!-- Topbar: hamburger + titolo centrato -->
   <header class="topbar">
     <button id="menuBtn" class="menu-btn" aria-label="Apri menu">☰</button>
     <h2 class="title">⛽️ Carburante</h2>
     <span aria-hidden="true"></span>
   </header>
 
-  <!-- Drawer -->
-  <nav id="drawer" class="drawer">
-    <h3 style="margin-top:0;">Menu</h3>
-    <ul style="list-style:none;padding:0;margin:0;">
-      <!-- ✅ questo link apre lista.html in overlay full-screen -->
+  <!-- Drawer identico a Pellet -->
+  <nav id="drawer" class="drawer" aria-hidden="true" aria-label="Menu principale">
+    <h3>Menu</h3>
+    <ul class="navlist">
       <li><a id="goLista" href="lista.html">📄 Lista movimenti</a></li>
+      <li>
+        <button id="themeToggle" type="button" aria-label="Cambia tema">
+          🌙 Tema scuro / ☀️ Tema chiaro
+        </button>
+      </li>
     </ul>
+    <div style="margin-top:auto;">
+      <button id="closeDrawer" class="nav-close btn" type="button" style="width:100%;">
+        ← Chiudi
+      </button>
+    </div>
   </nav>
-  <div id="backdrop" class="backdrop"></div>
+  <div id="backdrop" class="backdrop" aria-hidden="true"></div>
 
-  <!-- Toggle drawer -->
-  <script>
-  (function(){
-    const btn = document.getElementById('menuBtn');
-    const drawer = document.getElementById('drawer');
-    const backdrop = document.getElementById('backdrop');
-    const open = () => { drawer.style.transform='translateX(0)'; backdrop.style.display='block'; };
-    const close= () => { drawer.style.transform='translateX(-105%)'; backdrop.style.display='none'; };
-    btn.addEventListener('click', open);
-    backdrop.addEventListener('click', close);
-  })();
-  </script>
+  <!-- FAB hamburger in basso a sinistra -->
+  <button id="fabMenu" class="fab" aria-label="Apri menu">☰</button>
 
   <!-- Form -->
   <label>Data</label>
@@ -150,8 +255,8 @@
   </button>
   <div id="msg" role="status" aria-live="polite"></div>
 
-  <!-- Versione app -->
-  <div class="muted">Versione: <span id="appVersion" class="badge"></span></div>
+  <!-- Versione centrata -->
+  <div class="version-footer muted">Versione: <span id="appVersion" class="badge"></span></div>
 
   <!-- Loader -->
   <div id="loaderOverlay" class="loading-overlay" aria-hidden="true" aria-live="polite" aria-busy="false">
@@ -159,16 +264,14 @@
   </div>
 
   <!-- Overlay full-screen per lista.html -->
-  <iframe id="pageFrame" style="
-    position:fixed; inset:0; width:100vw; height:100vh; border:0;
-    display:none; background:#fff; z-index:9999;
-  "></iframe>
+  <iframe id="pageFrame"></iframe>
 
 <script>
+/* ====================== CONFIG ====================== */
 const ENDPOINT = 'https://script.google.com/macros/s/AKfycbwFKEfcSLjdXSodQtDiIyhHPXskdLdOZ9PXTc0Dt5dlXIFxu8hhb80UwrSJpWqmzv-w/exec';
 const SECRET   = 'aX4P-92kLq-55T8b-7Hc0Z';
 
-/* VERSIONE */
+/* ====================== VERSIONE ===================== */
 function formatVersionFromDate(d) {
   const pad = n => String(n).padStart(2,'0');
   return `${d.getFullYear()}.${pad(d.getMonth()+1)}.${pad(d.getDate())}-${pad(d.getHours())}:${pad(d.getMinutes())}`;
@@ -185,9 +288,52 @@ function showAppVersion() {
   if (el) el.textContent = computeAppVersion();
 }
 
-/* NAV FULL-SCREEN lista.html */
+/* ====================== DRAWER ======================= */
 (function(){
-  // cache-busting versione index
+  const drawer   = document.getElementById('drawer');
+  const backdrop = document.getElementById('backdrop');
+  const openBtns = [document.getElementById('menuBtn'), document.getElementById('fabMenu')];
+  const closeBtn = document.getElementById('closeDrawer');
+
+  const open = () => {
+    drawer.style.transform = 'translateX(0)';
+    drawer.setAttribute('aria-hidden','false');
+    backdrop.style.display = 'block';
+    backdrop.setAttribute('aria-hidden','false');
+  };
+  const close = () => {
+    drawer.style.transform = 'translateX(-105%)';
+    drawer.setAttribute('aria-hidden','true');
+    backdrop.style.display = 'none';
+    backdrop.setAttribute('aria-hidden','true');
+  };
+
+  openBtns.forEach(b => b && b.addEventListener('click', open));
+  backdrop.addEventListener('click', close);
+  closeBtn && closeBtn.addEventListener('click', close);
+
+  // ESC per chiudere
+  addEventListener('keydown', e => { if (e.key === 'Escape') close(); });
+})();
+
+/* ========== TEMA: toggle + propagazione a lista.html ========== */
+(function(){
+  const btn = document.getElementById('themeToggle');
+  function applyTheme(t){
+    document.documentElement.setAttribute('data-theme', t);
+    try { localStorage.setItem('theme', t); } catch(e){}
+    // Propaga all'iframe (se aperto)
+    try { document.getElementById('pageFrame').contentWindow?.postMessage(`theme:${t}`, '*'); } catch(e){}
+  }
+  btn?.addEventListener('click', () => {
+    const current = document.documentElement.getAttribute('data-theme') || 'light';
+    applyTheme(current === 'light' ? 'dark' : 'light');
+  });
+})();
+
+/* ======== NAV FULL-SCREEN verso lista.html (stile Pellet) ======== */
+(function(){
+  // cache-busting con versione index
   const d = new Date(document.lastModified);
   const pad = n => String(n).padStart(2,'0');
   const vIndex = isNaN(d) ? 'dev'
@@ -201,11 +347,21 @@ function showAppVersion() {
   const backdrop  = document.getElementById('backdrop');
 
   function openFrame(url){
-    if (drawer)  drawer.style.transform = 'translateX(-105%)';
-    if (backdrop) backdrop.style.display = 'none';
+    // chiudi drawer e mostra overlay a schermo intero
+    if (drawer){ drawer.style.transform = 'translateX(-105%)'; drawer.setAttribute('aria-hidden','true'); }
+    if (backdrop){ backdrop.style.display = 'none'; backdrop.setAttribute('aria-hidden','true'); }
+
     frame.src = url;
     frame.style.display = 'block';
-    history.pushState({page:'lista'}, '', '#lista'); // back chiude overlay
+
+    // Stato cronologia: back chiude overlay
+    history.pushState({page:'lista'}, '', '#lista');
+
+    // Propaga il tema attuale alla lista
+    const t = document.documentElement.getAttribute('data-theme') || 'light';
+    setTimeout(() => {
+      try { frame.contentWindow?.postMessage(`theme:${t}`, '*'); } catch(e){}
+    }, 150);
   }
 
   function closeFrame(){
@@ -215,7 +371,7 @@ function showAppVersion() {
   }
 
   if (linkLista) {
-    linkLista.href = urlLista;                 // fallback se non in PWA
+    linkLista.href = urlLista;                 // fallback se aperto fuori PWA
     linkLista.setAttribute('target','_self');
     linkLista.addEventListener('click', (e) => {
       e.preventDefault();
@@ -223,7 +379,7 @@ function showAppVersion() {
     });
   }
 
-  // back (swipe/←) chiude overlay
+  // Back (swipe/←) chiude overlay
   window.addEventListener('popstate', () => {
     if (frame.style.display === 'block') {
       frame.style.display = 'none';
@@ -231,13 +387,13 @@ function showAppVersion() {
     }
   });
 
-  // chiusura richiesta da lista.html
+  // Richiesta di chiusura da lista.html
   window.addEventListener('message', (ev) => {
     if (ev && ev.data === 'close-lista') closeFrame();
   });
 })();
 
-/* POPOLA IMPORTO */
+/* ====================== POPOLA IMPORTO ===================== */
 function initImportoOptions() {
   const select = document.getElementById('importo');
   for (let i=5; i<=100; i+=5) {
@@ -248,14 +404,14 @@ function initImportoOptions() {
   }
 }
 
-/* DATA DEFAULT */
+/* ====================== DATA DEFAULT ======================= */
 function initDate(){
   const d = new Date();
   const pad = n => String(n).padStart(2, '0');
   document.getElementById('data').value = `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
 }
 
-/* STAZIONI */
+/* ====================== STAZIONI =========================== */
 async function initStations() {
   const sel = document.getElementById('stazione');
   sel.length = 1;
@@ -265,9 +421,9 @@ async function initStations() {
     if (data && data.ok && Array.isArray(data.stations)) {
       data.stations.forEach(st => {
         const opt = document.createElement('option');
-        opt.value = st.label;
+        opt.value = st.label;          // label UPPERCASE
         opt.textContent = st.label;
-        opt.dataset.id = st.id;
+        opt.dataset.id = st.id;        // ID_IMPIANTO
         sel.appendChild(opt);
       });
       return;
@@ -293,7 +449,7 @@ function addFallbackStations(sel) {
   });
 }
 
-/* LOADER */
+/* ====================== LOADER ============================= */
 const saveBtn = document.getElementById('saveBtn');
 const btnText = saveBtn.querySelector('.btn-text');
 const loaderOverlay = document.getElementById('loaderOverlay');
@@ -320,7 +476,7 @@ function setLoading(isLoading) {
   });
 }
 
-/* INVIO FORM */
+/* ====================== INVIO FORM ========================= */
 async function sendForm(data) {
   const params = new URLSearchParams(data);
   const res = await fetch(ENDPOINT, {
@@ -337,11 +493,11 @@ async function onSaveClick() {
 
   const data = document.getElementById('data').value;
   let importo = String(document.getElementById('importo').value).replace(',', '.');
-  let prezzo = String(document.getElementById('prezzo').value).replace(',', '.');
-  let litri = String(document.getElementById('litri').value).replace(',', '.');
+  let prezzo  = String(document.getElementById('prezzo').value).replace(',', '.');
+  let litri   = String(document.getElementById('litri').value).replace(',', '.');
 
   const stSel = document.getElementById('stazione');
-  const stazione = stSel.value;
+  const stazione   = stSel.value;
   const stazioneId = stSel.options[stSel.selectedIndex]?.dataset?.id || '';
   const km = document.getElementById('km').value;
 
@@ -375,7 +531,7 @@ async function onSaveClick() {
   }
 }
 
-/* BOOT */
+/* ====================== BOOT ============================== */
 document.addEventListener('DOMContentLoaded', () => {
   showAppVersion();
   initImportoOptions();
@@ -384,7 +540,7 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('saveBtn').addEventListener('click', onSaveClick);
 });
 
-// ricarica se riaperta dal bfcache
+/* Evita bfcache stale quando l’app torna in foreground */
 addEventListener('pageshow', e => e.persisted && location.reload());
 </script>
 </body>
