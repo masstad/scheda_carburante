@@ -238,6 +238,68 @@
   body.drawer-open .fab-menu, body.frame-open .fab-menu{
     opacity: 0; pointer-events: none; transform: translateY(8px);
   }
+
+  /* Riga 50/50 per Importo + toggle "Scheda carburante" */
+.form-row-5050{
+  display: grid;
+  grid-template-columns: 1fr 1fr;   /* 50% / 50% */
+  gap: var(--space);
+  align-items: end;                  /* allinea il toggle al fondo */
+}
+
+/* Colonna destra: etichetta sopra e toggle sotto */
+.toggle-col{
+  display: flex;
+  flex-direction: column;
+}
+
+/* Toggle switch accessibile */
+.switch{
+  position: relative;
+  width: 52px; height: 30px;
+  display: inline-block;
+}
+.switch input{
+  position: absolute;
+  inset: 0;
+  width: 100%; height: 100%;
+  opacity: 0;                        /* nascondo il checkbox, resta focusabile */
+  cursor: pointer;
+}
+.switch .track{
+  position: absolute;
+  inset: 0;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+  transition: background .15s ease, border-color .15s ease;
+}
+.switch .thumb{
+  position: absolute;
+  top: 2px; left: 2px;
+  width: 26px; height: 26px;
+  border-radius: 50%;
+  background: var(--text);
+  transition: transform .18s ease;
+}
+
+/* Stato ON */
+.switch input:checked + .track{
+  background: rgba(0, 160, 90, .15);
+  border-color: #22c55e;
+}
+.switch input:checked + .track .thumb{
+  transform: translateX(22px);
+}
+
+/* Focus visibile e accessibile */
+.switch input:focus-visible + .track{
+  outline: 2px solid #2684ff;
+  outline-offset: 2px;
+}
+
+    
 </style>
 
 </head>
@@ -268,10 +330,26 @@
   <label>Data</label>
   <input id="data" type="date" required>
 
-  <label>Importo (€)</label>
-  <select id="importo" required>
-    <option value="">Seleziona importo</option>
-  </select>
+  <div class="form-row-5050">
+  <!-- 50% sinistra: Importo -->
+  <div>
+    <label for="importo">Importo (€)</label>
+    <select id="importo" required>
+      <option value="">Seleziona importo</option>
+      <!-- Le opzioni verranno comunque popolate via JS come già fai -->
+    </select>
+  </div>
+
+  <!-- 50% destra: label + toggle -->
+  <div class="toggle-col">
+    <label for="schedaToggle">Scheda carburante</label>
+    <label class="switch" aria-label="Scheda carburante on/off">
+      <input id="schedaToggle" type="checkbox" role="switch" aria-checked="false">
+      <span class="track"><span class="thumb"></span></span>
+    </label>
+  </div>
+</div>
+
 
   <label>Prezzo al litro (€)</label>
   <input id="prezzo" type="text" inputmode="numeric" placeholder="es. 1,619" required>
@@ -620,4 +698,5 @@ addEventListener('pageshow', e => e.persisted && location.reload());
 </script>
 </body>
 </html>
+
 
