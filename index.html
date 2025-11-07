@@ -29,44 +29,33 @@
     }
     .ok { color: green; margin-top: 8px; }
     .err { color: #b00020; margin-top: 8px; }
-    .muted { color: #666; font-size: 12px; margin-top: 6px; }
+    .muted { color: #666; font-size: 12px; }
     .badge {
       display: inline-block; font-size: 12px; padding: 2px 8px;
       border-radius: 999px; border: 1px solid #aaa; margin-left: 8px;
     }
 
-    /* ───────── Loader overlay ───────── */
+    /* Loader overlay */
     .loading-overlay {
-      position: fixed;
-      inset: 0;
-      background: rgba(255,255,255,0.75);
-      display: none;              /* mostrata via JS */
-      align-items: center;
-      justify-content: center;
-      z-index: 9999;
-      backdrop-filter: blur(2px);
+      position: fixed; inset: 0; background: rgba(255,255,255,0.75);
+      display: none; align-items: center; justify-content: center;
+      z-index: 9999; backdrop-filter: blur(2px);
     }
     .loading-overlay[aria-hidden="false"] { display: flex; }
     .spinner {
-      width: 38px; height: 38px;
-      border: 3px solid rgba(0,0,0,0.2);
-      border-top-color: rgba(0,0,0,0.7);
-      border-radius: 50%;
+      width: 38px; height: 38px; border: 3px solid rgba(0,0,0,0.2);
+      border-top-color: rgba(0,0,0,0.7); border-radius: 50%;
       animation: spin 0.9s linear infinite;
     }
     @keyframes spin { to { transform: rotate(360deg); } }
-
-    /* ───────── Spinner inline sul bottone ───────── */
     .btn-spinner {
-      width: 16px; height: 16px;
-      border: 2px solid rgba(0,0,0,0.2);
-      border-top-color: rgba(0,0,0,0.7);
-      border-radius: 50%;
+      width: 16px; height: 16px; border: 2px solid rgba(0,0,0,0.2);
+      border-top-color: rgba(0,0,0,0.7); border-radius: 50%;
       animation: spin 0.8s linear infinite;
     }
     button[disabled] { opacity: 0.7; cursor: not-allowed; }
 
-    /* ───────── Topbar + Drawer (come Pellet) ───────── */
+    /* Topbar + Drawer (stile Pellet) */
     .topbar{
       display:grid;
       grid-template-columns:48px 1fr 48px; /* [hamburger][titolo][spazio] */
@@ -90,36 +79,31 @@
     }
     .drawer{
       position:fixed; inset:0 35% 0 0;
-      max-width:280px;
-      background:#fff;
-      border-right:1px solid #eee;
-      transform:translateX(-105%);
-      transition:transform .2s ease;
-      z-index:9998;
-      padding:16px;
+      max-width:280px; background:#fff; border-right:1px solid #eee;
+      transform:translateX(-105%); transition:transform .2s ease;
+      z-index:9998; padding:16px;
     }
     .backdrop{
-      position:fixed; inset:0;
-      background:rgba(0,0,0,.15);
-      display:none;
-      z-index:9997;
+      position:fixed; inset:0; background:rgba(0,0,0,.15);
+      display:none; z-index:9997;
     }
   </style>
 </head>
 
 <body>
 
-  <!-- ─── Top bar con hamburger + titolo centrato ───────────────── -->
+  <!-- Top bar -->
   <header class="topbar">
     <button id="menuBtn" class="menu-btn" aria-label="Apri menu">☰</button>
     <h2 class="title">⛽️ Carburante</h2>
     <span aria-hidden="true"></span>
   </header>
 
-  <!-- Drawer identico al Pellet -->
+  <!-- Drawer -->
   <nav id="drawer" class="drawer">
     <h3 style="margin-top:0;">Menu</h3>
     <ul style="list-style:none;padding:0;margin:0;">
+      <!-- ✅ questo link apre lista.html in overlay full-screen -->
       <li><a id="goLista" href="lista.html">📄 Lista movimenti</a></li>
     </ul>
   </nav>
@@ -138,7 +122,7 @@
   })();
   </script>
 
-  <!-- ─── Form originale ───────────────────────────────────────── -->
+  <!-- Form -->
   <label>Data</label>
   <input id="data" type="date" required>
 
@@ -169,25 +153,22 @@
   <!-- Versione app -->
   <div class="muted">Versione: <span id="appVersion" class="badge"></span></div>
 
-  <!-- Overlay globale -->
+  <!-- Loader -->
   <div id="loaderOverlay" class="loading-overlay" aria-hidden="true" aria-live="polite" aria-busy="false">
     <div class="spinner" role="progressbar" aria-label="Salvataggio in corso"></div>
   </div>
 
-  <!-- ╭──────────────────── overlay full-screen per lista.html ───────────────────╮ -->
+  <!-- Overlay full-screen per lista.html -->
   <iframe id="pageFrame" style="
     position:fixed; inset:0; width:100vw; height:100vh; border:0;
     display:none; background:#fff; z-index:9999;
   "></iframe>
-  <!-- ╰───────────────────────────────────────────────────────────────────────────╯ -->
 
 <script>
 const ENDPOINT = 'https://script.google.com/macros/s/AKfycbwFKEfcSLjdXSodQtDiIyhHPXskdLdOZ9PXTc0Dt5dlXIFxu8hhb80UwrSJpWqmzv-w/exec';
 const SECRET   = 'aX4P-92kLq-55T8b-7Hc0Z';
 
-/*───────────────────────────────*
- *   VERSIONING                  *
- *───────────────────────────────*/
+/* VERSIONE */
 function formatVersionFromDate(d) {
   const pad = n => String(n).padStart(2,'0');
   return `${d.getFullYear()}.${pad(d.getMonth()+1)}.${pad(d.getDate())}-${pad(d.getHours())}:${pad(d.getMinutes())}`;
@@ -195,22 +176,18 @@ function formatVersionFromDate(d) {
 function computeAppVersion() {
   const qs = new URLSearchParams(location.search);
   const v = qs.get('v');
-  if (v) return v;                            // override manuale: ?v=YYYY.MM.DD-HH:MM
-  const d = new Date(document.lastModified);  // timestamp del file servito
-  if (!isNaN(d)) return formatVersionFromDate(d);
-  return 'dev';
+  if (v) return v;
+  const d = new Date(document.lastModified);
+  return isNaN(d) ? 'dev' : formatVersionFromDate(d);
 }
 function showAppVersion() {
   const el = document.getElementById('appVersion');
   if (el) el.textContent = computeAppVersion();
-  console.log('[App] Versione:', computeAppVersion());
 }
 
-/*───────────────────────────────*
- *   NAV FULL-SCREEN lista.html  *
- *───────────────────────────────*/
+/* NAV FULL-SCREEN lista.html */
 (function(){
-  // versione da passare a lista.html (per cache-busting e label)
+  // cache-busting versione index
   const d = new Date(document.lastModified);
   const pad = n => String(n).padStart(2,'0');
   const vIndex = isNaN(d) ? 'dev'
@@ -224,35 +201,29 @@ function showAppVersion() {
   const backdrop  = document.getElementById('backdrop');
 
   function openFrame(url){
-    // chiudi il drawer, apri overlay a schermo intero
     if (drawer)  drawer.style.transform = 'translateX(-105%)';
     if (backdrop) backdrop.style.display = 'none';
-
     frame.src = url;
     frame.style.display = 'block';
-
-    // Aggiungi stato in history: back chiuderà l’overlay
-    history.pushState({page:'lista'}, '', '#lista');
+    history.pushState({page:'lista'}, '', '#lista'); // back chiude overlay
   }
 
   function closeFrame(){
     frame.style.display = 'none';
     frame.src = 'about:blank';
-    // Normalizza l'URL se siamo su #lista
     if (location.hash === '#lista') history.back();
   }
 
-  // Click su “Lista movimenti” -> apri overlay, non navigare Safari
   if (linkLista) {
-    linkLista.href = urlLista;              // fallback se aperto fuori PWA
+    linkLista.href = urlLista;                 // fallback se non in PWA
     linkLista.setAttribute('target','_self');
     linkLista.addEventListener('click', (e) => {
       e.preventDefault();
-      openFrame(urlLista);                  // ✅ sempre full-screen
+      openFrame(urlLista);                     // ✅ sempre full-screen
     });
   }
 
-  // Tasto back (swipe/←) chiude l’overlay se visibile
+  // back (swipe/←) chiude overlay
   window.addEventListener('popstate', () => {
     if (frame.style.display === 'block') {
       frame.style.display = 'none';
@@ -260,15 +231,13 @@ function showAppVersion() {
     }
   });
 
-  // Consenti a lista.html di chiedere la chiusura (da lì: window.top.postMessage('close-lista','*'))
+  // chiusura richiesta da lista.html
   window.addEventListener('message', (ev) => {
     if (ev && ev.data === 'close-lista') closeFrame();
   });
 })();
 
-/*───────────────────────────────*
- *   POPOLA MENU IMPORTO         *
- *───────────────────────────────*/
+/* POPOLA IMPORTO */
 function initImportoOptions() {
   const select = document.getElementById('importo');
   for (let i=5; i<=100; i+=5) {
@@ -279,38 +248,32 @@ function initImportoOptions() {
   }
 }
 
-/*───────────────────────────────*
- *   DATA ODIERNA DI DEFAULT     *
- *───────────────────────────────*/
+/* DATA DEFAULT */
 function initDate(){
   const d = new Date();
   const pad = n => String(n).padStart(2, '0');
   document.getElementById('data').value = `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
 }
 
-/*───────────────────────────────*
- *   CARICA STAZIONI (UPPERCASE) *
- *───────────────────────────────*/
+/* STAZIONI */
 async function initStations() {
   const sel = document.getElementById('stazione');
-  sel.length = 1; // lascia solo il placeholder
+  sel.length = 1;
   try {
     const res = await fetch(`${ENDPOINT}?action=stazioni&secret=${encodeURIComponent(SECRET)}`);
     const data = await res.json();
     if (data && data.ok && Array.isArray(data.stations)) {
       data.stations.forEach(st => {
         const opt = document.createElement('option');
-        opt.value = st.label;       // label UPPERCASE
+        opt.value = st.label;
         opt.textContent = st.label;
-        opt.dataset.id = st.id;     // ID_IMPIANTO
+        opt.dataset.id = st.id;
         sel.appendChild(opt);
       });
       return;
     }
-    console.warn('Risposta non valida, uso fallback statico');
     addFallbackStations(sel);
-  } catch (err) {
-    console.warn('Errore di rete, uso fallback statico', err);
+  } catch {
     addFallbackStations(sel);
   }
 }
@@ -330,17 +293,13 @@ function addFallbackStations(sel) {
   });
 }
 
-/*───────────────────────────────*
- *   LOADER UTILS                *
- *───────────────────────────────*/
+/* LOADER */
 const saveBtn = document.getElementById('saveBtn');
 const btnText = saveBtn.querySelector('.btn-text');
 const loaderOverlay = document.getElementById('loaderOverlay');
-
 function setLoading(isLoading) {
   loaderOverlay.setAttribute('aria-hidden', String(!isLoading));
   loaderOverlay.setAttribute('aria-busy', String(isLoading));
-
   saveBtn.disabled = isLoading;
   saveBtn.setAttribute('aria-busy', String(isLoading));
   if (isLoading) {
@@ -356,14 +315,12 @@ function setLoading(isLoading) {
     if (s) s.remove();
     btnText.textContent = 'Salva';
   }
-
-  const controls = document.querySelectorAll('input, select, button');
-  controls.forEach(el => { if (el !== saveBtn) el.disabled = isLoading; });
+  document.querySelectorAll('input, select, button').forEach(el => {
+    if (el !== saveBtn) el.disabled = isLoading;
+  });
 }
 
-/*───────────────────────────────*
- *   INVIO FORM                  *
- *───────────────────────────────*/
+/* INVIO FORM */
 async function sendForm(data) {
   const params = new URLSearchParams(data);
   const res = await fetch(ENDPOINT, {
@@ -373,7 +330,6 @@ async function sendForm(data) {
   });
   return res.json();
 }
-
 async function onSaveClick() {
   const msg = document.getElementById('msg');
   msg.textContent = '';
@@ -385,7 +341,7 @@ async function onSaveClick() {
   let litri = String(document.getElementById('litri').value).replace(',', '.');
 
   const stSel = document.getElementById('stazione');
-  const stazione = stSel.value;                       // label UPPERCASE
+  const stazione = stSel.value;
   const stazioneId = stSel.options[stSel.selectedIndex]?.dataset?.id || '';
   const km = document.getElementById('km').value;
 
@@ -395,12 +351,7 @@ async function onSaveClick() {
   if (!litri || Number(litri) <= 0){ msg.textContent='Litri non validi.'; msg.className='err'; return; }
   if (!stazione){ msg.textContent='Seleziona una stazione.'; msg.className='err'; return; }
 
-  const payload = {
-    secret: SECRET,
-    data, importo, prezzo, litri,
-    stazione, stazioneId,
-    km
-  };
+  const payload = { secret: SECRET, data, importo, prezzo, litri, stazione, stazioneId, km };
 
   try {
     setLoading(true);
@@ -424,9 +375,7 @@ async function onSaveClick() {
   }
 }
 
-/*───────────────────────────────*
- *   BOOT                        *
- *───────────────────────────────*/
+/* BOOT */
 document.addEventListener('DOMContentLoaded', () => {
   showAppVersion();
   initImportoOptions();
@@ -435,7 +384,7 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('saveBtn').addEventListener('click', onSaveClick);
 });
 
-// (opzionale ma utile) ricarica se riaperta da bfcache
+// ricarica se riaperta dal bfcache
 addEventListener('pageshow', e => e.persisted && location.reload());
 </script>
 </body>
