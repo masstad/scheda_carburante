@@ -236,11 +236,17 @@
     <option value="">Seleziona importo</option>
   </select>
 
+  <!-- Prezzo al litro (€) — POS a 3 decimali -->
   <label>Prezzo al litro (€)</label>
-  <input id="prezzo" type="number" inputmode="decimal" step="0.001" placeholder="es. 1,619" required>
+  <input id="prezzo" type="text" inputmode="numeric"
+         pattern="\\d+(?:[\\.,]\\d{1,3})?"
+         placeholder="es. 1,619" required>
 
+  <!-- Litri — POS a 2 decimali -->
   <label>Litri</label>
-  <input id="litri" type="number" inputmode="decimal" step="0.01" placeholder="es. 25,75" required>
+  <input id="litri" type="text" inputmode="numeric"
+         pattern="\\d+(?:[\\.,]\\d{1,2})?"
+         placeholder="es. 25,75" required>
 
   <label>Stazione</label>
   <select id="stazione" required>
@@ -476,6 +482,68 @@ function setLoading(isLoading) {
   });
 }
 
+// Converte "cifre" in display con virgola, p.es. (dec=3): "1619" -> "1,619"
+function formatPosDisplayFromDigits(digits, dec) {
+  if (!digits) return '';
+  digits = digits.replace(/^0+/, '') || '0';
+  if (dec <= 0) return digits;
+
+  if (digits.length <= dec) {
+    const z = '0'.repeat(dec - digits.length);
+    return `0,${z}${digits}`;
+  }
+  const intPart = digits.slice(0, -dec);
+  const decPart = digits.slice(-dec);
+  return `${intPart},${decPart}`;
+}
+
+// "digits" -> numero normalizzato con PUNTO e dec decimali, p.es. (dec=3): "1619" -> "1.619"
+function normalizedFromDigits(digits, dec) {
+  if (!/^\d+$/.test(digits)) return null;
+  if (dec <= 0) return String(Number(digits)); // niente decimali
+  const n = Number(digits) / Math.pow(10, dec);
+  return n.toFixed(dec); // string
+}
+
+// Parser “smart” che accetta: solo cifre (POS) oppure formati classici con ,/. (limita a 'dec' decimali)
+function parseMoneySmart(value, dec) {
+  const raw = String(value || '').trim();
+  if (raw === '') return null;
+  if (/^\d+$/.test(raw)) return normalizedFromDigits(raw, dec);      // solo cifre -> centesimi/millesimi
+  const s = raw.replace(',', '.');
+  const re = new RegExp(`^\\d+(?:\\.\\d{1,${dec}})?$`);
+  if (!re.test(s)) return null;
+  const n = Number(s);
+  if (!isFinite(n)) return null;
+  return n.toFixed(dec);
+}
+
+// Gestore “live POS”: mantiene solo cifre, aggiorna display con virgola ad ogni input
+function attachPosMoney(el, dec, { onChange } = {}) {
+  el.addEventListener('input', () => {
+    const digits = (el.value || '').replace(/\D/g, '');
+    const display = formatPosDisplayFromDigits(digits, dec);
+
+    // mantieni il cursore alla fine (comportamento tipico su mobile)
+    const keepEnd = document.activeElement === el;
+    el.value = display;
+    if (keepEnd) {
+      try { el.setSelectionRange(el.value.length, el.value.length); } catch {}
+    }
+
+    if (typeof onChange === 'function') {
+      onChange(digits ? normalizedFromDigits(digits, dec) : null);
+    }
+  });
+
+  // normalizza a blur (garantisce i decimali corretti)
+  el.addEventListener('blur', () => {
+    const norm = parseMoneySmart(el.value, dec);
+    if (norm !== null) el.value = norm.replace('.', ','); // visualizza con virgola
+  });
+}
+
+
 /* ====================== INVIO FORM ========================= */
 async function sendForm(data) {
   const params = new URLSearchParams(data);
@@ -486,15 +554,21 @@ async function sendForm(data) {
   });
   return res.json();
 }
+  
 async function onSaveClick() {
   const msg = document.getElementById('msg');
   msg.textContent = '';
   msg.className = '';
 
   const data = document.getElementById('data').value;
-  let importo = String(document.getElementById('importo').value).replace(',', '.');
-  let prezzo  = String(document.getElementById('prezzo').value).replace(',', '.');
-  let litri   = String(document.getElementById('litri').value).replace(',', '.');
+
+  // ⬇️ usa i parser POS-aware
+  const importoRaw = document.getElementById('importo').value;
+  const prezzoRaw  = document.getElementById('prezzo').value;
+  const litriRaw   = document.getElementById('litri').value;
+
+  const prezzoNorm = parseMoneySmart(prezzoRaw, 3); // "1.619"
+  const litriNorm  = parseMoneySmart(litriRaw, 2);  // "25.75"
 
   const stSel = document.getElementById('stazione');
   const stazione   = stSel.value;
@@ -502,12 +576,22 @@ async function onSaveClick() {
   const km = document.getElementById('km').value;
 
   if (!data){ msg.textContent='Inserisci la data.'; msg.className='err'; return; }
-  if (!importo || Number(importo) <= 0){ msg.textContent='Seleziona un importo.'; msg.className='err'; return; }
-  if (!prezzo || Number(prezzo) <= 0){ msg.textContent='Prezzo non valido.'; msg.className='err'; return; }
-  if (!litri || Number(litri) <= 0){ msg.textContent='Litri non validi.'; msg.className='err'; return; }
+  if (!importoRaw){ msg.textContent='Seleziona un importo.'; msg.className='err'; return; }
+  if (prezzoNorm === null){ msg.textContent='Prezzo non valido.'; msg.className='err'; return; }
+  if (litriNorm === null){ msg.textContent='Litri non validi.'; msg.className='err'; return; }
   if (!stazione){ msg.textContent='Seleziona una stazione.'; msg.className='err'; return; }
 
-  const payload = { secret: SECRET, data, importo, prezzo, litri, stazione, stazioneId, km };
+  // Importo dal select: normalizza a "." se necessario
+  const importo = parseMoneySmart(importoRaw, 2) ?? String(importoRaw).replace(',', '.');
+
+  const payload = {
+    secret: SECRET,
+    data,
+    importo,          // es. "50.00"
+    prezzo: prezzoNorm, // es. "1.619"
+    litri: litriNorm,   // es. "25.75"
+    stazione, stazioneId, km
+  };
 
   try {
     setLoading(true);
@@ -531,12 +615,17 @@ async function onSaveClick() {
   }
 }
 
+
 /* ====================== BOOT ============================== */
 document.addEventListener('DOMContentLoaded', () => {
   showAppVersion();
   initImportoOptions();
   initDate();
   initStations();
+  const prezzoEl = document.getElementById('prezzo');
+  const litriEl  = document.getElementById('litri');
+  attachPosMoney(prezzoEl, 3);
+  attachPosMoney(litriEl, 2);
   document.getElementById('saveBtn').addEventListener('click', onSaveClick);
 });
 
@@ -545,3 +634,4 @@ addEventListener('pageshow', e => e.persisted && location.reload());
 </script>
 </body>
 </html>
+
