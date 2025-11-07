@@ -8,12 +8,12 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="apple-mobile-web-app-title" content="Carburante">
 
-  <!-- No-cache -->
+  <!-- No-cache per ridurre ambiguità tra versioni su GitHub Pages -->
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
 
-  <!-- Imposta il tema PRIMA del paint (come Pellet) -->
+  <!-- Imposta il tema PRIMA del paint, come in Pellet -->
   <script>
     (function(){
       try{
@@ -29,16 +29,18 @@
     :root{
       --space:14px;
 
-      /* Tema chiaro (default) */
-      --bg: #f3f4f6;
-      --text: #111827;
+      /* Tema chiaro identico a Pellet */
+      --bg:#ffffff;
+      --text:#111827;
       --muted:#6b7280;
       --surface:#ffffff;
       --border:#e5e7eb;
       --divider:#e5e7eb;
-      --btn-hover:#f7f7f7;
+      --btn-hover:#f9fafb;
       --primary:#1f2937;
       --shadow:0 1px 3px rgba(0,0,0,.06),0 1px 2px rgba(0,0,0,.03);
+
+      --radius:12px;
     }
     html[data-theme="dark"]{
       --bg:#0f1115;
@@ -51,177 +53,157 @@
       --primary:#e5e7eb;
       --shadow:0 1px 3px rgba(0,0,0,.4),0 1px 2px rgba(0,0,0,.3);
     }
-    body{ color-scheme: light dark; background:var(--bg); color:var(--text); }
-
-    * { box-sizing: border-box; }
-    html, body { width:100%; max-width:100%; overflow-x:hidden; margin:0; }
-
+    *{ box-sizing:border-box; }
+    html,body{ width:100%; max-width:100%; margin:0; overflow-x:hidden; }
     body{
       min-height:100dvh;
       padding: var(--space);
       font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
-      display:flex; flex-direction:column;
+      background: var(--bg);
+      color: var(--text);
+      color-scheme: light dark;
     }
 
-    /* Contenitore centrale */
-    .container { width:100%; max-width:920px; margin:0 auto; }
+    /* Contenitore centrato (come Pellet) */
+    .container{ width:100%; max-width:1200px; margin:0 auto; }
 
-    /* Topbar: hamburger + titolo centrato (come Pellet) */
+    /* Topbar con titolo centrato e hamburger sinistra (come Pellet) */
     .topbar{
       display:grid;
-      grid-template-columns:48px 1fr 48px;
+      grid-template-columns:48px 1fr 48px; /* [hamburger][titolo][spazio] */
       align-items:center;
       height:48px;
-      margin-bottom:14px;
+      margin-bottom:10px;
+    }
+    .title{
+      grid-column:2;
+      margin:0;
+      text-align:center;
+      font-size:22px;
+      font-weight:700;
     }
     .menu-btn{
       justify-self:start;
-      background:none;
+      background:#fff0;
       border:none;
       font-size:22px;
       line-height:1;
       padding:8px 12px;
       cursor:pointer;
-      color:var(--primary);
+      border-radius:999px;
+      box-shadow: var(--shadow);
+      background: var(--surface);
     }
-    .title{
-      margin:0;
-      font-size:22px;
-      text-align:center;
-      font-weight:700;
+
+    /* Pulsante hamburger flottante in basso a sinistra (come Pellet) */
+    .fab{
+      position: fixed; left: var(--space); bottom: calc(var(--space) + env(safe-area-inset-bottom));
+      width:40px; height:40px; border-radius:999px; display:flex; align-items:center; justify-content:center;
+      background: var(--surface); box-shadow: var(--shadow); border:1px solid var(--border);
+      cursor:pointer; z-index: 9996;
     }
 
     /* Drawer identico a Pellet */
     .drawer{
-      position:fixed; inset:0 65% 0 0;      /* lato sinistro, copre ~35% */
+      position:fixed; inset:0 35% 0 0;
       max-width:280px;
-      background:var(--surface);
+      background: var(--surface);
       border-right:1px solid var(--border);
       transform:translateX(-105%);
       transition:transform .2s ease;
       z-index:9998;
       padding:16px;
-      box-shadow:var(--shadow);
     }
+    .drawer h3{ margin:6px 0 14px; }
     .backdrop{
       position:fixed; inset:0;
       background:rgba(0,0,0,.15);
       display:none;
       z-index:9997;
     }
-    .drawer h3{ margin:4px 0 12px; }
-    .menu-list{ list-style:none; padding:0; margin:0 0 12px; }
-    .menu-item{
+    .tile{
       display:flex; align-items:center; gap:10px;
       padding:12px 14px;
       border:1px solid var(--border);
-      border-radius:12px;
-      background:var(--surface);
-      box-shadow:var(--shadow);
+      border-radius: var(--radius);
+      background: var(--surface);
+      box-shadow: var(--shadow);
+      text-decoration:none; color:inherit;
     }
-    .menu-item + .menu-item{ margin-top:10px; }
-    .menu-link{ text-decoration:none; color:inherit; display:flex; align-items:center; gap:10px; width:100%; }
-    .menu-emoji{ font-size:18px; }
-    .menu-text{ font-weight:600; }
-    .theme-tile{ cursor:pointer; user-select:none; }
-    .theme-tile:hover{ background:var(--btn-hover); }
+    .tile + .tile{ margin-top:12px; }
+    .muted{ color: var(--muted); font-size:12px; }
+    .divider{ height:1px; background: var(--divider); margin:12px 0; }
 
-    /* FAB “Chiudi” come Pellet */
-    .fab-close{
-      position:fixed; left:16px; bottom:16px;
-      background:var(--surface); color:var(--primary);
-      border:1px solid var(--border); border-radius:12px;
-      padding:10px 14px; box-shadow:var(--shadow);
-      z-index:9996; display:none;
+    label{ display:block; margin: 12px 0 6px; font-size:14px; }
+    input, select, textarea, button{
+      width:100%;
+      font-size:16px;
+      padding:12px 12px;
+      border:1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      background: var(--surface);
+      color: var(--text);
     }
-    .fab-close:active{ transform:translateY(1px); }
-
-    /* Form UI */
-    label { display:block; margin: 12px 0 6px; font-size: 14px; color:var(--primary); }
-    select, input, textarea, button {
-      width: 100%; font-size: 16px; padding: 10px; box-sizing: border-box;
-      border:1px solid var(--border); border-radius:12px; background:var(--surface); color:var(--text);
-      box-shadow:var(--shadow);
+    input::placeholder, textarea::placeholder{ color: #9aa0a6; }
+    button{
+      margin-top:16px; display:inline-flex; align-items:center; justify-content:center; gap:8px;
+      cursor:pointer;
     }
-    select, input, textarea{ height: 44px; }
-    button {
-      margin-top: 16px;
-      display: inline-flex; align-items: center; justify-content: center; gap: 8px;
-      cursor: pointer;
-    }
-    button:hover{ background:var(--btn-hover); }
+    button:hover{ background: var(--btn-hover); }
     button[disabled]{ opacity:.7; cursor:not-allowed; }
 
-    .ok { color: #16a34a; margin-top: 8px; }
-    .err { color: #ef4444; margin-top: 8px; }
-    .muted { color: var(--muted); font-size: 12px; }
-
-    .badge {
-      display: inline-block; font-size: 12px; padding: 2px 8px;
-      border-radius: 999px; border: 1px solid var(--border);
-      background:var(--surface);
-      margin-left: 8px;
-      font-variant-numeric: tabular-nums;
+    .badge{
+      display:inline-block; font-size:12px; padding:2px 8px; border-radius:999px;
+      border:1px solid var(--border); margin-left:8px; font-variant-numeric: tabular-nums;
+      background: var(--surface);
     }
 
     /* Loader overlay */
-    .loading-overlay {
-      position: fixed; inset: 0; background: rgba(0,0,0,0.12);
-      display: none; align-items: center; justify-content: center;
-      z-index: 9999; backdrop-filter: blur(2px);
+    .loading-overlay{
+      position:fixed; inset:0; background: rgba(0,0,0,.12);
+      display:none; align-items:center; justify-content:center; z-index:9999; backdrop-filter: blur(1px);
     }
-    .loading-overlay[aria-hidden="false"] { display: flex; }
-    .spinner {
-      width: 38px; height: 38px; border: 3px solid rgba(0,0,0,0.2);
-      border-top-color: rgba(0,0,0,0.7); border-radius: 50%;
+    .loading-overlay[aria-hidden="false"]{ display:flex; }
+    .spinner{
+      width:38px; height:38px; border:3px solid rgba(0,0,0,0.2);
+      border-top-color: rgba(0,0,0,0.7); border-radius:50%;
       animation: spin 0.9s linear infinite;
+      background: var(--surface);
     }
-    @keyframes spin { to { transform: rotate(360deg); } }
-    .btn-spinner {
-      width: 16px; height: 16px; border: 2px solid rgba(0,0,0,0.2);
-      border-top-color: rgba(0,0,0,0.7); border-radius: 50%;
+    @keyframes spin{ to{ transform: rotate(360deg); } }
+    .btn-spinner{
+      width:16px; height:16px; border:2px solid rgba(0,0,0,0.2);
+      border-top-color: rgba(0,0,0,0.7); border-radius:50%;
       animation: spin 0.8s linear infinite;
     }
 
-    /* Versione centrata */
+    /* Versione centrata in basso, come Pellet */
     .version-footer{
       text-align:center;
       padding: 10px 0 calc(10px + env(safe-area-inset-bottom));
       width:100%;
       color: var(--muted);
     }
+
+    /* iframe overlay full screen */
+    #pageFrame{
+      position:fixed; inset:0; width:100vw; height:100vh; border:0;
+      display:none; background:#fff; z-index:9999;
+    }
   </style>
 </head>
-
 <body>
-  <!-- Top bar -->
+
+  <!-- TOPBAR -->
   <header class="topbar container">
     <button id="menuBtn" class="menu-btn" aria-label="Apri menu">☰</button>
-    <h2 class="title">⛽️ Carburante</h2>
+    <h1 class="title">⛽️ Carburante</h1>
     <span aria-hidden="true"></span>
   </header>
 
-  <!-- Drawer (identico a Pellet) -->
-  <nav id="drawer" class="drawer" aria-label="Menu">
-    <h3>Menu</h3>
-    <ul class="menu-list">
-      <li class="menu-item">
-        <a id="goLista" class="menu-link" href="lista.html">
-          <span class="menu-emoji">📄</span>
-          <span class="menu-text">Lista movimenti</span>
-        </a>
-      </li>
-      <li class="menu-item theme-tile" id="themeTile" role="button" tabindex="0" aria-pressed="false" aria-label="Cambia tema">
-        <span class="menu-emoji" id="themeIcon">🌙</span>
-        <span class="menu-text" id="themeText">Tema scuro</span>
-      </li>
-    </ul>
-  </nav>
-  <div id="backdrop" class="backdrop" aria-hidden="true"></div>
-  <button id="fabClose" class="fab-close" type="button" aria-label="Chiudi menu">← Chiudi</button>
-
-  <!-- Form -->
-  <main class="container">
+  <!-- FORM -->
+  <main class="container" role="main">
     <label>Data</label>
     <input id="data" type="date" required>
 
@@ -244,33 +226,44 @@
     <label>Km</label>
     <input id="km" type="number" inputmode="numeric" placeholder="opzionale">
 
-    <button id="saveBtn">
-      <span class="btn-text">Salva</span>
-    </button>
+    <button id="saveBtn"><span class="btn-text">Salva</span></button>
     <div id="msg" role="status" aria-live="polite"></div>
 
     <!-- Versione -->
     <div class="version-footer">Versione: <span id="appVersion" class="badge"></span></div>
   </main>
 
+  <!-- Drawer identico a Pellet -->
+  <nav id="drawer" class="drawer" aria-hidden="true">
+    <h3>Menu</h3>
+    <a id="goLista" class="tile" href="lista.html">📄 Lista movimenti</a>
+
+    <div class="divider"></div>
+
+    <!-- Toggle tema identico a Pellet -->
+    <button id="themeToggle" class="tile" type="button" aria-label="Tema scuro / chiaro">🌙 Tema scuro</button>
+  </nav>
+  <div id="backdrop" class="backdrop" aria-hidden="true"></div>
+
+  <!-- FAB hamburger in basso a sinistra -->
+  <button id="fabMenu" class="fab" aria-label="Apri menu">☰</button>
+
+  <!-- Overlay full-screen per lista.html -->
+  <iframe id="pageFrame"></iframe>
+
   <!-- Loader -->
   <div id="loaderOverlay" class="loading-overlay" aria-hidden="true" aria-live="polite" aria-busy="false">
     <div class="spinner" role="progressbar" aria-label="Salvataggio in corso"></div>
   </div>
 
-  <!-- Overlay full-screen per lista.html -->
-  <iframe id="pageFrame" style="
-    position:fixed; inset:0; width:100vw; height:100vh; border:0;
-    display:none; background:#fff; z-index:9999;
-  "></iframe>
-
 <script>
-/* ====== CONFIG ====== */
+/* ====== CONFIG back-end ====== */
 const ENDPOINT = 'https://script.google.com/macros/s/AKfycbwFKEfcSLjdXSodQtDiIyhHPXskdLdOZ9PXTc0Dt5dlXIFxu8hhb80UwrSJpWqmzv-w/exec';
 const SECRET   = 'aX4P-92kLq-55T8b-7Hc0Z';
 
-/* ====== VERSIONE (badge) ====== */
-function formatVersionFromDate(d){const p=n=>String(n).padStart(2,'0');return`${d.getFullYear()}.${p(d.getMonth()+1)}.${p(d.getDate())}-${p(d.getHours())}:${p(d.getMinutes())}`;}
+/* ====== VERSIONE (come Pellet) ====== */
+function pad(n){ return String(n).padStart(2,'0'); }
+function formatVersionFromDate(d){ return `${d.getFullYear()}.${pad(d.getMonth()+1)}.${pad(d.getDate())}-${pad(d.getHours())}:${pad(d.getMinutes())}`; }
 function computeAppVersion(){
   const qs = new URLSearchParams(location.search);
   const v = qs.get('v');
@@ -283,76 +276,53 @@ function showAppVersion(){
   if (el) el.textContent = computeAppVersion();
 }
 
-/* ====== Drawer open/close (come Pellet) ====== */
+/* ====== Drawer identico a Pellet ====== */
 (function(){
-  const btn = document.getElementById('menuBtn');
+  const btnTop = document.getElementById('menuBtn');
+  const btnFab = document.getElementById('fabMenu');
   const drawer = document.getElementById('drawer');
   const backdrop = document.getElementById('backdrop');
-  const fabClose = document.getElementById('fabClose');
 
-  function open(){
-    drawer.style.transform='translateX(0)';
-    backdrop.style.display='block';
-    fabClose.style.display='block';
-  }
-  function close(){
-    drawer.style.transform='translateX(-105%)';
-    backdrop.style.display='none';
-    fabClose.style.display='none';
-  }
+  const open = () => { drawer.style.transform='translateX(0)'; backdrop.style.display='block'; drawer.setAttribute('aria-hidden','false'); };
+  const close= () => { drawer.style.transform='translateX(-105%)'; backdrop.style.display='none'; drawer.setAttribute('aria-hidden','true'); };
 
-  btn.addEventListener('click', open);
+  btnTop.addEventListener('click', open);
+  btnFab.addEventListener('click', open);
   backdrop.addEventListener('click', close);
-  fabClose.addEventListener('click', close);
-  addEventListener('keydown', e => { if (e.key === 'Escape') close(); });
-})();
 
-/* ====== Toggle tema (identico a Pellet) ====== */
-(function(){
-  const icon = document.getElementById('themeIcon');
-  const text = document.getElementById('themeText');
+  // Toggle tema (stesso comportamento di Pellet)
+  const toggleBtn = document.getElementById('themeToggle');
   function applyTheme(t){
     document.documentElement.setAttribute('data-theme', t);
     localStorage.setItem('theme', t);
-    // Aggiorna tessera
-    if (t === 'dark'){ icon.textContent = '🌞'; text.textContent = 'Tema chiaro'; }
-    else             { icon.textContent = '🌙'; text.textContent = 'Tema scuro'; }
-    // Propaga al frame lista.html se aperto
-    const frame = document.getElementById('pageFrame');
-    if (frame && frame.contentWindow){ frame.contentWindow.postMessage(`theme:${t}`,'*'); }
+    // avvisa eventuale iframe aperto
+    try{ document.getElementById('pageFrame').contentWindow?.postMessage(`theme:${t}`, '*'); }catch{}
+    toggleBtn.textContent = (t === 'dark') ? '🌞 Tema chiaro' : '🌙 Tema scuro';
   }
-  // stato iniziale
-  applyTheme(document.documentElement.getAttribute('data-theme') || 'light');
-
-  const tile = document.getElementById('themeTile');
-  tile.addEventListener('click', () => {
+  const current = document.documentElement.getAttribute('data-theme') || 'light';
+  applyTheme(current);
+  toggleBtn.addEventListener('click', () => {
     const next = (document.documentElement.getAttribute('data-theme') === 'dark') ? 'light' : 'dark';
     applyTheme(next);
   });
-  tile.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter' || e.key === ' '){ e.preventDefault(); tile.click(); }
-  });
 })();
 
-/* ====== NAV full-screen lista.html ====== */
+/* ====== NAV full-screen lista.html (come Pellet) ====== */
 (function(){
-  // versione da passare a lista.html (cache-busting e label)
   const d = new Date(document.lastModified);
-  const p = n=>String(n).padStart(2,'0');
-  const vIndex = isNaN(d) ? 'dev' : `${d.getFullYear()}.${p(d.getMonth()+1)}.${p(d.getDate())}-${p(d.getHours())}:${p(d.getMinutes())}`;
+  const vIndex = isNaN(d) ? 'dev' : `${d.getFullYear()}.${pad(d.getMonth()+1)}.${pad(d.getDate())}-${pad(d.getHours())}:${pad(d.getMinutes())}`;
   const urlLista = `lista.html?v=${encodeURIComponent(vIndex)}`;
 
   const linkLista = document.getElementById('goLista');
   const frame     = document.getElementById('pageFrame');
   const drawer    = document.getElementById('drawer');
   const backdrop  = document.getElementById('backdrop');
-  const fabClose  = document.getElementById('fabClose');
 
   function openFrame(url){
-    // chiudi drawer
-    drawer.style.transform='translateX(-105%)';
-    backdrop.style.display='none';
-    fabClose.style.display='none';
+    // chiudi drawer e apri overlay
+    drawer.style.transform = 'translateX(-105%)';
+    backdrop.style.display = 'none';
+    drawer.setAttribute('aria-hidden','true');
 
     frame.src = url;
     frame.style.display = 'block';
@@ -365,13 +335,15 @@ function showAppVersion(){
   }
 
   if (linkLista){
-    linkLista.href = urlLista;                 // fallback se fuori PWA
+    linkLista.href = urlLista; // fallback se aperto fuori PWA
     linkLista.setAttribute('target','_self');
-    linkLista.addEventListener('click', (e) => { e.preventDefault(); openFrame(urlLista); });
+    linkLista.addEventListener('click', (e) => {
+      e.preventDefault();
+      openFrame(urlLista);
+    });
   }
 
-  // back (swipe/←) chiude overlay
-  addEventListener('popstate', () => {
+  window.addEventListener('popstate', () => {
     if (frame.style.display === 'block') {
       frame.style.display = 'none';
       frame.src = 'about:blank';
@@ -379,16 +351,57 @@ function showAppVersion(){
   });
 
   // chiusura richiesta da lista.html
-  addEventListener('message', (ev) => { if (ev && ev.data === 'close-lista') closeFrame(); });
+  window.addEventListener('message', (ev) => {
+    if (ev && ev.data === 'close-lista') closeFrame();
+  });
 })();
 
+/* ====== Helpers “stile POS” ======
+   - attachPosMoney(el, decimals): mostra virgola live mentre digiti.
+   - es. 1619 -> "16,19" con decimals=2 ; 1619 -> "1,619" con decimals=3
+*/
+function formatPosFromDigits(digits, decimals){
+  if (!digits) return '';
+  digits = digits.replace(/^0+/, '') || '0';
+  if (decimals === 0) return digits;
+  if (digits.length <= decimals) return `0,${digits.padStart(decimals, '0')}`;
+  const intPart = digits.slice(0, -decimals);
+  const decPart = digits.slice(-decimals);
+  return `${intPart},${decPart}`;
+}
+function normalizedFromDigits(digits, decimals){
+  if (!/^\d+$/.test(digits)) return null;
+  const n = Number(digits) / Math.pow(10, decimals);
+  return n.toFixed(decimals); // con punto
+}
+function parseMoneySmart(value, maxDec=2){
+  const raw = String(value||'').trim();
+  if (raw === '') return null;
+  if (/^\d+$/.test(raw)) return normalizedFromDigits(raw, maxDec);
+  const s = raw.replace(',', '.');
+  if (!new RegExp(`^\\d+(\\.\\d{1,${maxDec}})?$`).test(s)) return null;
+  return Number(s).toFixed(maxDec);
+}
+function attachPosMoney(el, decimals){
+  el.addEventListener('input', () => {
+    const digits = (el.value || '').replace(/\D/g, '');
+    const display = formatPosFromDigits(digits, decimals);
+    const active = document.activeElement === el;
+    el.value = display;
+    if (active){
+      try{ el.setSelectionRange(el.value.length, el.value.length); }catch{}
+    }
+  });
+}
+
 /* ====== POPOLA IMPORTO ====== */
-function initImportoOptions() {
+function initImportoOptions(){
   const select = document.getElementById('importo');
-  for (let i=5; i<=100; i+=5) {
+  for (let i=5; i<=100; i+=5){
+    const v = i.toFixed(2).replace('.', ',');
     const opt = document.createElement('option');
-    opt.value = i.toFixed(2).replace('.', ',');
-    opt.textContent = i.toFixed(2).replace('.', ',');
+    opt.value = v;
+    opt.textContent = v;
     select.appendChild(opt);
   }
 }
@@ -396,18 +409,17 @@ function initImportoOptions() {
 /* ====== DATA DEFAULT ====== */
 function initDate(){
   const d = new Date();
-  const pad = n => String(n).padStart(2, '0');
   document.getElementById('data').value = `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
 }
 
 /* ====== STAZIONI ====== */
-async function initStations() {
+async function initStations(){
   const sel = document.getElementById('stazione');
   sel.length = 1;
-  try {
+  try{
     const res = await fetch(`${ENDPOINT}?action=stazioni&secret=${encodeURIComponent(SECRET)}`);
     const data = await res.json();
-    if (data && data.ok && Array.isArray(data.stations)) {
+    if (data && data.ok && Array.isArray(data.stations)){
       data.stations.forEach(st => {
         const opt = document.createElement('option');
         opt.value = st.label;
@@ -418,16 +430,16 @@ async function initStations() {
       return;
     }
     addFallbackStations(sel);
-  } catch {
+  }catch{
     addFallbackStations(sel);
   }
 }
-function addFallbackStations(sel) {
+function addFallbackStations(sel){
   const fallback = [
-    { id: 'ALTRO', label: 'Q8 - ALTRO' },
-    { id: 'ARDEATINA_558_ROMA', label: 'Q8 - VIA ARDEATINA 558 ROMA' },
-    { id: 'LANUVIO', label: 'Q8 - LANUVIO' },
-    { id: 'VELLETRI', label: 'Q8 - VELLETRI' }
+    { id:'ALTRO', label:'Q8 - ALTRO' },
+    { id:'ARDEATINA_558_ROMA', label:'Q8 - VIA ARDEATINA 558 ROMA' },
+    { id:'LANUVIO', label:'Q8 - LANUVIO' },
+    { id:'VELLETRI', label:'Q8 - VELLETRI' }
   ];
   fallback.forEach(st => {
     const opt = document.createElement('option');
@@ -442,20 +454,20 @@ function addFallbackStations(sel) {
 const saveBtn = document.getElementById('saveBtn');
 const btnText = saveBtn.querySelector('.btn-text');
 const loaderOverlay = document.getElementById('loaderOverlay');
-function setLoading(isLoading) {
+function setLoading(isLoading){
   loaderOverlay.setAttribute('aria-hidden', String(!isLoading));
   loaderOverlay.setAttribute('aria-busy', String(isLoading));
   saveBtn.disabled = isLoading;
   saveBtn.setAttribute('aria-busy', String(isLoading));
-  if (isLoading) {
-    if (!saveBtn.querySelector('.btn-spinner')) {
+  if (isLoading){
+    if (!saveBtn.querySelector('.btn-spinner')){
       const s = document.createElement('span');
       s.className = 'btn-spinner';
       s.setAttribute('aria-hidden', 'true');
       saveBtn.prepend(s);
     }
     btnText.textContent = 'Salvo…';
-  } else {
+  }else{
     const s = saveBtn.querySelector('.btn-spinner');
     if (s) s.remove();
     btnText.textContent = 'Salva';
@@ -465,88 +477,60 @@ function setLoading(isLoading) {
   });
 }
 
-/* ====== POS live (prezzo: 3 decimali, litri: 2 decimali) ====== */
-function formatPosDisplayFromDigits(digits, decimals){
-  if (!digits) return '';
-  digits = digits.replace(/^0+/, '') || '0';
-  if (digits.length <= decimals){
-    const pad = '0'.repeat(decimals - digits.length);
-    return `0,${pad}${digits}`;
-  }
-  const intPart = digits.slice(0, -decimals);
-  const decPart = digits.slice(-decimals);
-  return `${intPart},${decPart}`;
-}
-function normalizedFromDigits(digits, decimals){
-  if (!/^\d+$/.test(digits)) return null;
-  const n = Number(digits) / Math.pow(10, decimals);
-  return n.toFixed(decimals); // con punto
-}
-function attachPosMoney(el, decimals){
-  el.addEventListener('input', () => {
-    const onlyDigits = (el.value || '').replace(/\D/g, '');
-    const display = formatPosDisplayFromDigits(onlyDigits, decimals);
-    const keepEnd = document.activeElement === el;
-    el.value = display;
-    if (keepEnd){
-      try{ el.setSelectionRange(el.value.length, el.value.length); }catch{}
-    }
-  });
-}
-
 /* ====== INVIO FORM ====== */
-async function sendForm(data) {
+async function sendForm(data){
   const params = new URLSearchParams(data);
   const res = await fetch(ENDPOINT, {
-    method: 'POST',
-    headers: { 'Content-Type':'application/x-www-form-urlencoded;charset=UTF-8' },
+    method:'POST',
+    headers:{ 'Content-Type':'application/x-www-form-urlencoded;charset=UTF-8' },
     body: params.toString(),
   });
   return res.json();
 }
-async function onSaveClick() {
+async function onSaveClick(){
   const msg = document.getElementById('msg');
   msg.textContent = '';
   msg.className = '';
 
   const data = document.getElementById('data').value;
 
-  // Normalizza valori con virgola -> punto
+  // Valori normalizzati (con punto). POS: prezzo 3 dec, litri 2 dec
+  const prezzoNorm = parseMoneySmart(document.getElementById('prezzo').value, 3);
+  const litriNorm  = parseMoneySmart(document.getElementById('litri').value, 2);
+
   let importo = String(document.getElementById('importo').value).replace(',', '.');
-  let prezzo  = String(document.getElementById('prezzo').value).replace(',', '.');
-  let litri   = String(document.getElementById('litri').value).replace(',', '.');
 
   const stSel = document.getElementById('stazione');
-  const stazione = stSel.value;
+  const stazione   = stSel.value;
   const stazioneId = stSel.options[stSel.selectedIndex]?.dataset?.id || '';
   const km = document.getElementById('km').value;
 
   if (!data){ msg.textContent='Inserisci la data.'; msg.className='err'; return; }
   if (!importo || Number(importo) <= 0){ msg.textContent='Seleziona un importo.'; msg.className='err'; return; }
-  if (!prezzo || Number(prezzo) <= 0){ msg.textContent='Prezzo non valido.'; msg.className='err'; return; }
-  if (!litri || Number(litri) <= 0){ msg.textContent='Litri non validi.'; msg.className='err'; return; }
+  if (prezzoNorm === null || Number(prezzoNorm) <= 0){ msg.textContent='Prezzo non valido.'; msg.className='err'; return; }
+  if (litriNorm === null  || Number(litriNorm)  <= 0){ msg.textContent='Litri non validi.'; msg.className='err'; return; }
   if (!stazione){ msg.textContent='Seleziona una stazione.'; msg.className='err'; return; }
 
-  const payload = { secret: SECRET, data, importo, prezzo, litri, stazione, stazioneId, km };
+  const payload = { secret: SECRET, data, importo, prezzo:prezzoNorm, litri:litriNorm, stazione, stazioneId, km };
 
-  try {
+  try{
     setLoading(true);
     const out = await sendForm(payload);
-    if (out.ok) {
+    if (out.ok){
       msg.textContent = 'Salvato ✅';
       msg.className = 'ok';
       document.getElementById('prezzo').value='';
       document.getElementById('litri').value='';
       document.getElementById('importo').selectedIndex = 0;
       document.getElementById('stazione').selectedIndex = 0;
-    } else {
+    }else{
       msg.textContent='Errore di rete o autorizzazione.';
       msg.className='err';
     }
-  } catch {
+  }catch{
     msg.textContent='Sei offline. Dato non inviato.';
     msg.className='err';
-  } finally {
+  }finally{
     setLoading(false);
   }
 }
@@ -557,14 +541,15 @@ document.addEventListener('DOMContentLoaded', () => {
   initImportoOptions();
   initDate();
   initStations();
-  document.getElementById('saveBtn').addEventListener('click', onSaveClick);
 
-  // POS live
-  attachPosMoney(document.getElementById('prezzo'), 3); // 3 decimali
-  attachPosMoney(document.getElementById('litri'),  2); // 2 decimali
+  // Attiva “stile POS”: 3 decimali per prezzo, 2 per litri
+  attachPosMoney(document.getElementById('prezzo'), 3);
+  attachPosMoney(document.getElementById('litri'), 2);
+
+  document.getElementById('saveBtn').addEventListener('click', onSaveClick);
 });
 
-// ricarica se riaperta dal bfcache (per evitare vecchie versioni in PWA)
+// ricarica se riaperta dal bfcache (come Pellet)
 addEventListener('pageshow', e => e.persisted && location.reload());
 </script>
 </body>
