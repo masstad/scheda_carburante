@@ -5,15 +5,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Carburante</title>
   <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <meta name="apple-mobile-web-app-title" content="Carburante">
 
-  <!-- No-cache per ridurre ambiguità tra versioni su GitHub Pages -->
+  <!-- No-cache -->
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
 
-  <!-- Imposta il tema PRIMA del paint, come in Pellet -->
+  <!-- Imposta il tema prima del paint (identico a Pellet) -->
   <script>
     (function(){
       try{
@@ -29,239 +27,273 @@
     :root{
       --space:14px;
 
-      /* Tema chiaro identico a Pellet */
-      --bg:#ffffff;
-      --text:#111827;
-      --muted:#6b7280;
-      --surface:#ffffff;
-      --border:#e5e7eb;
-      --divider:#e5e7eb;
-      --btn-hover:#f9fafb;
-      --primary:#1f2937;
-      --shadow:0 1px 3px rgba(0,0,0,.06),0 1px 2px rgba(0,0,0,.03);
-
-      --radius:12px;
+      /* Tema chiaro (identico a Pellet) */
+      --bg: #ffffff;
+      --text: #111827;
+      --muted: #666666;
+      --surface: #ffffff;
+      --border: #dddddd;
+      --divider: #eeeeee;
+      --shadow: 0 2px 10px rgba(0,0,0,.08);
+      --btn-hover: #f7f7f7;
+      --spinner-track: rgba(0,0,0,0.2);
+      --spinner-head:  rgba(0,0,0,0.7);
     }
     html[data-theme="dark"]{
-      --bg:#0f1115;
-      --text:#e5e7eb;
-      --muted:#9aa0a6;
-      --surface:#151922;
-      --border:#2a2f3a;
-      --divider:#222834;
-      --btn-hover:#1b2130;
-      --primary:#e5e7eb;
-      --shadow:0 1px 3px rgba(0,0,0,.4),0 1px 2px rgba(0,0,0,.3);
+      --bg: #0f1115;
+      --text: #e5e7eb;
+      --muted: #9aa0a6;
+      --surface: #151922;
+      --border: #2a2f3a;
+      --divider: #222834;
+      --shadow: 0 2px 16px rgba(0,0,0,.35);
+      --btn-hover: #1b2130;
+      --spinner-track: rgba(255,255,255,0.2);
+      --spinner-head:  rgba(255,255,255,0.8);
     }
-    *{ box-sizing:border-box; }
-    html,body{ width:100%; max-width:100%; margin:0; overflow-x:hidden; }
-    body{
+    body{ color-scheme: light dark; }
+
+    /* === Reset + layout pagina (identico a Pellet) ======================= */
+    * { box-sizing: border-box; }
+    html, body { width:100%; max-width:100%; overflow-x:hidden; margin:0; }
+    body.app{
       min-height:100dvh;
+      display:flex;
+      flex-direction:column;
       padding: var(--space);
       font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
       background: var(--bg);
       color: var(--text);
-      color-scheme: light dark;
     }
 
-    /* Contenitore centrato (come Pellet) */
-    .container{ width:100%; max-width:1200px; margin:0 auto; }
+    h2 { margin: 0 0 10px; }
+    label { display: block; margin: 12px 0 6px; font-size: 14px; }
 
-    /* Topbar con titolo centrato e hamburger sinistra (come Pellet) */
+    /* Controlli come in Pellet: nessun raggio, bordo + ombra uguali */
+    input, select, button {
+      width: 100%;
+      max-width: 100%;
+      font-size: 16px;
+      padding: 10px;
+      color: var(--text);
+      background: var(--surface);
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow);
+      /* NIENTE border-radius, come Pellet */
+      border-radius: 0;
+    }
+    input[type="date"]{
+      -webkit-appearance: none;
+      appearance: none;
+      min-width: 0;
+    }
+
+    button {
+      margin-top: 16px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      cursor: pointer;
+      background: var(--surface);
+    }
+    button:hover{ background: var(--btn-hover); }
+
+    .ok { color: #22c55e; margin-top: 8px; }
+    .err { color: #ef4444; margin-top: 8px; }
+
+    /* Footer versione: centrato in fondo (come Pellet) */
+    .muted {
+      color: var(--muted); font-size: 12px;
+      text-align:center;
+      margin-top:auto;
+      width:100%;
+      padding: 10px 0 calc(10px + env(safe-area-inset-bottom));
+    }
+    .badge {
+      display: inline-block; font-size: 12px; padding: 2px 8px;
+      border-radius: 999px; border: 1px solid var(--border); margin-left: 8px;
+      font-variant-numeric: tabular-nums;
+      background: var(--surface);
+    }
+
+    /* Loader overlay (come Pellet) */
+    .loading-overlay {
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.15);
+      display: none; align-items: center; justify-content: center;
+      z-index: 9999; backdrop-filter: blur(2px);
+    }
+    .loading-overlay[aria-hidden="false"] { display: flex; }
+    .spinner {
+      width: 38px; height: 38px;
+      border: 3px solid var(--spinner-track);
+      border-top-color: var(--spinner-head);
+      border-radius: 50%;
+      animation: spin 0.9s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .btn-spinner {
+      width: 16px; height: 16px;
+      border: 2px solid var(--spinner-track);
+      border-top-color: var(--spinner-head);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    button[disabled] { opacity: 0.7; cursor: not-allowed; box-shadow: none; }
+
+    /* Topbar 3 colonne (come Pellet) */
     .topbar{
       display:grid;
-      grid-template-columns:48px 1fr 48px; /* [hamburger][titolo][spazio] */
+      grid-template-columns: 48px 1fr 48px;
       align-items:center;
       height:48px;
-      margin-bottom:10px;
+      margin-bottom:14px;
+    }
+    .menu-btn{
+      grid-column:1;
+      justify-self:start;
+      background:none;
+      border:none;
+      font-size:22px;
+      line-height:1;
+      padding:8px 12px;
+      cursor:pointer;
+      color: var(--text);
     }
     .title{
       grid-column:2;
       margin:0;
       text-align:center;
       font-size:22px;
-      font-weight:700;
     }
-    .menu-btn{
-      justify-self:start;
-      background:#fff0;
-      border:none;
-      font-size:22px;
-      line-height:1;
-      padding:8px 12px;
-      cursor:pointer;
-      border-radius:999px;
-      box-shadow: var(--shadow);
-      background: var(--surface);
-    }
+    .right-slot{ grid-column:3; }
 
-    /* Pulsante hamburger flottante in basso a sinistra (come Pellet) */
-    .fab{
-      position: fixed; left: var(--space); bottom: calc(var(--space) + env(safe-area-inset-bottom));
-      width:40px; height:40px; border-radius:999px; display:flex; align-items:center; justify-content:center;
-      background: var(--surface); box-shadow: var(--shadow); border:1px solid var(--border);
-      cursor:pointer; z-index: 9996;
+    /* Drawer look&feel (come Pellet) */
+    #drawer{
+      position:fixed; inset:0 35% 0 0; max-width:280px;
+      transform:translateX(-105%); transition:transform .2s ease; z-index:9998; padding:16px;
+      background: var(--surface);
+      border-right: 1px solid var(--border);
     }
+    #drawer a, #drawer button.linklike{
+      text-decoration: none;
+      color: inherit;
+      display: inline-block;
+      padding: 8px 0;
+      background: none;
+      border: none;
+      font: inherit;
+      cursor: pointer;
+      text-align: left;
+      width: 100%;
+    }
+    #drawer hr{ border:0; border-top:1px solid var(--divider); margin:10px 0; }
+    #drawerClose{
+      position: absolute;
+      left: 12px; bottom: 12px;
+      width: 44px; height: 44px;
+      display: inline-flex; align-items: center; justify-content: center;
+      border: 1px solid var(--border); border-radius: 999px;
+      background: var(--surface); color: var(--text); font-size: 18px;
+      cursor: pointer; box-shadow: var(--shadow);
+    }
+    #drawerClose:active{ transform: translateY(1px); }
+    #drawerClose:focus-visible{ outline: 2px solid #2684ff; outline-offset: 2px; }
 
-    /* Drawer identico a Pellet */
-    .drawer{
-      position:fixed; inset:0 35% 0 0;
-      max-width:280px;
-      background: var(--surface);
-      border-right:1px solid var(--border);
-      transform:translateX(-105%);
-      transition:transform .2s ease;
-      z-index:9998;
-      padding:16px;
-    }
-    .drawer h3{ margin:6px 0 14px; }
-    .backdrop{
-      position:fixed; inset:0;
-      background:rgba(0,0,0,.15);
-      display:none;
-      z-index:9997;
-    }
-    .tile{
-      display:flex; align-items:center; gap:10px;
-      padding:12px 14px;
-      border:1px solid var(--border);
-      border-radius: var(--radius);
-      background: var(--surface);
-      box-shadow: var(--shadow);
-      text-decoration:none; color:inherit;
-    }
-    .tile + .tile{ margin-top:12px; }
-    .muted{ color: var(--muted); font-size:12px; }
-    .divider{ height:1px; background: var(--divider); margin:12px 0; }
+    /* Backdrop */
+    #backdrop{ position:fixed; inset:0; background:rgba(0,0,0,.15); display:none; z-index:9997; }
 
-    label{ display:block; margin: 12px 0 6px; font-size:14px; }
-    input, select, textarea, button{
-      width:100%;
-      font-size:16px;
-      padding:12px 12px;
-      border:1px solid var(--border);
-      border-radius: var(--radius);
-      box-shadow: var(--shadow);
-      background: var(--surface);
+    /* FAB hamburger in basso (identico a Pellet) */
+    .fab-menu{
+      position: fixed;
+      left: 12px;
+      bottom: calc(12px + env(safe-area-inset-bottom));
+      width: 48px; height: 48px;
+      display: inline-flex; align-items: center; justify-content: center;
+      border: 1px solid var(--border); border-radius: 999px; background: var(--surface);
       color: var(--text);
+      font-size: 22px; line-height: 1; cursor: pointer;
+      box-shadow: var(--shadow);
+      z-index: 10000;
+      transition: opacity .15s ease, transform .15s ease;
     }
-    input::placeholder, textarea::placeholder{ color: #9aa0a6; }
-    button{
-      margin-top:16px; display:inline-flex; align-items:center; justify-content:center; gap:8px;
-      cursor:pointer;
-    }
-    button:hover{ background: var(--btn-hover); }
-    button[disabled]{ opacity:.7; cursor:not-allowed; }
-
-    .badge{
-      display:inline-block; font-size:12px; padding:2px 8px; border-radius:999px;
-      border:1px solid var(--border); margin-left:8px; font-variant-numeric: tabular-nums;
-      background: var(--surface);
-    }
-
-    /* Loader overlay */
-    .loading-overlay{
-      position:fixed; inset:0; background: rgba(0,0,0,.12);
-      display:none; align-items:center; justify-content:center; z-index:9999; backdrop-filter: blur(1px);
-    }
-    .loading-overlay[aria-hidden="false"]{ display:flex; }
-    .spinner{
-      width:38px; height:38px; border:3px solid rgba(0,0,0,0.2);
-      border-top-color: rgba(0,0,0,0.7); border-radius:50%;
-      animation: spin 0.9s linear infinite;
-      background: var(--surface);
-    }
-    @keyframes spin{ to{ transform: rotate(360deg); } }
-    .btn-spinner{
-      width:16px; height:16px; border:2px solid rgba(0,0,0,0.2);
-      border-top-color: rgba(0,0,0,0.7); border-radius:50%;
-      animation: spin 0.8s linear infinite;
-    }
-
-    /* Versione centrata in basso, come Pellet */
-    .version-footer{
-      text-align:center;
-      padding: 10px 0 calc(10px + env(safe-area-inset-bottom));
-      width:100%;
-      color: var(--muted);
-    }
-
-    /* iframe overlay full screen */
-    #pageFrame{
-      position:fixed; inset:0; width:100vw; height:100vh; border:0;
-      display:none; background:#fff; z-index:9999;
+    .fab-menu:active{ transform: translateY(1px); }
+    .fab-menu:focus-visible{ outline: 2px solid #2684ff; outline-offset: 2px; }
+    body.drawer-open .fab-menu, body.frame-open .fab-menu{
+      opacity: 0; pointer-events: none; transform: translateY(8px);
     }
   </style>
 </head>
-<body>
 
-  <!-- TOPBAR -->
-  <header class="topbar container">
+<body class="app">
+
+  <!-- Topbar identica -->
+  <header class="topbar">
     <button id="menuBtn" class="menu-btn" aria-label="Apri menu">☰</button>
-    <h1 class="title">⛽️ Carburante</h1>
-    <span aria-hidden="true"></span>
+    <h2 class="title">⛽️ Carburante</h2>
+    <span class="right-slot" aria-hidden="true"></span>
   </header>
 
-  <!-- FORM -->
-  <main class="container" role="main">
-    <label>Data</label>
-    <input id="data" type="date" required>
-
-    <label>Importo (€)</label>
-    <select id="importo" required>
-      <option value="">Seleziona importo</option>
-    </select>
-
-    <label>Prezzo al litro (€)</label>
-    <input id="prezzo" type="text" inputmode="numeric" placeholder="es. 1,619" required>
-
-    <label>Litri</label>
-    <input id="litri" type="text" inputmode="numeric" placeholder="es. 25,75" required>
-
-    <label>Stazione</label>
-    <select id="stazione" required>
-      <option value="">Seleziona stazione</option>
-    </select>
-
-    <label>Km</label>
-    <input id="km" type="number" inputmode="numeric" placeholder="opzionale">
-
-    <button id="saveBtn"><span class="btn-text">Salva</span></button>
-    <div id="msg" role="status" aria-live="polite"></div>
-
-    <!-- Versione -->
-    <div class="version-footer">Versione: <span id="appVersion" class="badge"></span></div>
-  </main>
-
   <!-- Drawer identico a Pellet -->
-  <nav id="drawer" class="drawer" aria-hidden="true">
-    <h3>Menu</h3>
-    <a id="goLista" class="tile" href="lista.html">📄 Lista movimenti</a>
-
-    <div class="divider"></div>
-
-    <!-- Toggle tema identico a Pellet -->
-    <button id="themeToggle" class="tile" type="button" aria-label="Tema scuro / chiaro">🌙 Tema scuro</button>
+  <nav id="drawer">
+    <h3 style="margin-top:0;">Menu</h3>
+    <ul style="list-style:none;padding:0;margin:0;">
+      <li><a id="goLista" href="#">Lista movimenti</a></li>
+      <hr>
+      <li><button id="themeToggle" class="linklike" type="button">🌙 Tema scuro</button></li>
+    </ul>
+    <button id="drawerClose" aria-label="Chiudi menu" title="Chiudi">←</button>
   </nav>
-  <div id="backdrop" class="backdrop" aria-hidden="true"></div>
+  <div id="backdrop"></div>
+  <button id="menuBtnBottom" class="fab-menu" aria-label="Apri menu" title="Menu">☰</button>
 
-  <!-- FAB hamburger in basso a sinistra -->
-  <button id="fabMenu" class="fab" aria-label="Apri menu">☰</button>
+  <!-- Form (campi a tutta larghezza come Pellet) -->
+  <label>Data</label>
+  <input id="data" type="date" required>
 
-  <!-- Overlay full-screen per lista.html -->
-  <iframe id="pageFrame"></iframe>
+  <label>Importo (€)</label>
+  <select id="importo" required>
+    <option value="">Seleziona importo</option>
+  </select>
 
-  <!-- Loader -->
+  <label>Prezzo al litro (€)</label>
+  <input id="prezzo" type="text" inputmode="numeric" placeholder="es. 1,619" required>
+
+  <label>Litri</label>
+  <input id="litri" type="text" inputmode="numeric" placeholder="es. 25,75" required>
+
+  <label>Stazione</label>
+  <select id="stazione" required>
+    <option value="">Seleziona stazione</option>
+  </select>
+
+  <label>Km</label>
+  <input id="km" type="number" inputmode="numeric" placeholder="opzionale">
+
+  <button id="saveBtn"><span class="btn-text">Salva</span></button>
+  <div id="msg" role="status" aria-live="polite"></div>
+
+  <!-- Versione centrata in fondo (identico a Pellet) -->
+  <div class="muted">Versione: <span id="appVersion" class="badge"></span></div>
+
+  <!-- Overlay globale -->
   <div id="loaderOverlay" class="loading-overlay" aria-hidden="true" aria-live="polite" aria-busy="false">
     <div class="spinner" role="progressbar" aria-label="Salvataggio in corso"></div>
   </div>
 
+  <!-- Overlay pagina secondaria -->
+  <iframe id="pageFrame" style="
+    position:fixed; inset:0; width:100vw; height:100vh; border:0;
+    display:none; background:var(--bg); z-index:9999;
+  "></iframe>
+
 <script>
-/* ====== CONFIG back-end ====== */
+/* ===== Backend ===== */
 const ENDPOINT = 'https://script.google.com/macros/s/AKfycbwFKEfcSLjdXSodQtDiIyhHPXskdLdOZ9PXTc0Dt5dlXIFxu8hhb80UwrSJpWqmzv-w/exec';
 const SECRET   = 'aX4P-92kLq-55T8b-7Hc0Z';
 
-/* ====== VERSIONE (come Pellet) ====== */
+/* ===== Versione (identico a Pellet) ===== */
 function pad(n){ return String(n).padStart(2,'0'); }
 function formatVersionFromDate(d){ return `${d.getFullYear()}.${pad(d.getMonth()+1)}.${pad(d.getDate())}-${pad(d.getHours())}:${pad(d.getMinutes())}`; }
 function computeAppVersion(){
@@ -276,41 +308,68 @@ function showAppVersion(){
   if (el) el.textContent = computeAppVersion();
 }
 
-/* ====== Drawer identico a Pellet ====== */
+/* ===== Drawer + Theme toggle (copiato 1:1 da Pellet) ===== */
 (function(){
-  const btnTop = document.getElementById('menuBtn');
-  const btnFab = document.getElementById('fabMenu');
+  const btn = document.getElementById('menuBtn');
+  const btnBottom = document.getElementById('menuBtnBottom');
   const drawer = document.getElementById('drawer');
   const backdrop = document.getElementById('backdrop');
 
-  const open = () => { drawer.style.transform='translateX(0)'; backdrop.style.display='block'; drawer.setAttribute('aria-hidden','false'); };
-  const close= () => { drawer.style.transform='translateX(-105%)'; backdrop.style.display='none'; drawer.setAttribute('aria-hidden','true'); };
-
-  btnTop.addEventListener('click', open);
-  btnFab.addEventListener('click', open);
-  backdrop.addEventListener('click', close);
-
-  // Toggle tema (stesso comportamento di Pellet)
-  const toggleBtn = document.getElementById('themeToggle');
-  function applyTheme(t){
-    document.documentElement.setAttribute('data-theme', t);
-    localStorage.setItem('theme', t);
-    // avvisa eventuale iframe aperto
-    try{ document.getElementById('pageFrame').contentWindow?.postMessage(`theme:${t}`, '*'); }catch{}
-    toggleBtn.textContent = (t === 'dark') ? '🌞 Tema chiaro' : '🌙 Tema scuro';
+  function updateThemeToggleLabel(){
+    const el = document.getElementById('themeToggle');
+    if(!el) return;
+    const t = document.documentElement.getAttribute('data-theme') || 'light';
+    el.textContent = (t === 'dark') ? '☀️ Tema chiaro' : '🌙 Tema scuro';
   }
-  const current = document.documentElement.getAttribute('data-theme') || 'light';
-  applyTheme(current);
-  toggleBtn.addEventListener('click', () => {
-    const next = (document.documentElement.getAttribute('data-theme') === 'dark') ? 'light' : 'dark';
-    applyTheme(next);
-  });
+  function setTheme(t){
+    document.documentElement.setAttribute('data-theme', t);
+    try { localStorage.setItem('theme', t); } catch(e){}
+    updateThemeToggleLabel();
+    // Propaga al frame, se aperto
+    try{ document.getElementById('pageFrame').contentWindow?.postMessage(`theme:${t}`, '*'); }catch{}
+  }
+  updateThemeToggleLabel();
+
+  const open = () => {
+    drawer.style.transform='translateX(0)';
+    backdrop.style.display='block';
+    document.body.classList.add('drawer-open');
+  };
+  const close= () => {
+    drawer.style.transform='translateX(-105%)';
+    backdrop.style.display='none';
+    document.body.classList.remove('drawer-open');
+  };
+
+  if (btn) btn.addEventListener('click', open);
+  if (btnBottom) btnBottom.addEventListener('click', open);
+  backdrop.addEventListener('click', close);
+  const drawerClose = document.getElementById('drawerClose');
+  if (drawerClose) drawerClose.addEventListener('click', close);
+
+  const themeToggle = document.getElementById('themeToggle');
+  if (themeToggle){
+    themeToggle.addEventListener('click', () => {
+      const curr = document.documentElement.getAttribute('data-theme') || 'light';
+      setTheme(curr === 'dark' ? 'light' : 'dark');
+    });
+  }
+
+  try {
+    const mql = window.matchMedia('(prefers-color-scheme: dark)');
+    mql.addEventListener?.('change', (e) => {
+      const saved = localStorage.getItem('theme');
+      if (!saved) setTheme(e.matches ? 'dark' : 'light');
+    });
+  } catch(e){}
 })();
 
-/* ====== NAV full-screen lista.html (come Pellet) ====== */
-(function(){
+/* ===== Nav lista.html full-screen (identico a Pellet) ===== */
+document.addEventListener('DOMContentLoaded', () => {
+  const pad2 = n => String(n).padStart(2,'0');
   const d = new Date(document.lastModified);
-  const vIndex = isNaN(d) ? 'dev' : `${d.getFullYear()}.${pad(d.getMonth()+1)}.${pad(d.getDate())}-${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  const vIndex = isNaN(d) ? 'dev'
+    : `${d.getFullYear()}.${pad2(d.getMonth()+1)}.${pad2(d.getDate())}-${pad2(d.getHours())}:${pad2(d.getMinutes())}`;
   const urlLista = `lista.html?v=${encodeURIComponent(vIndex)}`;
 
   const linkLista = document.getElementById('goLista');
@@ -319,23 +378,25 @@ function showAppVersion(){
   const backdrop  = document.getElementById('backdrop');
 
   function openFrame(url){
-    // chiudi drawer e apri overlay
-    drawer.style.transform = 'translateX(-105%)';
-    backdrop.style.display = 'none';
-    drawer.setAttribute('aria-hidden','true');
+    if (drawer)  drawer.style.transform = 'translateX(-105%)';
+    if (backdrop) backdrop.style.display = 'none';
+    document.body.classList.remove('drawer-open');
 
     frame.src = url;
     frame.style.display = 'block';
-    history.pushState({page:'lista'}, '', '#lista'); // back chiude overlay
+    document.body.classList.add('frame-open');
+
+    history.pushState({page:'lista'}, '', '#lista');
   }
   function closeFrame(){
     frame.style.display = 'none';
     frame.src = 'about:blank';
+    document.body.classList.remove('frame-open');
     if (location.hash === '#lista') history.back();
   }
 
-  if (linkLista){
-    linkLista.href = urlLista; // fallback se aperto fuori PWA
+  if (linkLista) {
+    linkLista.href = urlLista;
     linkLista.setAttribute('target','_self');
     linkLista.addEventListener('click', (e) => {
       e.preventDefault();
@@ -347,19 +408,16 @@ function showAppVersion(){
     if (frame.style.display === 'block') {
       frame.style.display = 'none';
       frame.src = 'about:blank';
+      document.body.classList.remove('frame-open');
     }
   });
 
-  // chiusura richiesta da lista.html
   window.addEventListener('message', (ev) => {
     if (ev && ev.data === 'close-lista') closeFrame();
   });
-})();
+});
 
-/* ====== Helpers “stile POS” ======
-   - attachPosMoney(el, decimals): mostra virgola live mentre digiti.
-   - es. 1619 -> "16,19" con decimals=2 ; 1619 -> "1,619" con decimals=3
-*/
+/* ===== POS helpers (prezzo 3 dec, litri 2) ===== */
 function formatPosFromDigits(digits, decimals){
   if (!digits) return '';
   digits = digits.replace(/^0+/, '') || '0';
@@ -372,9 +430,9 @@ function formatPosFromDigits(digits, decimals){
 function normalizedFromDigits(digits, decimals){
   if (!/^\d+$/.test(digits)) return null;
   const n = Number(digits) / Math.pow(10, decimals);
-  return n.toFixed(decimals); // con punto
+  return n.toFixed(decimals);
 }
-function parseMoneySmart(value, maxDec=2){
+function parseMoneySmart(value, maxDec){
   const raw = String(value||'').trim();
   if (raw === '') return null;
   if (/^\d+$/.test(raw)) return normalizedFromDigits(raw, maxDec);
@@ -394,25 +452,23 @@ function attachPosMoney(el, decimals){
   });
 }
 
-/* ====== POPOLA IMPORTO ====== */
+/* ===== Popola importi ===== */
 function initImportoOptions(){
   const select = document.getElementById('importo');
   for (let i=5; i<=100; i+=5){
     const v = i.toFixed(2).replace('.', ',');
     const opt = document.createElement('option');
-    opt.value = v;
-    opt.textContent = v;
+    opt.value = v; opt.textContent = v;
     select.appendChild(opt);
   }
 }
-
-/* ====== DATA DEFAULT ====== */
+/* ===== Data default ===== */
 function initDate(){
   const d = new Date();
-  document.getElementById('data').value = `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+  const p = n => String(n).padStart(2,'0');
+  document.getElementById('data').value = `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}`;
 }
-
-/* ====== STAZIONI ====== */
+/* ===== Stazioni ===== */
 async function initStations(){
   const sel = document.getElementById('stazione');
   sel.length = 1;
@@ -422,35 +478,28 @@ async function initStations(){
     if (data && data.ok && Array.isArray(data.stations)){
       data.stations.forEach(st => {
         const opt = document.createElement('option');
-        opt.value = st.label;
-        opt.textContent = st.label;
-        opt.dataset.id = st.id;
+        opt.value = st.label; opt.textContent = st.label; opt.dataset.id = st.id;
         sel.appendChild(opt);
       });
       return;
     }
     addFallbackStations(sel);
-  }catch{
-    addFallbackStations(sel);
-  }
+  }catch{ addFallbackStations(sel); }
 }
 function addFallbackStations(sel){
-  const fallback = [
+  [
     { id:'ALTRO', label:'Q8 - ALTRO' },
     { id:'ARDEATINA_558_ROMA', label:'Q8 - VIA ARDEATINA 558 ROMA' },
     { id:'LANUVIO', label:'Q8 - LANUVIO' },
     { id:'VELLETRI', label:'Q8 - VELLETRI' }
-  ];
-  fallback.forEach(st => {
+  ].forEach(st => {
     const opt = document.createElement('option');
-    opt.value = st.label;
-    opt.textContent = st.label;
-    opt.dataset.id = st.id;
+    opt.value = st.label; opt.textContent = st.label; opt.dataset.id = st.id;
     sel.appendChild(opt);
   });
 }
 
-/* ====== LOADER ====== */
+/* ===== Loader ===== */
 const saveBtn = document.getElementById('saveBtn');
 const btnText = saveBtn.querySelector('.btn-text');
 const loaderOverlay = document.getElementById('loaderOverlay');
@@ -477,7 +526,7 @@ function setLoading(isLoading){
   });
 }
 
-/* ====== INVIO FORM ====== */
+/* ===== Invio form ===== */
 async function sendForm(data){
   const params = new URLSearchParams(data);
   const res = await fetch(ENDPOINT, {
@@ -493,8 +542,6 @@ async function onSaveClick(){
   msg.className = '';
 
   const data = document.getElementById('data').value;
-
-  // Valori normalizzati (con punto). POS: prezzo 3 dec, litri 2 dec
   const prezzoNorm = parseMoneySmart(document.getElementById('prezzo').value, 3);
   const litriNorm  = parseMoneySmart(document.getElementById('litri').value, 2);
 
@@ -519,37 +566,31 @@ async function onSaveClick(){
     if (out.ok){
       msg.textContent = 'Salvato ✅';
       msg.className = 'ok';
-      document.getElementById('prezzo').value='';
-      document.getElementById('litri').value='';
-      document.getElementById('importo').selectedIndex = 0;
-      document.getElementById('stazione').selectedIndex = 0;
+      document.getElementById('prezzo').value=''; document.getElementById('litri').value='';
+      document.getElementById('importo').selectedIndex = 0; document.getElementById('stazione').selectedIndex = 0;
     }else{
-      msg.textContent='Errore di rete o autorizzazione.';
-      msg.className='err';
+      msg.textContent='Errore di rete o autorizzazione.'; msg.className='err';
     }
   }catch{
-    msg.textContent='Sei offline. Dato non inviato.';
-    msg.className='err';
-  }finally{
-    setLoading(false);
-  }
+    msg.textContent='Sei offline. Dato non inviato.'; msg.className='err';
+  }finally{ setLoading(false); }
 }
 
-/* ====== BOOT ====== */
+/* ===== Boot ===== */
 document.addEventListener('DOMContentLoaded', () => {
   showAppVersion();
   initImportoOptions();
   initDate();
   initStations();
 
-  // Attiva “stile POS”: 3 decimali per prezzo, 2 per litri
+  // POS live (prezzo 3 decimali, litri 2)
   attachPosMoney(document.getElementById('prezzo'), 3);
   attachPosMoney(document.getElementById('litri'), 2);
 
   document.getElementById('saveBtn').addEventListener('click', onSaveClick);
 });
 
-// ricarica se riaperta dal bfcache (come Pellet)
+/* Ricarica se riaperta da bfcache (come Pellet) */
 addEventListener('pageshow', e => e.persisted && location.reload());
 </script>
 </body>
