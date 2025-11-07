@@ -65,12 +65,82 @@
       animation: spin 0.8s linear infinite;
     }
     button[disabled] { opacity: 0.7; cursor: not-allowed; }
+
+    /* ───────── Topbar + Drawer (come Pellet) ───────── */
+    /* Topbar a 3 colonne: [hamburger][titolo centrato][spazio] */
+    .topbar{
+      display:grid;
+      grid-template-columns:48px 1fr 48px;
+      align-items:center;
+      height:48px;
+      margin-bottom:14px;
+    }
+    .menu-btn{
+      justify-self:start;
+      background:none;
+      border:none;
+      font-size:22px;
+      line-height:1;
+      padding:8px 12px;
+      cursor:pointer;
+    }
+    .title{
+      margin:0;
+      font-size:22px;
+      text-align:center;
+    }
+
+    .drawer{
+      position:fixed; inset:0 35% 0 0;
+      max-width:280px;
+      background:#fff;
+      border-right:1px solid #eee;
+      transform:translateX(-105%);
+      transition:transform .2s ease;
+      z-index:9998;
+      padding:16px;
+    }
+    .backdrop{
+      position:fixed; inset:0;
+      background:rgba(0,0,0,.15);
+      display:none;
+      z-index:9997;
+    }
   </style>
 </head>
 
 <body>
-  <h2>⛽️ Carburante</h2>
 
+  <!-- ─── Top bar con hamburger + titolo centrato ───────────────── -->
+  <header class="topbar">
+    <button id="menuBtn" class="menu-btn" aria-label="Apri menu">☰</button>
+    <h2 class="title">⛽️ Carburante</h2>
+    <span aria-hidden="true"></span>
+  </header>
+
+  <!-- Drawer identico al Pellet -->
+  <nav id="drawer" class="drawer">
+    <h3 style="margin-top:0;">Menu</h3>
+    <ul style="list-style:none;padding:0;margin:0;">
+      <li><a id="goLista" href="lista.html">📄 Lista movimenti</a></li>
+    </ul>
+  </nav>
+  <div id="backdrop" class="backdrop"></div>
+
+  <!-- Toggle drawer -->
+  <script>
+  (function(){
+    const btn = document.getElementById('menuBtn');
+    const drawer = document.getElementById('drawer');
+    const backdrop = document.getElementById('backdrop');
+    const open = () => { drawer.style.transform='translateX(0)'; backdrop.style.display='block'; };
+    const close= () => { drawer.style.transform='translateX(-105%)'; backdrop.style.display='none'; };
+    btn.addEventListener('click', open);
+    backdrop.addEventListener('click', close);
+  })();
+  </script>
+
+  <!-- ─── Form contenuti originali ─────────────────────────────── -->
   <label>Data</label>
   <input id="data" type="date" required>
 
@@ -98,7 +168,7 @@
   </button>
   <div id="msg" role="status" aria-live="polite"></div>
 
-  <!-- Versione app al posto del suggerimento -->
+  <!-- Versione app -->
   <div class="muted">Versione: <span id="appVersion" class="badge"></span></div>
 
   <!-- Overlay globale -->
@@ -260,15 +330,11 @@ async function onSaveClick() {
   if (!litri || Number(litri) <= 0){ msg.textContent='Litri non validi.'; msg.className='err'; return; }
   if (!stazione){ msg.textContent='Seleziona una stazione.'; msg.className='err'; return; }
 
-  // Se vuoi storicizzare la versione nelle righe su Sheets, scommenta qui:
-  // const appVersion = computeAppVersion();
-
   const payload = {
     secret: SECRET,
     data, importo, prezzo, litri,
     stazione, stazioneId,
     km
-    // , appVersion
   };
 
   try {
