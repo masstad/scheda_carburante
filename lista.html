@@ -79,9 +79,13 @@
       font-weight:700;
     }
 
-    /* Filtro anno/mese */
+    /* Filtro anno/mese/auto/scheda */
     .filters{
-      display:flex; gap:8px; justify-content:flex-end; align-items:center;
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+      justify-content:flex-end;
+      align-items:center;
       border-bottom: 1px solid var(--divider);
       padding-bottom: 10px;
       margin-bottom: 16px;
@@ -95,6 +99,7 @@
       font:inherit;
       line-height:1.2;
       cursor:pointer;
+      max-width: 100%;
     }
     .sel:focus-visible{ outline:2px solid #2684ff; outline-offset:2px; }
 
@@ -154,6 +159,7 @@
       <select id="yearFilter" class="sel" aria-label="Filtra per anno">
         <option value="">Tutti gli anni</option>
       </select>
+
       <select id="monthFilter" class="sel" aria-label="Filtra per mese">
         <option value="">Tutti i mesi</option>
         <option value="1">Gen</option><option value="2">Feb</option><option value="3">Mar</option>
@@ -161,6 +167,19 @@
         <option value="7">Lug</option><option value="8">Ago</option><option value="9">Set</option>
         <option value="10">Ott</option><option value="11">Nov</option><option value="12">Dic</option>
       </select>
+
+      <!-- NUOVO: filtro Auto -->
+      <select id="autoFilter" class="sel" aria-label="Filtra per auto">
+        <option value="">Tutte le auto</option>
+      </select>
+
+      <!-- NUOVO: filtro Scheda carburante -->
+      <select id="schedaFilter" class="sel" aria-label="Filtra per scheda carburante">
+        <option value="">Scheda: tutte</option>
+        <option value="SI">Solo scheda carburante</option>
+        <option value="NO">Solo non scheda</option>
+      </select>
+
       <button id="applyBtn" class="btn" type="button" aria-label="Applica filtro">Filtra</button>
     </div>
 
@@ -212,7 +231,7 @@ document.getElementById('appVersion').textContent = computeAppVersion();
 const euro = x => Number(x||0).toFixed(2).replace('.', ',');
 const ymd  = d => new Date(d).toISOString().slice(0,10);
 
-let ALL_ROWS = []; // usata solo per popolare gli anni alla prima load
+let ALL_ROWS = []; // usata per popolare anni e auto alla prima load
 
 function populateYears(distinctYears){
   const sel = document.getElementById('yearFilter');
@@ -224,6 +243,40 @@ function populateYears(distinctYears){
     opt.textContent = String(y);
     sel.appendChild(opt);
   });
+}
+
+// NUOVO: popolamento filtro Auto dai dati
+function populateAutos(distinctAutos){
+  const sel = document.getElementById('autoFilter');
+  sel.querySelectorAll('option:not([value=""])').forEach(o => o.remove());
+  distinctAutos.sort((a,b)=>a.localeCompare(b,'it',{sensitivity:'base'})).forEach(a=>{
+    const opt = document.createElement('option');
+    opt.value = a;
+    opt.textContent = a;
+    sel.appendChild(opt);
+  });
+}
+
+// NUOVO: popola filtri (anni + auto) dalla prima risposta completa
+function populateFiltersFromRows(rows){
+  const dates = [];
+  const autos = new Set();
+
+  for (const r of rows) {
+    if (r.data) {
+      const d = new Date(r.data);
+      if (!isNaN(d)) dates.push(d.getFullYear());
+    }
+    if (r.auto) {
+      autos.add(String(r.auto));
+    }
+  }
+
+  const years = Array.from(new Set(dates));
+  if (years.length) populateYears(years);
+
+  const autoList = Array.from(autos);
+  if (autoList.length) populateAutos(autoList);
 }
 
 function render(json){
@@ -277,7 +330,7 @@ function render(json){
 }
 
 /* ====== DATA LOAD ====== */
-async function fetchList({year=null, month=null, forInit=false} = {}){
+async function fetchList({year=null, month=null, auto=null, scheda=null, forInit=false} = {}){
   const status = document.getElementById('status');
   status.textContent = 'Carico…';
   status.className = 'loading';
@@ -286,21 +339,19 @@ async function fetchList({year=null, month=null, forInit=false} = {}){
     const url = new URL(ENDPOINT);
     url.searchParams.set('action','list');
     url.searchParams.set('secret', SECRET);
-    if (year)  url.searchParams.set('year', String(year));
-    if (month) url.searchParams.set('month', String(month));
+    if (year)   url.searchParams.set('year', String(year));
+    if (month)  url.searchParams.set('month', String(month));
+    if (auto)   url.searchParams.set('auto', String(auto));
+    if (scheda) url.searchParams.set('scheda', String(scheda));
 
     const res = await fetch(url.toString(), { method:'GET' });
     const json = await res.json();
     if (!json.ok) throw new Error(json.error||'Errore');
 
-    // Alla prima load senza filtri, ricavo gli anni disponibili
+    // Alla prima load senza filtri, ricavo anni e auto disponibili
     if (forInit) {
       ALL_ROWS = json.rows || [];
-      const years = Array.from(new Set(ALL_ROWS
-        .map(r => new Date(r.data))
-        .filter(d => !isNaN(d))
-        .map(d => d.getFullYear())));
-      if (years.length) populateYears(years);
+      populateFiltersFromRows(ALL_ROWS);
     }
 
     render(json);
@@ -311,16 +362,22 @@ async function fetchList({year=null, month=null, forInit=false} = {}){
 }
 
 /* ====== EVENTI UI ====== */
-document.getElementById('applyBtn').addEventListener('click', () => {
+function readFilters(){
   const y = document.getElementById('yearFilter').value || null;
   const m = document.getElementById('monthFilter').value || null;
-  fetchList({ year: y, month: m });
+  const a = document.getElementById('autoFilter').value || null;
+  const s = document.getElementById('schedaFilter').value || null;
+  return { year: y, month: m, auto: a, scheda: s };
+}
+
+document.getElementById('applyBtn').addEventListener('click', () => {
+  const f = readFilters();
+  fetchList(f);
 });
 
 document.getElementById('refreshBtn').addEventListener('click', () => {
-  const y = document.getElementById('yearFilter').value || null;
-  const m = document.getElementById('monthFilter').value || null;
-  fetchList({ year: y, month: m });
+  const f = readFilters();
+  fetchList(f);
 });
 
 // Pulsante back: chiudi overlay se in iframe
@@ -347,7 +404,7 @@ document.getElementById('backBtn').addEventListener('click', (e) => {
 
 /* ====== BOOT ====== */
 document.addEventListener('DOMContentLoaded', () => {
-  // Prima richiesta senza filtri per popolare anni
+  // Prima richiesta senza filtri per popolare anni + auto
   fetchList({ forInit: true });
 });
 </script>
