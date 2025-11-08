@@ -299,6 +299,17 @@
   outline-offset: 2px;
 }
 
+    /* Stato DISABILITATO */
+.switch input:disabled {
+  cursor: not-allowed;
+}
+.switch input:disabled + .track{
+  opacity: .4;
+  box-shadow: none;
+}
+.switch input:disabled + .track .thumb{
+  background: var(--muted);
+}
     
 </style>
 
@@ -701,6 +712,34 @@ document.addEventListener('DOMContentLoaded', () => {
   attachPosMoney(document.getElementById('litri'), 2);
 
   document.getElementById('saveBtn').addEventListener('click', onSaveClick);
+
+  // === Abilita toggle "Scheda carburante" solo per Volkswagen - T-Roc ===
+  const autoSel      = document.getElementById('auto');
+  const schedaToggle = document.getElementById('schedaToggle');
+
+  function syncSchedaToggle() {
+    const isVW = autoSel.value === 'Volkswagen - T-Roc';
+
+    // se non è T-Roc, disabilita e spegni il toggle
+    if (!isVW) {
+      schedaToggle.checked = false;
+      schedaToggle.setAttribute('aria-checked', 'false');
+    }
+
+    schedaToggle.disabled = !isVW;
+    schedaToggle.setAttribute('aria-disabled', String(!isVW));
+  }
+
+  // Mantiene aria-checked aggiornato quando l’utente clicca sul toggle
+  schedaToggle.addEventListener('change', () => {
+    schedaToggle.setAttribute('aria-checked', schedaToggle.checked ? 'true' : 'false');
+  });
+
+  // Stato iniziale all’apertura della pagina
+  syncSchedaToggle();
+
+  // Aggiorna il toggle quando cambio auto
+  autoSel.addEventListener('change', syncSchedaToggle);
 });
 
 /* Ricarica se riaperta da bfcache (come Pellet) */
@@ -708,3 +747,4 @@ addEventListener('pageshow', e => e.persisted && location.reload());
 </script>
 </body>
 </html>
+
