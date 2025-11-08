@@ -674,6 +674,9 @@ async function onSaveClick(){
   const stazione   = stSel.value;
   const stazioneId = stSel.options[stSel.selectedIndex]?.dataset?.id || '';
   const km = document.getElementById('km').value;
+  // campo: toggle "Scheda carburante"
+  const schedaToggleEl   = document.getElementById('schedaToggle');
+  const schedaCarburante = schedaToggleEl.checked ? '1' : '0'; // oppure 'true'/'false'
 
   if (!data){ msg.textContent='Inserisci la data.'; msg.className='err'; return; }
   if (!auto){ msg.textContent='Seleziona un\'auto.'; msg.className='err'; return; }
@@ -682,7 +685,7 @@ async function onSaveClick(){
   if (litriNorm === null  || Number(litriNorm)  <= 0){ msg.textContent='Litri non validi.'; msg.className='err'; return; }
   if (!stazione){ msg.textContent='Seleziona una stazione.'; msg.className='err'; return; }
 
-  const payload = { secret: SECRET, data, auto, importo, prezzo:prezzoNorm, litri:litriNorm, stazione, stazioneId, km };
+  const payload = { secret: SECRET, data, auto, schedaCarburante, importo, prezzo:prezzoNorm, litri:litriNorm, stazione, stazioneId, km };
 
   try{
     setLoading(true);
@@ -690,8 +693,12 @@ async function onSaveClick(){
     if (out.ok){
       msg.textContent = 'Salvato ✅';
       msg.className = 'ok';
-      document.getElementById('prezzo').value=''; document.getElementById('litri').value='';
-      document.getElementById('importo').selectedIndex = 0; document.getElementById('stazione').selectedIndex = 0;
+      document.getElementById('prezzo').value=''; 
+      document.getElementById('litri').value='';
+      document.getElementById('importo').selectedIndex = 0; 
+      document.getElementById('stazione').selectedIndex = 0;
+      schedaToggleEl.checked = false;
+      schedaToggleEl.setAttribute('aria-checked', 'false');
     }else{
       msg.textContent='Errore di rete o autorizzazione.'; msg.className='err';
     }
@@ -747,4 +754,5 @@ addEventListener('pageshow', e => e.persisted && location.reload());
 </script>
 </body>
 </html>
+
 
