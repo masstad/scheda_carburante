@@ -332,6 +332,8 @@
       <hr>
       <li><a id="goScheda" href="#">Scheda carburante</a></li>
       <hr>
+      <li><a id="goForecast" href="#">Forecast Km</a></li>
+      <hr>
       <li><button id="themeToggle" class="linklike" type="button">🌙 Tema scuro</button></li>
     </ul>
     <button id="drawerClose" aria-label="Chiudi menu" title="Chiudi">←</button>
@@ -488,9 +490,11 @@ document.addEventListener('DOMContentLoaded', () => {
   
   const urlLista = `lista.html?v=${encodeURIComponent(vIndex)}`;
   const urlScheda = `scheda_carburante.html?v=${encodeURIComponent(vIndex)}`;
+  const urlForecast = `forecast_km.html?v=${encodeURIComponent(vIndex)}`;
 
   const linkLista  = document.getElementById('goLista');
   const linkScheda = document.getElementById('goScheda');
+  const linkForecast = document.getElementById('goForecast');
   const frame      = document.getElementById('pageFrame');
   const drawer     = document.getElementById('drawer');
   const backdrop   = document.getElementById('backdrop');
@@ -530,6 +534,15 @@ document.addEventListener('DOMContentLoaded', () => {
     linkScheda.addEventListener('click', (e) => {
       e.preventDefault();
       openFrame(urlScheda, 'scheda');
+    });
+  }
+
+  if (linkForecast) {
+    linkForecast.href = urlForecast;
+    linkForecast.setAttribute('target','_self');
+    linkForecast.addEventListener('click', (e) => {
+      e.preventDefault();
+      openFrame(urlForecast, 'forecast');
     });
   }
 
@@ -770,6 +783,7 @@ addEventListener('pageshow', e => e.persisted && location.reload());
 </script>
 </body>
 </html>
+
 
 
 
