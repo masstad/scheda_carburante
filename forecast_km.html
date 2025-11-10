@@ -161,6 +161,31 @@
       margin:16px 0 6px;
       font-size:14px;
     }
+        .row-2{
+      display:flex;
+      gap: var(--space);
+      margin-top:16px;
+    }
+    .field-half{
+      flex:1;
+      min-width:0;
+    }
+    .row-2 .field-label{
+      margin-top:0;
+    }
+    .row-2 input[type="text"]{
+      width:100%;
+      max-width:100%;
+      font-size:16px;
+      padding:10px 12px;
+      border-radius:10px;
+      border:1px solid var(--border);
+      background: var(--surface);
+      color: var(--text);
+      box-shadow:none;
+      line-height:1.4;
+    }
+
     input[type="number"],
     input[type="date"]{
       width:100%;
@@ -251,27 +276,25 @@
 
   <main class="container" role="main">
 
-    <label for="percentDays" class="field-label">Percentuale di giorni passati</label>
-    <input
-      id="percentDays"
-      type="number"
-      inputmode="decimal"
-      min="0"
-      max="100"
-      step="0.01"
-      readonly
-    >
+    <div class="row-2">
+      <div class="field-half">
+        <label for="percentDays" class="field-label">Percentuale di giorni passati</label>
+        <input
+          id="percentDays"
+          type="text"
+          readonly
+        >
+      </div>
 
-    <label for="percentKm" class="field-label">Percentuale di Km utilizzati</label>
-    <input
-      id="percentKm"
-      type="number"
-      inputmode="decimal"
-      min="0"
-      max="100"
-      step="0.01"
-      readonly
-    >
+      <div class="field-half">
+        <label for="percentKm" class="field-label">Percentuale di Km utilizzati</label>
+        <input
+          id="percentKm"
+          type="text"
+          readonly
+        >
+      </div>
+    </div>
     
     <label for="kmAttuali" class="field-label">Km attuali</label>
     <input id="kmAttuali" type="number" inputmode="numeric" min="0" step="1" required>
@@ -430,7 +453,12 @@ function computeAndRenderDelta({ silent = false } = {}) {
     } else {
       if (percKm < 0)   percKm = 0;
       if (percKm > 100) percKm = 100;
-      percentKmInput.value = percKm.toFixed(2);
+
+      const formatted = percKm.toLocaleString('it-IT', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      });
+      percentKmInput.value = formatted + '%'; // es: 12,34%
     }
   }
 
@@ -485,7 +513,13 @@ async function loadForecastForDate(){
     // Percentuale di giorni passati: 28/06/2023 → END_DATE
     const pd = calcPercentDays(dateVal);
     if (pd !== null && isFinite(pd)) {
-      if (percentDaysInput) percentDaysInput.value = pd.toFixed(2);
+      if (percentDaysInput) {
+        const formatted = pd.toLocaleString('it-IT', {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2
+        });
+        percentDaysInput.value = formatted + '%'; // es: 56,78%
+      }
     } else {
       if (percentDaysInput) percentDaysInput.value = '';
     }
@@ -655,6 +689,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 </body>
 </html>
+
 
 
 
