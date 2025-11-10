@@ -250,6 +250,29 @@
   </header>
 
   <main class="container" role="main">
+
+    <label for="percentDays" class="field-label">Percentuale di giorni passati</label>
+    <input
+      id="percentDays"
+      type="number"
+      inputmode="decimal"
+      min="0"
+      max="100"
+      step="0.01"
+      readonly
+    >
+
+    <label for="percentKm" class="field-label">Percentuale di Km utilizzati</label>
+    <input
+      id="percentKm"
+      type="number"
+      inputmode="decimal"
+      min="0"
+      max="100"
+      step="0.01"
+      readonly
+    >
+    
     <label for="kmAttuali" class="field-label">Km attuali</label>
     <input id="kmAttuali" type="number" inputmode="numeric" min="0" step="1" required>
 
@@ -287,6 +310,11 @@ const SECRET   = 'aX4P-92kLq-55T8b-7Hc0Z';
 
 /* Data fine per il calcolo dei giorni restanti: 27/06/2027 */
 const END_DATE = new Date(2027, 5, 27); // Mese 0-based: 5 = Giugno
+/* Data inizio per il periodo: 28/06/2023 */
+const START_DATE = new Date(2023, 5, 28); // 28 Giugno 2023 (mese 0-based)
+
+/* Km totali disponibili nel periodo */
+const TOTAL_KM = 90000;
 
 /* ====== VERSIONE (come scheda_carburante/lista) ====== */
 function formatVersionFromDate(d){
@@ -325,6 +353,29 @@ function calcDaysRemaining(dateISO) {
   return diffDays;
 }
 
+function calcPercentDays(dateISO) {
+  if (!dateISO) return null;
+  const d = new Date(dateISO);
+  if (!(d instanceof Date) || isNaN(d)) return null;
+
+  // Normalizzo a mezzanotte
+  const start = new Date(START_DATE.getFullYear(), START_DATE.getMonth(), START_DATE.getDate());
+  const end   = new Date(END_DATE.getFullYear(),   END_DATE.getMonth(),   END_DATE.getDate());
+  const curr  = new Date(d.getFullYear(),          d.getMonth(),          d.getDate());
+
+  const totalMs   = end.getTime() - start.getTime();
+  const elapsedMs = curr.getTime() - start.getTime();
+  if (totalMs <= 0) return null;
+
+  let perc = (elapsedMs / totalMs) * 100;
+  if (!isFinite(perc)) return null;
+
+  if (perc < 0)   perc = 0;
+  if (perc > 100) perc = 100;
+
+  return perc;
+}
+
 /* ====== DELTA ====== */
 function renderDelta(delta){
   const el = document.getElementById('deltaValue');
@@ -343,12 +394,14 @@ function renderDelta(delta){
  * - se silent=true non mostra messaggi di errore in status
  */
 function computeAndRenderDelta({ silent = false } = {}) {
-  const status  = document.getElementById('status');
-  const kmInput = document.getElementById('kmAttuali');
-  const kmVal   = kmInput.value.trim();
+  const status        = document.getElementById('status');
+  const kmInput       = document.getElementById('kmAttuali');
+  const percentKmInput = document.getElementById('percentKm');
+  const kmVal         = kmInput.value.trim();
 
   if (!silent) status.textContent = '';
   renderDelta(null);
+  if (percentKmInput) percentKmInput.value = '';
 
   if (currentForecastKm === null) {
     if (!silent) status.textContent = 'Forecast non disponibile. Controlla la data attuale.';
@@ -365,8 +418,22 @@ function computeAndRenderDelta({ silent = false } = {}) {
     return false;
   }
 
+  // Delta forecast - attuali
   const delta = currentForecastKm - kmNum;
   renderDelta(delta);
+
+  // Percentuale di Km utilizzati su TOTAL_KM
+  if (percentKmInput && TOTAL_KM > 0) {
+    let percKm = (kmNum / TOTAL_KM) * 100;
+    if (!isFinite(percKm)) {
+      percentKmInput.value = '';
+    } else {
+      if (percKm < 0)   percKm = 0;
+      if (percKm > 100) percKm = 100;
+      percentKmInput.value = percKm.toFixed(2);
+    }
+  }
+
   if (!silent) status.textContent = 'Calcolo completato.';
   return true;
 }
@@ -378,6 +445,8 @@ async function loadForecastForDate(){
   const numGiorniSpan       = document.getElementById('numGiorniValue');
   const giorniRestantiSpan  = document.getElementById('giorniRestantiValue');
   const kmInput             = document.getElementById('kmAttuali');
+  const percentDaysInput    = document.getElementById('percentDays');
+  const percentKmInput      = document.getElementById('percentKm');
   const status              = document.getElementById('status');
 
   let dateVal = dateInput.value;
@@ -392,6 +461,8 @@ async function loadForecastForDate(){
   numGiorniSpan.textContent      = '—';
   giorniRestantiSpan.textContent = '—';
   kmInput.value                  = '';
+  if (percentDaysInput) percentDaysInput.value = '';
+  if (percentKmInput)   percentKmInput.value   = '';
   renderDelta(null);
 
   try{
@@ -409,6 +480,14 @@ async function loadForecastForDate(){
       giorniRestantiSpan.textContent = gr.toLocaleString('it-IT');
     } else {
       giorniRestantiSpan.textContent = '—';
+    }
+
+    // Percentuale di giorni passati: 28/06/2023 → END_DATE
+    const pd = calcPercentDays(dateVal);
+    if (pd !== null && isFinite(pd)) {
+      if (percentDaysInput) percentDaysInput.value = pd.toFixed(2);
+    } else {
+      if (percentDaysInput) percentDaysInput.value = '';
     }
 
     if (!json.ok){
@@ -576,5 +655,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
 </body>
 </html>
+
 
 
