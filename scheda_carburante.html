@@ -63,19 +63,16 @@
 
     .container { width:100%; max-width:640px; margin:0 auto; }
 
-    /* Topbar con titolo centrato su griglia 3 colonne */
+    /* HEADER: titolo sopra, Anno/Plafond sotto */
     .topbar{
-      display:grid;
-      /* colonna sx auto, colonna centrale che si allarga, colonna dx per Anno/Plafond */
-      grid-template-columns: auto 1fr auto;
+      display:flex;
+      flex-direction:column;
       align-items:center;
-      column-gap:12px;
-      height:48px;
+      gap:8px;
       margin-bottom:10px;
     }
     
     .title{
-      grid-column:2;
       margin:0;
       text-align:center;
       font-size:22px;
@@ -83,13 +80,12 @@
     }
     
     .top-controls{
-      grid-column:3;
       display:flex;
-      justify-content:flex-end;
+      flex-wrap:wrap;
+      justify-content:center;
       align-items:center;
       gap:10px;
       font-size:13px;
-      white-space:nowrap;
     }
     
     .top-field{
@@ -190,7 +186,6 @@
 
   <!-- HEADER -->
   <header class="topbar container">
-    <div></div>
     <h1 class="title">⛽️ Scheda carburante</h1>
     <div class="top-controls">
       <label class="top-field">
@@ -333,7 +328,7 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 </script>
 
-  <script>
+<script>
   function pad(n){ return String(n).padStart(2,'0'); }
   function formatVersionFromDate(d){
     return `${d.getFullYear()}.${pad(d.getMonth()+1)}.${pad(d.getDate())}-${pad(d.getHours())}:${pad(d.getMinutes())}`;
@@ -365,8 +360,6 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 </script>
 
-  <div class="muted">Versione: <span id="appVersion" class="badge"></span></div>
+<div class="muted">Versione: <span id="appVersion" class="badge"></span></div>
 </body>
 </html>
-
-
