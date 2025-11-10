@@ -232,6 +232,7 @@ const euro = x => Number(x||0).toFixed(2).replace('.', ',');
 const ymd  = d => new Date(d).toISOString().slice(0,10);
 
 let ALL_ROWS = []; // usata per popolare anni e auto alla prima load
+let INIT_FILTERS = null; // filtri iniziali da URL (se presenti)
 
 function populateYears(distinctYears){
   const sel = document.getElementById('yearFilter');
@@ -361,6 +362,39 @@ async function fetchList({year=null, month=null, auto=null, scheda=null, forInit
   }
 }
 
+function applyInitialFiltersFromUrl(){
+  if (!INIT_FILTERS) return;
+
+  const { year, month, auto, scheda } = INIT_FILTERS;
+
+  const yearSel   = document.getElementById('yearFilter');
+  const monthSel  = document.getElementById('monthFilter');
+  const autoSel   = document.getElementById('autoFilter');
+  const schedaSel = document.getElementById('schedaFilter');
+
+  // setta i valori solo se esistono tra le opzioni
+  if (year && Array.from(yearSel.options).some(o => o.value === year)){
+    yearSel.value = year;
+  }
+  if (month && Array.from(monthSel.options).some(o => o.value === month)){
+    monthSel.value = month;
+  }
+  if (auto && Array.from(autoSel.options).some(o => o.value === auto)){
+    autoSel.value = auto;
+  }
+  if (scheda && Array.from(schedaSel.options).some(o => o.value === scheda)){
+    schedaSel.value = scheda;
+  }
+
+  const anyFilter = year || month || auto || scheda;
+
+  // se c'è almeno un filtro, ricarico la lista con questi filtri
+  if (anyFilter){
+    const f = readFilters();
+    fetchList(f);
+  }
+}
+  
 /* ====== EVENTI UI ====== */
 function readFilters(){
   const y = document.getElementById('yearFilter').value || null;
@@ -404,10 +438,22 @@ document.getElementById('backBtn').addEventListener('click', (e) => {
 
 /* ====== BOOT ====== */
 document.addEventListener('DOMContentLoaded', () => {
+  const qs = new URLSearchParams(location.search);
+  INIT_FILTERS = {
+    year:   qs.get('year')   || null,
+    month:  qs.get('month')  || null,
+    auto:   qs.get('auto')   || null,
+    scheda: qs.get('scheda') || null
+  };
+
   // Prima richiesta senza filtri per popolare anni + auto
-  fetchList({ forInit: true });
+  fetchList({ forInit: true }).then(() => {
+    // Dopo che anni/auto sono stati popolati, applico i filtri da URL (se ci sono)
+    applyInitialFiltersFromUrl();
+  });
 });
 </script>
 
 </body>
 </html>
+
