@@ -301,7 +301,8 @@ document.getElementById('yearInput').addEventListener('change', () => {
 document.getElementById('backBtn').addEventListener('click', (e) => {
   if (window.top !== window.self) {
     e.preventDefault();
-    window.top.postMessage('close-scheda', '*');
+    // Usiamo lo stesso messaggio di lista.html, gestito da index.html
+    window.top.postMessage('close-lista', '*');
   }
 });
 
@@ -363,3 +364,4 @@ document.addEventListener('DOMContentLoaded', () => {
 <div class="muted">Versione: <span id="appVersion" class="badge"></span></div>
 </body>
 </html>
+
