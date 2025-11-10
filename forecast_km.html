@@ -125,6 +125,19 @@
       font-variant-numeric: tabular-nums;
       font-weight:600;
     }
+    .top-field input[type="text"]{
+      width:100%;
+      max-width:100%;
+      font-size:16px;
+      padding:8px 10px;
+      border-radius:10px;
+      border:1px solid var(--border);
+      background: var(--surface);
+      color: var(--text);
+      box-shadow:none;
+      line-height:1.4;
+      font-variant-numeric: tabular-nums;
+    }
     .sel{
       padding:8px 12px;
       border:1px solid var(--border);
@@ -287,7 +300,11 @@
         </label>
         <div class="top-field">
           <span class="top-field-label">Forecast (km)</span>
-          <span id="forecastValue" class="top-field-value">—</span>
+          <input
+            id="forecastValue"
+            type="text"
+            readonly
+          >
         </div>
       </div>
 
@@ -295,12 +312,21 @@
       <div class="top-row-50">
         <div class="top-field">
           <span class="top-field-label">Num. Giorni</span>
-          <span id="numGiorniValue" class="top-field-value">—</span>
+          <input
+            id="numGiorniValue"
+            type="text"
+            readonly
+          >
         </div>
         <div class="top-field">
           <span class="top-field-label">Giorni restanti</span>
-          <span id="giorniRestantiValue" class="top-field-value">—</span>
+          <input
+            id="giorniRestantiValue"
+            type="text"
+            readonly
+          >
         </div>
+
       </div>
 
     </div>
@@ -518,9 +544,9 @@ async function loadForecastForDate(){
 
   status.textContent = 'Carico forecast…';
   currentForecastKm = null;
-  forecastSpan.textContent       = '—';
-  numGiorniSpan.textContent      = '—';
-  giorniRestantiSpan.textContent = '—';
+  forecastSpan.value       = '—';
+  numGiorniSpan.value      = '—';
+  giorniRestantiSpan.value = '—';
   kmInput.value                  = '';
   if (percentDaysInput) percentDaysInput.value = '';
   if (percentKmInput)   percentKmInput.value   = '';
@@ -538,9 +564,9 @@ async function loadForecastForDate(){
     // Giorni restanti: li calcolo sempre
     const gr = calcDaysRemaining(dateVal);
     if (gr !== null && isFinite(gr)) {
-      giorniRestantiSpan.textContent = gr.toLocaleString('it-IT');
+      giorniRestantiSpan.value = gr.toLocaleString('it-IT');
     } else {
-      giorniRestantiSpan.textContent = '—';
+      giorniRestantiSpan.value = '—';
     }
 
     // Percentuale di giorni passati: 28/06/2023 → END_DATE
@@ -567,21 +593,21 @@ async function loadForecastForDate(){
     if (!isFinite(currentForecastKm)) currentForecastKm = null;
 
     if (currentForecastKm !== null) {
-      forecastSpan.textContent = currentForecastKm.toLocaleString('it-IT');
+      forecastSpan.value = currentForecastKm.toLocaleString('it-IT');
     } else {
-      forecastSpan.textContent = '—';
+      forecastSpan.value = '—';
     }
 
     // Num. Giorni
     if ('num_giorni' in json && json.num_giorni !== null && json.num_giorni !== '') {
       const n = Number(json.num_giorni);
       if (isFinite(n)) {
-        numGiorniSpan.textContent = n.toLocaleString('it-IT');
+        numGiorniSpan.value = n.toLocaleString('it-IT');
       } else {
-        numGiorniSpan.textContent = '—';
+        numGiorniSpan.value = '—';
       }
     } else {
-      numGiorniSpan.textContent = '—';
+      numGiorniSpan.value = '—';
     }
 
     // Km reali -> Km attuali
@@ -722,6 +748,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 </body>
 </html>
+
 
 
 
