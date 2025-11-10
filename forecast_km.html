@@ -187,6 +187,10 @@
       font: inherit; line-height:1;
       appearance:none; -webkit-appearance:none;
     }
+    .btn-block{
+      width:100%;
+      justify-content:center; /* centra il testo/icona dentro il bottone */
+    }
     .btn:hover{ background: var(--btn-hover); }
     .btn:active{ transform:translateY(1px); }
     .btn:focus-visible{ outline:2px solid #2684ff; outline-offset:2px; }
@@ -359,7 +363,7 @@
     <input id="kmAttuali" type="number" inputmode="numeric" min="0" step="1" required>
 
     <div style="margin-top:16px;">
-      <button id="calcBtn" class="btn" type="button">Calcola</button>
+      <button id="calcBtn" class="btn btn-block" type="button">Calcola</button>
     </div>
 
     <section class="card-block" style="margin-top:20px;">
@@ -368,8 +372,8 @@
     </section>
 
     <!-- Nuovo bottone REGISTRA -->
-    <div style="margin-top:12px; text-align:center;">
-      <button id="saveBtn" class="btn" type="button">Registra</button>
+    <div style="margin-top:12px;">
+      <button id="saveBtn" class="btn btn-block" type="button">Registra</button>
     </div>
 
     <div id="status" class="muted"></div>
@@ -748,6 +752,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 </body>
 </html>
+
 
 
 
