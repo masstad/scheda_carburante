@@ -485,12 +485,15 @@ document.addEventListener('DOMContentLoaded', () => {
   const d = new Date(document.lastModified);
   const vIndex = isNaN(d) ? 'dev'
     : `${d.getFullYear()}.${pad2(d.getMonth()+1)}.${pad2(d.getDate())}-${pad2(d.getHours())}:${pad2(d.getMinutes())}`;
+  
   const urlLista = `lista.html?v=${encodeURIComponent(vIndex)}`;
+  const urlScheda = `scheda_carburante.html?v=${encodeURIComponent(vIndex)}`;
 
-  const linkLista = document.getElementById('goLista');
-  const frame     = document.getElementById('pageFrame');
-  const drawer    = document.getElementById('drawer');
-  const backdrop  = document.getElementById('backdrop');
+  const linkLista  = document.getElementById('goLista');
+  const linkScheda = document.getElementById('goScheda');
+  const frame      = document.getElementById('pageFrame');
+  const drawer     = document.getElementById('drawer');
+  const backdrop   = document.getElementById('backdrop');
 
   function openFrame(url){
     if (drawer)  drawer.style.transform = 'translateX(-105%)';
@@ -507,7 +510,9 @@ document.addEventListener('DOMContentLoaded', () => {
     frame.style.display = 'none';
     frame.src = 'about:blank';
     document.body.classList.remove('frame-open');
-    if (location.hash === '#lista') history.back();
+    if (location.hash === '#lista' || location.hash === '#scheda') {
+      history.back();
+    }
   }
 
   if (linkLista) {
@@ -516,6 +521,15 @@ document.addEventListener('DOMContentLoaded', () => {
     linkLista.addEventListener('click', (e) => {
       e.preventDefault();
       openFrame(urlLista);
+    });
+  }
+
+  if (linkScheda) {
+    linkScheda.href = urlScheda;
+    linkScheda.setAttribute('target','_self');
+    linkScheda.addEventListener('click', (e) => {
+      e.preventDefault();
+      openFrame(urlScheda, 'scheda');
     });
   }
 
@@ -756,6 +770,7 @@ addEventListener('pageshow', e => e.persisted && location.reload());
 </script>
 </body>
 </html>
+
 
 
 
