@@ -137,7 +137,14 @@
       font-variant-numeric: tabular-nums;
     }
 
-    .muted { color: var(--muted); font-size:12px; margin-top:8px; }
+    .muted {
+      color: var(--muted);
+      font-size: 12px;
+      text-align: center;
+      margin-top: auto;
+      width: 100%;
+      padding: 10px 0 calc(10px + env(safe-area-inset-bottom));
+    }
 
     /* Bottoni */
     .btn{
@@ -165,8 +172,14 @@
       color: var(--muted);
     }
     .badge {
-      display:inline-block; font-size:12px; padding:2px 8px; border-radius:999px;
-      border:1px solid var(--border); margin-left:4px; font-variant-numeric: tabular-nums;
+      display: inline-block;
+      font-size: 12px;
+      padding: 2px 8px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      margin-left: 8px;
+      font-variant-numeric: tabular-nums;
+      background: var(--surface);
     }
   </style>
 </head>
@@ -317,5 +330,39 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 </script>
 
+  <script>
+  function pad(n){ return String(n).padStart(2,'0'); }
+  function formatVersionFromDate(d){
+    return `${d.getFullYear()}.${pad(d.getMonth()+1)}.${pad(d.getDate())}-${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  }
+  function computeAppVersion(){
+    const qs = new URLSearchParams(location.search);
+    const v = qs.get('v');
+    if (v) return v;
+    const d = new Date(document.lastModified);
+    return isNaN(d) ? 'dev' : formatVersionFromDate(d);
+  }
+  function showAppVersion(){
+    const el = document.getElementById('appVersion');
+    if (el) el.textContent = computeAppVersion();
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    showAppVersion();
+  });
+
+  // (opzionale) sincronizza il tema dal genitore come in lista.html
+  window.addEventListener('message', (ev) => {
+    if (typeof ev.data === 'string' && ev.data.startsWith('theme:')) {
+      const t = ev.data.split(':')[1];
+      if (t === 'light' || t === 'dark') {
+        document.documentElement.setAttribute('data-theme', t);
+      }
+    }
+  });
+</script>
+
+  <div class="muted">Versione: <span id="appVersion" class="badge"></span></div>
 </body>
 </html>
+
