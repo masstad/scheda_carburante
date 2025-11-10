@@ -66,11 +66,14 @@
     /* Topbar con titolo centrato su griglia 3 colonne */
     .topbar{
       display:grid;
-      grid-template-columns:48px 1fr 48px;
+      /* colonna sx auto, colonna centrale che si allarga, colonna dx per Anno/Plafond */
+      grid-template-columns: auto 1fr auto;
       align-items:center;
+      column-gap:12px;
       height:48px;
       margin-bottom:10px;
     }
+    
     .title{
       grid-column:2;
       margin:0;
@@ -78,8 +81,7 @@
       font-size:22px;
       font-weight:700;
     }
-
-    /* Controlli in topbar (Anno + Plafond) */
+    
     .top-controls{
       grid-column:3;
       display:flex;
@@ -89,6 +91,7 @@
       font-size:13px;
       white-space:nowrap;
     }
+    
     .top-field{
       display:flex;
       align-items:center;
@@ -365,4 +368,5 @@ document.addEventListener('DOMContentLoaded', () => {
   <div class="muted">Versione: <span id="appVersion" class="badge"></span></div>
 </body>
 </html>
+
 
