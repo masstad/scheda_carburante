@@ -79,13 +79,31 @@
       font-weight:700;
     }
     
-    .top-controls{
+        .top-controls{
+      display:flex;
+      flex-direction:column;      /* una riga sopra, una sotto */
+      align-items:stretch;
+      gap:10px;
+      font-size:13px;
+      width:100%;
+    }
+
+    .top-row{
       display:flex;
       flex-wrap:wrap;
       justify-content:center;
       align-items:center;
       gap:10px;
-      font-size:13px;
+    }
+
+    .top-row-50{
+      display:flex;
+      gap:10px;
+      width:100%;
+    }
+    .top-row-50 .top-field{
+      flex:1;          /* 50% ciascuno */
+      min-width:0;
     }
     
     .top-field{
@@ -252,27 +270,37 @@
 <body>
 
   <!-- HEADER -->
-  <header class="topbar container">
+    <header class="topbar container">
     <h1 class="title">Forecast Km</h1>
     <div class="top-controls">
-      <label class="top-field">
-        <span class="top-field-label">Data attuale</span>
-        <input id="currentDate" type="date" class="sel sel-sm" aria-label="Data attuale">
-      </label>
-      <div class="top-field">
-        <span class="top-field-label">Forecast (km)</span>
-        <span id="forecastValue" class="top-field-value">—</span>
+
+      <!-- Riga 1: data + forecast -->
+      <div class="top-row">
+        <label class="top-field">
+          <span class="top-field-label">Data attuale</span>
+          <input id="currentDate" type="date" class="sel sel-sm" aria-label="Data attuale">
+        </label>
+        <div class="top-field">
+          <span class="top-field-label">Forecast (km)</span>
+          <span id="forecastValue" class="top-field-value">—</span>
+        </div>
       </div>
-      <div class="top-field">
-        <span class="top-field-label">Num. Giorni</span>
-        <span id="numGiorniValue" class="top-field-value">—</span>
+
+      <!-- Riga 2: 50% + 50% -->
+      <div class="top-row-50">
+        <div class="top-field">
+          <span class="top-field-label">Num. Giorni</span>
+          <span id="numGiorniValue" class="top-field-value">—</span>
+        </div>
+        <div class="top-field">
+          <span class="top-field-label">Giorni restanti</span>
+          <span id="giorniRestantiValue" class="top-field-value">—</span>
+        </div>
       </div>
-      <div class="top-field">
-        <span class="top-field-label">Giorni restanti</span>
-        <span id="giorniRestantiValue" class="top-field-value">—</span>
-      </div>
+
     </div>
   </header>
+
 
   <main class="container" role="main">
 
@@ -689,6 +717,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 </body>
 </html>
+
 
 
 
