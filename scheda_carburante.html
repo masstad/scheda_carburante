@@ -135,6 +135,13 @@
       font-weight:700;
       font-variant-numeric: tabular-nums;
     }
+    .card-link{
+      cursor: pointer;
+      text-decoration: none;
+    }
+    .card-link:hover{
+      background: var(--btn-hover);
+    }
 
     .muted {
       color: var(--muted);
@@ -203,13 +210,13 @@
 
   <main class="container" role="main">
     <!-- Residuo annuo -->
-    <section class="card-block">
+    <section class="card-block card-link" id="cardResiduo">
       <div class="card-label">Residuo</div>
       <div class="card-value" id="residuoAnnuale">—</div>
     </section>
 
     <!-- Residuo mensile -->
-    <section class="card-block">
+    <section class="card-block card-link" id="cardResiduoMensile">
       <div class="card-label">Residuo mensile</div>
       <div class="card-value" id="residuoMensile">—</div>
     </section>
@@ -308,6 +315,24 @@ document.getElementById('backBtn').addEventListener('click', (e) => {
   }
 });
 
+/* ====== LINK CARDS -> LISTA ====== */
+function openListaFromScheda(){
+  // riuso l'eventuale parametro ?v= per la versione, se presente
+  const qs = new URLSearchParams(location.search);
+  const v  = qs.get('v');
+  let url  = 'lista.html';
+  if (v) url += '?v=' + encodeURIComponent(v);
+
+  // Se siamo dentro iframe, cambiamo la pagina dentro l'iframe;
+  // se siamo aperti “standalone”, semplicemente navighiamo.
+  window.location.href = url;
+}
+
+document.getElementById('cardResiduo')
+  .addEventListener('click', openListaFromScheda);
+document.getElementById('cardResiduoMensile')
+  .addEventListener('click', openListaFromScheda);
+
 /* ====== THEME SYNC (come lista.html) ====== */
 (function(){
   function applyTheme(t){ document.documentElement.setAttribute('data-theme', t); }
@@ -345,6 +370,7 @@ document.addEventListener('DOMContentLoaded', () => {
   
 </body>
 </html>
+
 
 
 
