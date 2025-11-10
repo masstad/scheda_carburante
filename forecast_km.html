@@ -201,7 +201,36 @@
       margin:16px 0 6px;
       font-size:14px;
     }
-        .row-2{
+        .field-with-icon{
+      position:relative;
+      width:100%;
+    }
+    .field-with-icon input[type="number"]{
+      padding-right:40px; /* spazio per l’icona a destra */
+    }
+    .input-icon-btn{
+      position:absolute;
+      right:8px;
+      top:50%;
+      transform:translateY(-50%);
+      border:none;
+      background:transparent;
+      padding:0;
+      cursor:pointer;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-size:18px;
+      line-height:1;
+      color:var(--muted);
+    }
+    .input-icon-btn:focus-visible{
+      outline:2px solid #2684ff;
+      outline-offset:2px;
+      border-radius:999px;
+    }
+
+    .row-2{
       display:flex;
       gap: var(--space);
       margin-top:16px;
@@ -360,10 +389,16 @@
     </div>
     
     <label for="kmAttuali" class="field-label">Km attuali</label>
-    <input id="kmAttuali" type="number" inputmode="numeric" min="0" step="1" required>
-
-    <div style="margin-top:16px;">
-      <button id="calcBtn" class="btn btn-block" type="button">Calcola</button>
+    <div class="field-with-icon">
+      <input id="kmAttuali" type="number" inputmode="numeric" min="0" step="1" required>
+      <button
+        id="kmCalcIcon"
+        type="button"
+        class="input-icon-btn"
+        aria-label="Calcola delta"
+      >
+        &#x21bb; <!-- icona "ricarica"/calcola -->
+      </button>
     </div>
 
     <section class="card-block" style="margin-top:20px;">
@@ -705,7 +740,24 @@ document.getElementById('currentDate').addEventListener('change', () => {
   loadForecastForDate();
 });
 
-document.getElementById('calcBtn').addEventListener('click', onCalcClick);
+const kmInputEl   = document.getElementById('kmAttuali');
+const kmIconBtnEl = document.getElementById('kmCalcIcon');
+
+// Calcolo al blur (solo se c'è un valore)
+kmInputEl.addEventListener('blur', () => {
+  if (kmInputEl.value.trim() === '') return;
+  computeAndRenderDelta({ silent: false });
+});
+
+// Calcolo al tap sull’icona
+kmIconBtnEl.addEventListener('click', () => {
+  if (kmInputEl.value.trim() === '') {
+    kmInputEl.focus();
+    return;
+  }
+  computeAndRenderDelta({ silent: false });
+});
+
 document.getElementById('saveBtn').addEventListener('click', onRegisterClick);
 
 // Pulsante back: chiudi overlay se in iframe
@@ -752,6 +804,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 </body>
 </html>
+
 
 
 
