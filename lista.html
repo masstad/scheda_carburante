@@ -79,17 +79,27 @@
       font-weight:700;
     }
 
-    /* Filtro anno/mese/auto/scheda */
-    .filters{
-      display:flex;
-      flex-wrap:wrap;
-      gap:8px;
-      justify-content:flex-end;
+    /* Bottone filtri nell'header */
+    .filter-btn{
+      justify-self:end;
+      display:inline-flex;
       align-items:center;
-      border-bottom: 1px solid var(--divider);
-      padding-bottom: 10px;
-      margin-bottom: 16px;
+      gap:4px;
+      padding:6px 10px;
+      border-radius:999px;
+      border:1px solid var(--border);
+      background:var(--surface);
+      font-size:13px;
+      cursor:pointer;
     }
+    .filter-btn span[aria-hidden="true"]{
+      font-size:14px;
+    }
+    .filter-btn:hover{ background:var(--btn-hover); }
+    .filter-btn:active{ transform:translateY(1px); }
+    .filter-btn:focus-visible{ outline:2px solid #2684ff; outline-offset:2px; }
+
+    /* Select generica (riusata anche nel drawer) */
     .sel{
       padding:8px 12px;
       border:1px solid var(--border);
@@ -119,6 +129,14 @@
       border:1px solid var(--border); margin-left:8px; font-variant-numeric: tabular-nums;
     }
 
+    /* Filtri attivi sopra la tabella */
+    .active-filters{
+      font-size:12px;
+      color:var(--muted);
+      margin-top:6px;
+      margin-bottom:8px;
+    }
+
     /* Bottoni */
     .btn{
       display:inline-flex; align-items:center; gap:6px;
@@ -144,46 +162,90 @@
       width:100%;
       color: var(--muted);
     }
+
+    /* DRAWER FILTRI */
+    .drawer{
+      position:fixed;
+      inset:0;
+      z-index:50;
+      display:none;
+    }
+    .drawer.open{
+      display:block;
+    }
+    .drawer-panel{
+      position:absolute;
+      inset:0;
+      background:var(--bg);
+      display:flex;
+      flex-direction:column;
+      padding:var(--space);
+      padding-bottom:calc(var(--space) + env(safe-area-inset-bottom));
+      transform:translateY(100%);
+      transition:transform .25s ease-out;
+    }
+    .drawer.open .drawer-panel{
+      transform:translateY(0);
+    }
+    .drawer-header{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      margin-bottom:12px;
+    }
+    .drawer-header h2{
+      margin:0;
+      font-size:18px;
+      font-weight:600;
+    }
+    .drawer-close{
+      border:none;
+      background:transparent;
+      color:var(--muted);
+      font-size:22px;
+      cursor:pointer;
+      line-height:1;
+    }
+    .drawer-close:focus-visible{
+      outline:2px solid #2684ff;
+      outline-offset:2px;
+    }
+    .drawer-body{
+      flex:1;
+      overflow-y:auto;
+    }
+
+    .field{
+      display:flex;
+      flex-direction:column;
+      gap:4px;
+      margin-bottom:12px;
+    }
+    .field label{
+      font-size:13px;
+      color:var(--muted);
+    }
+
+    .drawer-actions{
+      margin-top:16px;
+    }
   </style>
 </head>
 <body>
 
   <!-- HEADER -->
   <header class="topbar container">
+    <div></div>
     <h1 class="title">⛽️ Lista rifornimenti</h1>
+    <button id="openFilterDrawer" class="filter-btn" type="button" aria-label="Apri filtri di ricerca">
+      <span aria-hidden="true">🔍</span>
+      <span>Filtri</span>
+    </button>
   </header>
 
   <main class="container" role="main">
-    <!-- Filtri -->
-    <div class="filters">
-      <select id="yearFilter" class="sel" aria-label="Filtra per anno">
-        <option value="">Tutti gli anni</option>
-      </select>
-
-      <select id="monthFilter" class="sel" aria-label="Filtra per mese">
-        <option value="">Tutti i mesi</option>
-        <option value="1">Gen</option><option value="2">Feb</option><option value="3">Mar</option>
-        <option value="4">Apr</option><option value="5">Mag</option><option value="6">Giu</option>
-        <option value="7">Lug</option><option value="8">Ago</option><option value="9">Set</option>
-        <option value="10">Ott</option><option value="11">Nov</option><option value="12">Dic</option>
-      </select>
-
-      <!-- NUOVO: filtro Auto -->
-      <select id="autoFilter" class="sel" aria-label="Filtra per auto">
-        <option value="">Tutte le auto</option>
-      </select>
-
-      <!-- NUOVO: filtro Scheda carburante -->
-      <select id="schedaFilter" class="sel" aria-label="Filtra per scheda carburante">
-        <option value="">Scheda: tutte</option>
-        <option value="SI">Solo scheda carburante</option>
-        <option value="NO">Solo non scheda</option>
-      </select>
-
-      <button id="applyBtn" class="btn" type="button" aria-label="Applica filtro">Filtra</button>
-    </div>
-
     <div id="status" class="loading">Carico…</div>
+    <div id="activeFilters" class="active-filters" style="display:none;"></div>
 
     <table id="tbl" aria-live="polite" style="display:none;">
       <thead>
@@ -198,6 +260,55 @@
 
     <div id="summary" class="summary" style="display:none;"></div>
   </main>
+
+  <!-- DRAWER FILTRI -->
+  <div id="filterDrawer" class="drawer" aria-hidden="true">
+    <div class="drawer-panel">
+      <header class="drawer-header">
+        <h2>Filtri rifornimenti</h2>
+        <button id="closeFilterDrawer" class="drawer-close" type="button" aria-label="Chiudi filtri">×</button>
+      </header>
+      <div class="drawer-body">
+        <div class="field">
+          <label for="yearFilter">Anno</label>
+          <select id="yearFilter" class="sel" aria-label="Filtra per anno">
+            <option value="">Tutti gli anni</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label for="monthFilter">Mese</label>
+          <select id="monthFilter" class="sel" aria-label="Filtra per mese">
+            <option value="">Tutti i mesi</option>
+            <option value="1">Gen</option><option value="2">Feb</option><option value="3">Mar</option>
+            <option value="4">Apr</option><option value="5">Mag</option><option value="6">Giu</option>
+            <option value="7">Lug</option><option value="8">Ago</option><option value="9">Set</option>
+            <option value="10">Ott</option><option value="11">Nov</option><option value="12">Dic</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label for="autoFilter">Auto</label>
+          <select id="autoFilter" class="sel" aria-label="Filtra per auto">
+            <option value="">Tutte le auto</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label for="schedaFilter">Scheda carburante</label>
+          <select id="schedaFilter" class="sel" aria-label="Filtra per scheda carburante">
+            <option value="">Scheda: tutte</option>
+            <option value="SI">Solo scheda carburante</option>
+            <option value="NO">Solo non scheda</option>
+          </select>
+        </div>
+
+        <div class="drawer-actions">
+          <button id="applyBtn" class="btn" type="button" aria-label="Applica filtro">Filtra</button>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <!-- AZIONI -->
   <div class="actions-footer container">
@@ -234,9 +345,43 @@ const ymd  = d => new Date(d).toISOString().slice(0,10);
 let ALL_ROWS = []; // usata per popolare anni e auto alla prima load
 let INIT_FILTERS = null; // filtri iniziali da URL (se presenti)
 
+/* ====== UI: FILTRI ATTIVI ====== */
+function updateActiveFiltersLabel(){
+  const box = document.getElementById('activeFilters');
+  if (!box) return;
+
+  const yearSel   = document.getElementById('yearFilter');
+  const monthSel  = document.getElementById('monthFilter');
+  const autoSel   = document.getElementById('autoFilter');
+  const schedaSel = document.getElementById('schedaFilter');
+
+  const parts = [];
+
+  if (yearSel && yearSel.value){
+    parts.push(yearSel.options[yearSel.selectedIndex].textContent.trim());
+  }
+  if (monthSel && monthSel.value){
+    parts.push(monthSel.options[monthSel.selectedIndex].textContent.trim());
+  }
+  if (autoSel && autoSel.value){
+    parts.push('Auto: ' + autoSel.options[autoSel.selectedIndex].textContent.trim());
+  }
+  if (schedaSel && schedaSel.value){
+    parts.push(schedaSel.options[schedaSel.selectedIndex].textContent.trim());
+  }
+
+  if (!parts.length){
+    box.style.display = 'none';
+    box.textContent = '';
+  }else{
+    box.textContent = 'Filtri attivi: ' + parts.join(' • ');
+    box.style.display = 'block';
+  }
+}
+
+/* ====== POPOLAMENTO FILTRI ====== */
 function populateYears(distinctYears){
   const sel = document.getElementById('yearFilter');
-  // rimuovi opzioni esistenti (tranne la prima)
   sel.querySelectorAll('option:not([value=""])').forEach(o => o.remove());
   distinctYears.sort((a,b)=>b-a).forEach(y=>{
     const opt = document.createElement('option');
@@ -246,7 +391,6 @@ function populateYears(distinctYears){
   });
 }
 
-// NUOVO: popolamento filtro Auto dai dati
 function populateAutos(distinctAutos){
   const sel = document.getElementById('autoFilter');
   sel.querySelectorAll('option:not([value=""])').forEach(o => o.remove());
@@ -258,7 +402,6 @@ function populateAutos(distinctAutos){
   });
 }
 
-// NUOVO: popola filtri (anni + auto) dalla prima risposta completa
 function populateFiltersFromRows(rows){
   const dates = [];
   const autos = new Set();
@@ -280,6 +423,7 @@ function populateFiltersFromRows(rows){
   if (autoList.length) populateAutos(autoList);
 }
 
+/* ====== RENDER TABELLA ====== */
 function render(json){
   const tbl = document.getElementById('tbl');
   const tbody = tbl.querySelector('tbody');
@@ -320,7 +464,6 @@ function render(json){
   status.textContent = '';
   tbl.style.display = 'table';
 
-  // Preferisci i totali lato server; se assenti, ricalcola
   const totMov = (typeof json.totale_movimenti === 'number') ? json.totale_movimenti : rows.length;
   let spesaTot = (typeof json.spesa_totale === 'number')
     ? json.spesa_totale
@@ -349,7 +492,6 @@ async function fetchList({year=null, month=null, auto=null, scheda=null, forInit
     const json = await res.json();
     if (!json.ok) throw new Error(json.error||'Errore');
 
-    // Alla prima load senza filtri, ricavo anni e auto disponibili
     if (forInit) {
       ALL_ROWS = json.rows || [];
       populateFiltersFromRows(ALL_ROWS);
@@ -362,6 +504,7 @@ async function fetchList({year=null, month=null, auto=null, scheda=null, forInit
   }
 }
 
+/* ====== FILTRI DA URL ====== */
 function applyInitialFiltersFromUrl(){
   if (!INIT_FILTERS) return;
 
@@ -372,7 +515,6 @@ function applyInitialFiltersFromUrl(){
   const autoSel   = document.getElementById('autoFilter');
   const schedaSel = document.getElementById('schedaFilter');
 
-  // setta i valori solo se esistono tra le opzioni
   if (year && Array.from(yearSel.options).some(o => o.value === year)){
     yearSel.value = year;
   }
@@ -388,14 +530,14 @@ function applyInitialFiltersFromUrl(){
 
   const anyFilter = year || month || auto || scheda;
 
-  // se c'è almeno un filtro, ricarico la lista con questi filtri
   if (anyFilter){
     const f = readFilters();
     fetchList(f);
+    updateActiveFiltersLabel();
   }
 }
-  
-/* ====== EVENTI UI ====== */
+
+/* ====== LETTURA FILTRI ====== */
 function readFilters(){
   const y = document.getElementById('yearFilter').value || null;
   const m = document.getElementById('monthFilter').value || null;
@@ -404,14 +546,34 @@ function readFilters(){
   return { year: y, month: m, auto: a, scheda: s };
 }
 
+/* ====== DRAWER CONTROL ====== */
+function openFilterDrawer(){
+  const drawer = document.getElementById('filterDrawer');
+  if (!drawer) return;
+  drawer.classList.add('open');
+  drawer.setAttribute('aria-hidden','false');
+  document.body.style.overflow = 'hidden';
+}
+function closeFilterDrawer(){
+  const drawer = document.getElementById('filterDrawer');
+  if (!drawer) return;
+  drawer.classList.remove('open');
+  drawer.setAttribute('aria-hidden','true');
+  document.body.style.overflow = '';
+}
+
+/* ====== EVENTI UI ====== */
 document.getElementById('applyBtn').addEventListener('click', () => {
   const f = readFilters();
   fetchList(f);
+  updateActiveFiltersLabel();
+  closeFilterDrawer();
 });
 
 document.getElementById('refreshBtn').addEventListener('click', () => {
   const f = readFilters();
   fetchList(f);
+  updateActiveFiltersLabel();
 });
 
 // Pulsante back: chiudi overlay se in iframe
@@ -421,6 +583,10 @@ document.getElementById('backBtn').addEventListener('click', (e) => {
     window.top.postMessage('close-lista', '*');
   }
 });
+
+// Apertura/chiusura drawer
+document.getElementById('openFilterDrawer').addEventListener('click', openFilterDrawer);
+document.getElementById('closeFilterDrawer').addEventListener('click', closeFilterDrawer);
 
 /* ====== THEME SYNC ====== */
 (function(){
@@ -446,9 +612,7 @@ document.addEventListener('DOMContentLoaded', () => {
     scheda: qs.get('scheda') || null
   };
 
-  // Prima richiesta senza filtri per popolare anni + auto
   fetchList({ forInit: true }).then(() => {
-    // Dopo che anni/auto sono stati popolati, applico i filtri da URL (se ci sono)
     applyInitialFiltersFromUrl();
   });
 });
@@ -456,4 +620,3 @@ document.addEventListener('DOMContentLoaded', () => {
 
 </body>
 </html>
-
