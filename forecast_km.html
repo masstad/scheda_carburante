@@ -352,22 +352,23 @@ function computeAndRenderDelta({ silent = false } = {}) {
 
   if (currentForecastKm === null) {
     if (!silent) status.textContent = 'Forecast non disponibile. Controlla la data attuale.';
-    return;
+    return false;
   }
   if (!kmVal) {
     if (!silent) status.textContent = 'Inserisci i Km attuali.';
-    return;
+    return false;
   }
 
   const kmNum = Number(kmVal);
   if (!isFinite(kmNum) || kmNum < 0){
     if (!silent) status.textContent = 'Valore di Km attuali non valido.';
-    return;
+    return false;
   }
 
   const delta = currentForecastKm - kmNum;
   renderDelta(delta);
   if (!silent) status.textContent = 'Calcolo completato.';
+  return true;
 }
 
 /* ====== API: carica forecast per data ====== */
@@ -477,14 +478,16 @@ async function onRegisterClick(){
   }
 
   const kmVal = kmInput.value.trim();
-
   status.textContent = '';
 
-  if (!kmVal) {
-    status.textContent = 'Inserisci i Km attuali prima di registrare.';
+  // 1) Prima calcolo/aggiorno il delta
+  const okDelta = computeAndRenderDelta({ silent: false });
+  if (!okDelta) {
+    // Se il delta non è stato calcolato (errori su forecast / km), non proseguo
     return;
   }
 
+  // 2) Poi chiedo conferma
   const msg = `Attenzione, si stanno registrando ${kmVal} km attuali.`;
   const ok = window.confirm(msg);
   if (!ok) {
@@ -492,9 +495,9 @@ async function onRegisterClick(){
     return;
   }
 
+  // 3) Se confermato, salvo
   status.textContent = 'Registrazione in corso…';
 
-  // 👉 invio come form-url-encoded, NON JSON
   const body = new URLSearchParams();
   body.set('action', 'km_register');
   body.set('secret', SECRET);
@@ -504,7 +507,7 @@ async function onRegisterClick(){
   try{
     const res  = await fetch(ENDPOINT, {
       method:'POST',
-      body // niente headers: il browser imposta application/x-www-form-urlencoded
+      body
     });
     const json = await res.json();
 
@@ -514,7 +517,7 @@ async function onRegisterClick(){
     }
 
     status.textContent = 'Km attuali registrati.';
-    // Ricalcolo silenzioso del delta (i valori a video sono già aggiornati)
+    // Ricalcolo silenzioso del delta (già aggiornato, ma per sicurezza)
     computeAndRenderDelta({ silent: true });
   }catch(err){
     status.textContent = 'Errore di rete nella registrazione.';
@@ -573,4 +576,5 @@ document.addEventListener('DOMContentLoaded', () => {
 
 </body>
 </html>
+
 
