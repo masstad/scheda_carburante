@@ -316,22 +316,56 @@ document.getElementById('backBtn').addEventListener('click', (e) => {
 });
 
 /* ====== LINK CARDS -> LISTA ====== */
-function openListaFromScheda(){
+/* ====== LINK CARDS -> LISTA ====== */
+function buildListaUrl(params){
   // riuso l'eventuale parametro ?v= per la versione, se presente
   const qs = new URLSearchParams(location.search);
   const v  = qs.get('v');
-  let url  = 'lista.html';
-  if (v) url += '?v=' + encodeURIComponent(v);
 
-  // Se siamo dentro iframe, cambiamo la pagina dentro l'iframe;
-  // se siamo aperti “standalone”, semplicemente navighiamo.
+  // anno corrente preso dal campo input (se vuoto, uso anno di sistema)
+  const yearInput = document.getElementById('yearInput');
+  const yearVal = parseInt(yearInput.value, 10);
+  const now = new Date();
+  const year = !isNaN(yearVal) ? yearVal : now.getFullYear();
+
+  const urlParams = new URLSearchParams();
+
+  // sempre mettiamo l'anno
+  urlParams.set('year', String(year));
+
+  // parametri extra (month, scheda, ecc.)
+  if (params && params.month){
+    urlParams.set('month', String(params.month));
+  }
+  if (params && params.scheda){
+    urlParams.set('scheda', String(params.scheda));
+  }
+
+  // versione (se presente)
+  if (v){
+    urlParams.set('v', v);
+  }
+
+  return 'lista.html?' + urlParams.toString();
+}
+
+function openListaResiduo(){
+  // filtro: anno corrente + scheda carburante
+  const url = buildListaUrl({ scheda: 'SI' });
+  window.location.href = url;
+}
+
+function openListaResiduoMensile(){
+  // filtro: anno corrente + mese corrente + scheda carburante
+  const url = buildListaUrl({ month: CURRENT_MONTH, scheda: 'SI' });
   window.location.href = url;
 }
 
 document.getElementById('cardResiduo')
-  .addEventListener('click', openListaFromScheda);
+  .addEventListener('click', openListaResiduo);
 document.getElementById('cardResiduoMensile')
-  .addEventListener('click', openListaFromScheda);
+  .addEventListener('click', openListaResiduoMensile);
+
 
 /* ====== THEME SYNC (come lista.html) ====== */
 (function(){
@@ -370,6 +404,7 @@ document.addEventListener('DOMContentLoaded', () => {
   
 </body>
 </html>
+
 
 
 
