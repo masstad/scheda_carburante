@@ -238,6 +238,14 @@
         <span class="top-field-label">Forecast (km)</span>
         <span id="forecastValue" class="top-field-value">—</span>
       </div>
+      <div class="top-field">
+        <span class="top-field-label">Num. Giorni</span>
+        <span id="numGiorniValue" class="top-field-value">—</span>
+      </div>
+      <div class="top-field">
+        <span class="top-field-label">Giorni restanti</span>
+        <span id="giorniRestantiValue" class="top-field-value">—</span>
+      </div>
     </div>
   </header>
 
@@ -272,6 +280,9 @@
 const ENDPOINT = 'https://script.google.com/macros/s/AKfycbwFKEfcSLjdXSodQtDiIyhHPXskdLdOZ9PXTc0Dt5dlXIFxu8hhb80UwrSJpWqmzv-w/exec';
 const SECRET   = 'aX4P-92kLq-55T8b-7Hc0Z';
 
+/* Data fine per il calcolo dei giorni restanti: 27/06/2027 */
+const END_DATE = new Date(2027, 5, 27); // Mese 0-based: 5 = Giugno
+
 /* ====== VERSIONE (come scheda_carburante/lista) ====== */
 function formatVersionFromDate(d){
   const p=n=>String(n).padStart(2,'0');
@@ -296,46 +307,21 @@ function todayISO(){
   return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}`;
 }
 
-/* ====== API: carica forecast per data ====== */
-async function loadForecastForDate(){
-  const dateInput = document.getElementById('currentDate');
-  const forecastSpan = document.getElementById('forecastValue');
-  const status = document.getElementById('status');
+function calcDaysRemaining(dateISO) {
+  if (!dateISO) return null;
+  const d = new Date(dateISO);
+  if (!(d instanceof Date) || isNaN(d)) return null;
 
-  let dateVal = dateInput.value;
-  if (!dateVal){
-    dateVal = todayISO();
-    dateInput.value = dateVal;
-  }
+  // Normalizzo entrambi a mezzanotte per evitare problemi di fusi/ora legale
+  const start = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+  const end   = new Date(END_DATE.getFullYear(), END_DATE.getMonth(), END_DATE.getDate());
 
-  status.textContent = 'Carico forecast…';
-  currentForecastKm = null;
-  forecastSpan.textContent = '—';
-
-  try{
-    const url = new URL(ENDPOINT);
-    url.searchParams.set('action','km_forecast');
-    url.searchParams.set('secret', SECRET);
-    url.searchParams.set('date', dateVal);
-
-    const res = await fetch(url.toString(), { method:'GET' });
-    const json = await res.json();
-
-    if (!json.ok){
-      status.textContent = json.error || 'Forecast non disponibile per questa data.';
-      return;
-    }
-
-    currentForecastKm = Number(json.km_forecast) || 0;
-    forecastSpan.textContent = currentForecastKm.toLocaleString('it-IT');
-
-    status.textContent = `Forecast caricato per il ${dateVal}.`;
-  }catch(err){
-    status.textContent = 'Errore nel caricamento. Sei offline o non autorizzato.';
-  }
+  const diffMs   = end.getTime() - start.getTime();
+  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+  return diffDays;
 }
 
-/* ====== CALCOLO DELTA ====== */
+/* ====== DELTA ====== */
 function renderDelta(delta){
   const el = document.getElementById('deltaValue');
   el.classList.remove('delta-positive','delta-negative');
@@ -348,32 +334,131 @@ function renderDelta(delta){
   else if (delta < 0) el.classList.add('delta-negative');
 }
 
-function onCalcClick(){
-  const status = document.getElementById('status');
+/**
+ * Calcola e mostra il delta.
+ * - se silent=true non mostra messaggi di errore in status
+ */
+function computeAndRenderDelta({ silent = false } = {}) {
+  const status  = document.getElementById('status');
   const kmInput = document.getElementById('kmAttuali');
-  const kmVal = kmInput.value.trim();
+  const kmVal   = kmInput.value.trim();
 
-  status.textContent = '';
+  if (!silent) status.textContent = '';
   renderDelta(null);
 
-  if (currentForecastKm === null){
-    status.textContent = 'Forecast non disponibile. Controlla la data attuale.';
+  if (currentForecastKm === null) {
+    if (!silent) status.textContent = 'Forecast non disponibile. Controlla la data attuale.';
     return;
   }
-  if (!kmVal){
-    status.textContent = 'Inserisci i Km attuali.';
+  if (!kmVal) {
+    // In modalità automatica non segnalo errore, semplicemente non calcolo il delta
+    if (!silent) status.textContent = 'Inserisci i Km attuali.';
     return;
   }
 
   const kmNum = Number(kmVal);
   if (!isFinite(kmNum) || kmNum < 0){
-    status.textContent = 'Valore di Km attuali non valido.';
+    if (!silent) status.textContent = 'Valore di Km attuali non valido.';
     return;
   }
 
   const delta = currentForecastKm - kmNum;
   renderDelta(delta);
-  status.textContent = 'Calcolo completato.';
+  if (!silent) status.textContent = 'Calcolo completato.';
+}
+
+/* ====== API: carica forecast per data ====== */
+async function loadForecastForDate(){
+  const dateInput           = document.getElementById('currentDate');
+  const forecastSpan        = document.getElementById('forecastValue');
+  const numGiorniSpan       = document.getElementById('numGiorniValue');
+  const giorniRestantiSpan  = document.getElementById('giorniRestantiValue');
+  const kmInput             = document.getElementById('kmAttuali');
+  const status              = document.getElementById('status');
+
+  let dateVal = dateInput.value;
+  if (!dateVal){
+    dateVal = todayISO();
+    dateInput.value = dateVal;
+  }
+
+  status.textContent = 'Carico forecast…';
+  currentForecastKm = null;
+  forecastSpan.textContent       = '—';
+  numGiorniSpan.textContent      = '—';
+  giorniRestantiSpan.textContent = '—';
+  kmInput.value                  = '';
+  renderDelta(null);
+
+  try{
+    const url = new URL(ENDPOINT);
+    url.searchParams.set('action','km_forecast');
+    url.searchParams.set('secret', SECRET);
+    url.searchParams.set('date', dateVal);
+
+    const res  = await fetch(url.toString(), { method:'GET' });
+    const json = await res.json();
+
+    // Giorni restanti: li calcolo SEMPRE indipendentemente dal risultato del forecast
+    const gr = calcDaysRemaining(dateVal);
+    if (gr !== null && isFinite(gr)) {
+      giorniRestantiSpan.textContent = gr.toLocaleString('it-IT');
+    } else {
+      giorniRestantiSpan.textContent = '—';
+    }
+
+    if (!json.ok){
+      status.textContent = json.error || 'Forecast non disponibile per questa data.';
+      return;
+    }
+
+    // km forecast
+    currentForecastKm = Number(json.km_forecast);
+    if (!isFinite(currentForecastKm)) currentForecastKm = null;
+
+    if (currentForecastKm !== null) {
+      forecastSpan.textContent = currentForecastKm.toLocaleString('it-IT');
+    } else {
+      forecastSpan.textContent = '—';
+    }
+
+    // Num. Giorni da sheet (NUM_GIORNI)
+    if ('num_giorni' in json && json.num_giorni !== null && json.num_giorni !== '') {
+      const n = Number(json.num_giorni);
+      if (isFinite(n)) {
+        numGiorniSpan.textContent = n.toLocaleString('it-IT');
+      } else {
+        numGiorniSpan.textContent = '—';
+      }
+    } else {
+      numGiorniSpan.textContent = '—';
+    }
+
+    // Km reali da sheet (KM_REALI) → precompila "Km attuali" se presente
+    let kmReali = null;
+    if ('km_reali' in json && json.km_reali !== null && json.km_reali !== '') {
+      const v = Number(json.km_reali);
+      if (isFinite(v)) kmReali = v;
+    }
+
+    if (kmReali !== null) {
+      kmInput.value = kmReali;
+    } else {
+      kmInput.value = '';
+    }
+
+    // Calcolo automatico del delta se ho sia forecast che km attuali
+    computeAndRenderDelta({ silent: true });
+
+    status.textContent = `Forecast caricato per il ${dateVal}.`;
+  }catch(err){
+    status.textContent = 'Errore nel caricamento. Sei offline o non autorizzato.';
+  }
+}
+
+/* ====== HANDLER BOTTONE ====== */
+function onCalcClick(){
+  computeAndRenderDelta({ silent: false });
 }
 
 /* ====== EVENTI UI ====== */
