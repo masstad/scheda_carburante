@@ -48,7 +48,7 @@
     }
     body{ color-scheme: light dark; }
 
-    /* Reset + layout base (come lista.html) */
+    /* Reset + layout base (come scheda_carburante/lista) */
     * { box-sizing: border-box; }
     html, body { width:100%; max-width:100%; overflow-x:hidden; margin:0; }
     body{
@@ -262,6 +262,11 @@
       <div class="card-value delta-value" id="deltaValue">—</div>
     </section>
 
+    <!-- Nuovo bottone REGISTRA -->
+    <div style="margin-top:12px; text-align:center;">
+      <button id="saveBtn" class="btn" type="button">Registra</button>
+    </div>
+
     <div id="status" class="muted"></div>
   </main>
 
@@ -312,7 +317,6 @@ function calcDaysRemaining(dateISO) {
   const d = new Date(dateISO);
   if (!(d instanceof Date) || isNaN(d)) return null;
 
-  // Normalizzo entrambi a mezzanotte per evitare problemi di fusi/ora legale
   const start = new Date(d.getFullYear(), d.getMonth(), d.getDate());
   const end   = new Date(END_DATE.getFullYear(), END_DATE.getMonth(), END_DATE.getDate());
 
@@ -351,7 +355,6 @@ function computeAndRenderDelta({ silent = false } = {}) {
     return;
   }
   if (!kmVal) {
-    // In modalità automatica non segnalo errore, semplicemente non calcolo il delta
     if (!silent) status.textContent = 'Inserisci i Km attuali.';
     return;
   }
@@ -399,7 +402,7 @@ async function loadForecastForDate(){
     const res  = await fetch(url.toString(), { method:'GET' });
     const json = await res.json();
 
-    // Giorni restanti: li calcolo SEMPRE indipendentemente dal risultato del forecast
+    // Giorni restanti: li calcolo sempre
     const gr = calcDaysRemaining(dateVal);
     if (gr !== null && isFinite(gr)) {
       giorniRestantiSpan.textContent = gr.toLocaleString('it-IT');
@@ -422,7 +425,7 @@ async function loadForecastForDate(){
       forecastSpan.textContent = '—';
     }
 
-    // Num. Giorni da sheet (NUM_GIORNI)
+    // Num. Giorni
     if ('num_giorni' in json && json.num_giorni !== null && json.num_giorni !== '') {
       const n = Number(json.num_giorni);
       if (isFinite(n)) {
@@ -434,7 +437,7 @@ async function loadForecastForDate(){
       numGiorniSpan.textContent = '—';
     }
 
-    // Km reali da sheet (KM_REALI) → precompila "Km attuali" se presente
+    // Km reali -> Km attuali
     let kmReali = null;
     if ('km_reali' in json && json.km_reali !== null && json.km_reali !== '') {
       const v = Number(json.km_reali);
@@ -447,7 +450,7 @@ async function loadForecastForDate(){
       kmInput.value = '';
     }
 
-    // Calcolo automatico del delta se ho sia forecast che km attuali
+    // Calcolo automatico del delta se possibile
     computeAndRenderDelta({ silent: true });
 
     status.textContent = `Forecast caricato per il ${dateVal}.`;
@@ -456,9 +459,67 @@ async function loadForecastForDate(){
   }
 }
 
-/* ====== HANDLER BOTTONE ====== */
+/* ====== BOTTONE CALCOLA ====== */
 function onCalcClick(){
   computeAndRenderDelta({ silent: false });
+}
+
+/* ====== BOTTONE REGISTRA ====== */
+async function onRegisterClick(){
+  const status     = document.getElementById('status');
+  const kmInput    = document.getElementById('kmAttuali');
+  const dateInput  = document.getElementById('currentDate');
+
+  let dateVal = dateInput.value;
+  if (!dateVal){
+    dateVal = todayISO();
+    dateInput.value = dateVal;
+  }
+
+  const kmVal = kmInput.value.trim();
+
+  status.textContent = '';
+
+  if (!kmVal) {
+    status.textContent = 'Inserisci i Km attuali prima di registrare.';
+    return;
+  }
+
+  const msg = `Attenzione, si stanno registrando ${kmVal} km attuali.`;
+  const ok = window.confirm(msg);
+  if (!ok) {
+    status.textContent = 'Registrazione annullata.';
+    return;
+  }
+
+  status.textContent = 'Registrazione in corso…';
+
+  const payload = {
+    action: 'km_register',
+    secret: SECRET,
+    date: dateVal,
+    km: kmVal
+  };
+
+  try{
+    const res  = await fetch(ENDPOINT, {
+      method:'POST',
+      headers:{ 'Content-Type':'application/json' },
+      body: JSON.stringify(payload)
+    });
+    const json = await res.json();
+
+    if (!json.ok) {
+      status.textContent = json.error || 'Errore nella registrazione dei Km.';
+      return;
+    }
+
+    status.textContent = 'Km attuali registrati.';
+    // Ricalcolo silenzioso del delta (i valori a video sono già aggiornati)
+    computeAndRenderDelta({ silent: true });
+  }catch(err){
+    status.textContent = 'Errore di rete nella registrazione.';
+  }
 }
 
 /* ====== EVENTI UI ====== */
@@ -467,6 +528,7 @@ document.getElementById('currentDate').addEventListener('change', () => {
 });
 
 document.getElementById('calcBtn').addEventListener('click', onCalcClick);
+document.getElementById('saveBtn').addEventListener('click', onRegisterClick);
 
 // Pulsante back: chiudi overlay se in iframe
 document.getElementById('backBtn').addEventListener('click', (e) => {
@@ -499,7 +561,7 @@ document.addEventListener('DOMContentLoaded', () => {
 </script>
 
 <script>
-  // (opzionale) sincronizza il tema dal genitore come in lista.html
+  // sincronizza il tema dal genitore (come lista.html)
   window.addEventListener('message', (ev) => {
     if (typeof ev.data === 'string' && ev.data.startsWith('theme:')) {
       const t = ev.data.split(':')[1];
