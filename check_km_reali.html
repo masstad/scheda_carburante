@@ -138,6 +138,12 @@
       background: var(--btn-hover);
     }
 
+    table.table th.num,
+    table.table td.num{
+      text-align: right;
+    }
+
+
     .delta-cell{
       font-weight:600;
       white-space:nowrap;
@@ -219,11 +225,12 @@
           <thead>
             <tr>
               <th>Data</th>
-              <th>Km forecast</th>
-              <th>Km reali</th>
-              <th>Delta</th>
+              <th class="num">Km forecast</th>
+              <th class="num">Km reali</th>
+              <th class="num">Delta</th>
             </tr>
           </thead>
+
           <tbody id="kmTableBody">
             <tr>
               <td colspan="4" class="muted">Caricamento in corso…</td>
@@ -323,14 +330,15 @@ async function loadKmCheckList(){
 
       tr.innerHTML = `
         <td>${escapeHtml(r.date || '')}</td>
-        <td>${formatNumber(r.km_forecast)}</td>
-        <td>${formatNumber(r.km_reali)}</td>
-        <td>
+        <td class="num">${formatNumber(r.km_forecast)}</td>
+        <td class="num">${formatNumber(r.km_reali)}</td>
+        <td class="num">
           <span class="delta-cell ${deltaClass}">
             ${delta !== null ? formatNumber(delta) : '—'}
           </span>
         </td>
       `;
+
       tbody.appendChild(tr);
     });
 
@@ -375,3 +383,4 @@ document.addEventListener('DOMContentLoaded', () => {
 
 </body>
 </html>
+
