@@ -96,7 +96,7 @@
       display:flex;
       justify-content:space-between;
       align-items:center;
-      margin-bottom:4px;
+      margin-bottom:6px;
     }
     .card-gestore{
       font-size:15px;
@@ -122,6 +122,7 @@
       display:flex;
       gap:10px;
       flex-wrap:wrap;
+      margin-top:6px;
     }
 
     #status{
@@ -159,17 +160,6 @@
       border:1px solid var(--border);
       border-radius:99px;
       margin-left:6px;
-    }
-
-    input.debug-url{
-      width:100%;
-      margin-top:6px;
-      font-size:11px;
-      padding:4px;
-      border-radius:6px;
-      border:1px solid var(--border);
-      background:var(--surface);
-      color:var(--text);
     }
 
   </style>
@@ -215,6 +205,8 @@ async function loadImpianti(lat, lon){
   const status  = document.getElementById("status");
   const results = document.getElementById("results");
 
+  status.textContent = "⏳ Cerco gli impianti vicini…";
+
   const params = new URLSearchParams({
     latitude: lat,
     longitude: lon,
@@ -225,19 +217,12 @@ async function loadImpianti(lat, lon){
 
   const url = `https://prezzi-carburante.onrender.com/api/distributori?${params.toString()}`;
 
-  status.innerHTML = `
-    🔍 Sto cercando gli impianti nel raggio di 3 km…<br><br>
-    <input class="debug-url" value="${url}">
-  `;
-
   try{
     const res = await fetch(url);
     const data = await res.json();
 
-    console.log("RISPOSTA API:", data);
-
     if (!Array.isArray(data)){
-      status.innerHTML = "❌ Risposta inattesa dall'API carburanti.";
+      status.textContent = "❌ Risposta inattesa dall'API carburanti.";
       return;
     }
 
@@ -265,9 +250,9 @@ async function loadImpianti(lat, lon){
         <div class="card-prezzo">€ ${formatPrezzo(imp.prezzo)}</div>
 
         <div class="card-meta">
-          <span>Distanza: ${imp.distanza} km</span>
+          <span>${imp.distanza} km</span>
           <span>${imp.data}</span>
-          <span>(${formatCoord(imp.latitudine)}, ${formatCoord(imp.longitudine)})</span>
+          <span>${formatCoord(imp.latitudine)}, ${formatCoord(imp.longitudine)}</span>
         </div>
       `;
 
@@ -286,12 +271,7 @@ function initGeolocation(){
   const latEl = document.getElementById("lat");
   const lonEl = document.getElementById("lon");
 
-  if (!navigator.geolocation){
-    status.textContent = "❌ Geolocalizzazione non supportata.";
-    return;
-  }
-
-  status.textContent = "📡 Attendo il fix dal GPS…";
+  status.textContent = "📡 Attendo il fix del GPS…";
 
   navigator.geolocation.getCurrentPosition(
     pos => {
