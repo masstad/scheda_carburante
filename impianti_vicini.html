@@ -251,48 +251,103 @@ async function loadImpianti(lat, lon){
   const status  = document.getElementById('status');
   const results = document.getElementById('results');
 
-  status.textContent = 'Cerco gli impianti vicini (3 km, gasolio)…';
   results.innerHTML = '';
 
+  const url = new URL(ENDPOINT);
+  url.searchParams.set('action',   'impianti_vicini');
+  url.searchParams.set('secret',   SECRET);
+  url.searchParams.set('latitude', String(lat));
+  url.searchParams.set('longitude',String(lon));
+  url.searchParams.set('distance','3');
+  url.searchParams.set('fuel','gasolio');
+  url.searchParams.set('results','100');
+
+  const finalUrl = url.toString();
+
+  // 🔥 MOSTRA LA URL A VIDEO
+  status.innerHTML = `
+    <div>Sto chiamando l'endpoint Apps Script…</div>
+    <div style="margin-top:6px;font-size:12px;color:#888">
+      <b>URL:</b><br>${finalUrl}
+    </div>
+  `;
+  console.log("[URL CHIAMATA]", finalUrl);
+
   try{
-    const url = new URL(ENDPOINT);
-    url.searchParams.set('action',   'impianti_vicini');
-    url.searchParams.set('secret',   SECRET);
-    url.searchParams.set('latitude', String(lat));
-    url.searchParams.set('longitude',String(lon));
-    url.searchParams.set('distance','3');
-    url.searchParams.set('fuel','gasolio');
-    url.searchParams.set('results','100');
+    const res  = await fetch(finalUrl);
+    const txt = await res.text();
 
-    const res  = await fetch(url.toString());
-    const data = await res.json();
+    console.log("[RISPOSTA GREZZA]", txt);
 
-    console.log('[Impianti vicini] risposta endpoint:', data);
-
-    // Caso 1: lo script restituisce direttamente l'array (come previsto)
-    if (Array.isArray(data)) {
-      if (data.length === 0){
-        status.textContent = 'Nessun impianto trovato nel raggio di 3 km.';
-        return;
-      }
-      status.textContent = `Trovati ${data.length} impianti nel raggio di 3 km (gasolio).`;
-      renderImpiantiList(data);
+    let data;
+    try { data = JSON.parse(txt); }
+    catch(e){
+      status.innerHTML = `
+        ❌ Errore: la risposta NON è JSON valido<br>
+        <pre>${txt}</pre>
+        <div style="margin-top:6px;font-size:12px;color:#888">
+          URL: ${finalUrl}
+        </div>
+      `;
       return;
     }
 
-    // Caso 2: wrapper { ok:false, error: ... }
-    if (data && data.ok === false) {
-      status.textContent = 'Errore dal server: ' + (data.error || 'sconosciuto');
+    console.log("[Impianti vicini] risposta endpoint:", data);
+
+    // CASI DI ERRORE
+    if (data.ok === false){
+      status.innerHTML = `
+        ❌ Errore Apps Script: ${data.error}<br>
+        <div style="margin-top:6px;font-size:12px;color:#888">
+          URL: ${finalUrl}
+        </div>
+      `;
       return;
     }
 
-    // Caso 3: wrapper { ok:true, ... } ma niente array
-    status.textContent = 'Risposta inattesa dal server.';
+    // CASO: fallback health-check → SIGNIFICA CHE action NON ENTRA !!!
+    if (data.ok === true && data.msg === "Scheda_carburante API up"){
+      status.innerHTML = `
+        ⚠️ L'endpoint NON ha riconosciuto <b>action=impianti_vicini</b><br>
+        Sta rispondendo col fallback di health-check.<br><br>
+        <b>Questo significa al 100% che il tuo deployment Google NON contiene ancora la nuova action.</b><br><br>
+
+        <details style="margin-top:8px">
+          <summary>URL</summary>
+          ${finalUrl}
+        </details>
+      `;
+      return;
+    }
+
+    // CASO: la risposta deve essere un array
+    if (!Array.isArray(data)){
+      status.innerHTML = `
+        ⚠️ Risposta inattesa dal server:<br>
+        <pre>${txt}</pre>
+        <br>URL:<br>${finalUrl}
+      `;
+      return;
+    }
+
+    // SE ARRIVANO I DATI → stampa lista
+    if (data.length === 0){
+      status.innerHTML = `Nessun impianto trovato nel raggio di 3 km.<br><br>URL:<br>${finalUrl}`;
+      return;
+    }
+
+    status.innerHTML = `Trovati ${data.length} impianti nel raggio di 3 km.<br><br>URL:<br>${finalUrl}`;
+    renderImpiantiList(data);
+
   }catch(err){
-    console.error('[Impianti vicini] errore fetch:', err);
-    status.textContent = 'Errore nel caricamento degli impianti. Sei offline o il servizio non risponde.';
+    console.error(err);
+    status.innerHTML = `
+      ❌ Errore nella fetch: ${err}<br><br>
+      URL:<br>${finalUrl}
+    `;
   }
 }
+
 
 /* ====== RENDER LISTA ====== */
 function renderImpiantiList(data){
@@ -433,3 +488,4 @@ document.addEventListener('DOMContentLoaded', () => {
 
 </body>
 </html>
+
