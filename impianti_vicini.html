@@ -13,13 +13,17 @@
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
 
-  <!-- Tema prima del paint (come scheda_carburante.html) -->
+  <!-- Tema iniziale -->
   <script>
     (function(){
       try{
         const saved = localStorage.getItem('theme');
-        const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-        document.documentElement.setAttribute('data-theme', saved || (prefersDark ? 'dark' : 'light'));
+        const prefersDark = window.matchMedia &&
+            window.matchMedia('(prefers-color-scheme: dark)').matches;
+        document.documentElement.setAttribute(
+          'data-theme',
+          saved || (prefersDark ? 'dark' : 'light')
+        );
       }catch(e){}
     })();
   </script>
@@ -27,8 +31,6 @@
   <style>
     :root{
       --space:14px;
-
-      /* Tema chiaro */
       --bg: #ffffff;
       --text: #111827;
       --muted: #666666;
@@ -46,9 +48,9 @@
       --divider: #222834;
       --btn-hover: #1b2130;
     }
+
     body{ color-scheme: light dark; }
 
-    /* Layout base (come scheda_carburante.html) */
     * { box-sizing: border-box; }
     html, body { width:100%; max-width:100%; overflow-x:hidden; margin:0; }
     body{
@@ -72,23 +74,17 @@
       margin-bottom:18px;
       text-align:center;
     }
-
     .title{
       margin:0;
       font-size:22px;
       font-weight:700;
     }
-
     .coords{
       font-size:13px;
       color:var(--muted);
     }
 
-    .coords span{
-      font-variant-numeric: tabular-nums;
-    }
-
-    /* Lista impianti: card come scheda_carburante */
+    /* CARD impianto */
     .card-block{
       border:1px solid var(--border);
       border-radius:12px;
@@ -96,7 +92,6 @@
       margin-top:10px;
       background: var(--surface);
     }
-
     .card-header{
       display:flex;
       justify-content:space-between;
@@ -104,24 +99,20 @@
       margin-bottom:4px;
       gap:8px;
     }
-
     .card-gestore{
       font-weight:600;
       font-size:14px;
     }
-
     .badge-self{
       font-size:11px;
       padding:2px 6px;
       border-radius:999px;
       border:1px solid var(--border);
     }
-
     .card-indirizzo{
       font-size:13px;
       margin-bottom:4px;
     }
-
     .card-meta{
       display:flex;
       flex-wrap:wrap;
@@ -129,192 +120,172 @@
       font-size:12px;
       color:var(--muted);
     }
-
     .card-prezzo{
       font-size:18px;
       font-weight:700;
       font-variant-numeric: tabular-nums;
     }
 
-    .muted {
-      color: var(--muted);
-      font-size: 12px;
-    }
-
     #status{
       margin-top:4px;
       margin-bottom:8px;
       text-align:center;
+      font-size:13px;
+      color:var(--muted);
     }
 
-    #results{
-      margin-top:4px;
-    }
-
-    /* Footer azioni + versione (come scheda_carburante) */
+    /* FOOTER */
     .actions-footer{
-      display:flex; gap:10px; justify-content:center;
+      display:flex;
+      gap:10px;
+      justify-content:center;
       margin-top:auto;
       padding-top:12px;
     }
+    .btn{
+      display:inline-flex;
+      align-items:center;
+      padding:10px 14px;
+      border:1px solid var(--border);
+      border-radius:12px;
+      background: var(--surface);
+      text-decoration:none;
+      color:inherit;
+      cursor:pointer;
+    }
+    .btn:hover{ background:var(--btn-hover); }
+
     .version-footer{
       text-align:center;
       padding: 10px 0 calc(10px + env(safe-area-inset-bottom));
-      width:100%;
-      color: var(--muted);
+      color:var(--muted);
+      font-size:12px;
     }
-    .badge {
-      display: inline-block;
-      font-size: 12px;
-      padding: 2px 8px;
-      border-radius: 999px;
-      border: 1px solid var(--border);
-      margin-left: 8px;
-      font-variant-numeric: tabular-nums;
-      background: var(--surface);
+    .badge{
+      padding:2px 8px;
+      border-radius:999px;
+      border:1px solid var(--border);
+      margin-left:8px;
     }
-
-    .btn{
-      display:inline-flex; align-items:center; gap:6px;
-      padding:10px 14px;
-      border:1px solid var(--border); border-radius:12px; background: var(--surface);
-      text-decoration:none; color:inherit; cursor:pointer;
-      font: inherit; line-height:1;
-      appearance:none; -webkit-appearance:none;
-    }
-    .btn:hover{ background: var(--btn-hover); }
-    .btn:active{ transform:translateY(1px); }
-    .btn:focus-visible{ outline:2px solid #2684ff; outline-offset:2px; }
   </style>
 </head>
 <body>
 
-  <!-- HEADER -->
-  <header class="topbar container">
-    <h1 class="title">⛽️ Impianti vicini</h1>
-    <div class="coords">
-      Latitudine: <span id="lat">—</span> • Longitudine: <span id="lon">—</span>
-    </div>
-  </header>
-
-  <!-- CONTENUTO -->
-  <main class="container" role="main">
-    <div id="status" class="muted">In attesa della posizione GPS…</div>
-    <div id="results"></div>
-  </main>
-
-  <!-- AZIONI -->
-  <div class="actions-footer container">
-    <a class="btn" id="backBtn" href="index.html" target="_self" aria-label="Torna indietro">← Indietro</a>
+<header class="topbar container">
+  <h1 class="title">⛽️ Impianti vicini</h1>
+  <div class="coords">
+    Latitudine: <span id="lat">—</span> • Longitudine: <span id="lon">—</span>
   </div>
+</header>
 
-  <!-- Versione -->
-  <div class="version-footer muted">
-    Versione:<span id="appVersion" class="badge"></span>
-  </div>
+<main class="container">
+  <div id="status">In attesa della posizione GPS…</div>
+  <div id="results"></div>
+</main>
+
+<div class="actions-footer container">
+  <a class="btn" id="backBtn" href="index.html">← Indietro</a>
+</div>
+
+<div class="version-footer">
+  Versione: <span id="appVersion" class="badge"></span>
+</div>
 
 <script>
-/* ====== VERSIONE (come scheda_carburante.html) ====== */
+/* ===== CONFIG BACKEND ===== */
+const ENDPOINT = "https://script.google.com/macros/s/AKfycbwFKEfcSLjdXSodQtDiIyhHPXskdLdOZ9PXTc0Dt5dlXIFxu8hhb80UwrSJpWqmzv-w/exec";
+const SECRET   = "aX4P-92kLq-55T8b-7Hc0Z";
+
+/* ===== VERSIONE ===== */
 function formatVersionFromDate(d){
   const p=n=>String(n).padStart(2,'0');
   return `${d.getFullYear()}.${p(d.getMonth()+1)}.${p(d.getDate())}-${p(d.getHours())}:${p(d.getMinutes())}`;
 }
-function computeAppVersion(){
-  const qs = new URLSearchParams(location.search);
-  const v = qs.get('v');
-  if (v) return v;
-  const d = new Date(document.lastModified);
-  return isNaN(d)?'dev':formatVersionFromDate(d);
-}
-document.getElementById('appVersion').textContent = computeAppVersion();
+document.getElementById("appVersion").textContent =
+  formatVersionFromDate(new Date(document.lastModified));
 
-/* ====== UTILS ====== */
-function formatCoord(value){
-  if (typeof value !== 'number' || !isFinite(value)) return '—';
-  return value.toFixed(6);
-}
-function formatPrezzo(val){
-  if (typeof val !== 'number' || !isFinite(val)) return '—';
-  return val.toFixed(3).replace('.', ',');
-}
+/* ===== UTILS ===== */
+const formatCoord = v => Number(v).toFixed(6);
+const formatPrezzo = v => Number(v).toFixed(3).replace(".", ",");
 
-/* ====== CARICAMENTO IMPIANTI ====== */
+/* ===== CARICA IMPIANTI (via Apps Script) ===== */
 async function loadImpianti(lat, lon){
-  const status  = document.getElementById('status');
-  const results = document.getElementById('results');
+  const status = document.getElementById("status");
+  const results = document.getElementById("results");
 
-  status.textContent = 'Cerco gli impianti vicini (1 km, gasolio)…';
-  results.innerHTML = '';
+  status.textContent = "Cerco gli impianti vicini (3 km, gasolio)…";
+  results.innerHTML = "";
+
+  const url = new URL(ENDPOINT);
+  url.searchParams.set("action", "impianti_vicini");
+  url.searchParams.set("secret", SECRET);
+  url.searchParams.set("latitude", lat);
+  url.searchParams.set("longitude", lon);
+  url.searchParams.set("distance", "3");
+  url.searchParams.set("fuel", "gasolio");
+  url.searchParams.set("results", "100");
 
   try{
-    const params = new URLSearchParams({
-      latitude: String(lat),
-      longitude: String(lon),
-      distance: '3',
-      fuel: 'gasolio',
-      results: '10'
-    });
-    const url = 'https://prezzi-carburante.onrender.com/api/distributori?' + params.toString();
-
     const res = await fetch(url);
     const data = await res.json();
 
-    if (!Array.isArray(data) || data.length === 0){
-      status.textContent = 'Nessun impianto trovato nel raggio di 1 km.';
+    if (!Array.isArray(data)){
+      status.textContent = "Errore dal server.";
+      return;
+    }
+    if (data.length === 0){
+      status.textContent = "Nessun impianto trovato nel raggio di 3 km.";
       return;
     }
 
-    status.textContent = `Trovati ${data.length} impianti nel raggio di 1 km (gasolio).`;
+    status.textContent = `Trovati ${data.length} impianti nel raggio di 3 km (gasolio).`;
 
     data.forEach((imp, index) => {
-      const card = document.createElement('section');
-      card.className = 'card-block';
+      const card = document.createElement("section");
+      card.className = "card-block";
 
-      const header = document.createElement('div');
-      header.className = 'card-header';
+      const header = document.createElement("div");
+      header.className = "card-header";
 
-      const gestore = document.createElement('div');
-      gestore.className = 'card-gestore';
-      const rank = (imp.ranking ?? (index + 1));
-      gestore.textContent = `#${rank} · ${imp.gestore || 'Impianto'}`;
+      const gestore = document.createElement("div");
+      gestore.className = "card-gestore";
+      gestore.textContent = `#${imp.ranking ?? index+1} · ${imp.gestore}`;
 
       header.appendChild(gestore);
 
-      if (imp.self === true){
-        const badge = document.createElement('span');
-        badge.className = 'badge-self';
-        badge.textContent = 'Self service';
+      if (imp.self){
+        const badge = document.createElement("span");
+        badge.className = "badge-self";
+        badge.textContent = "Self service";
         header.appendChild(badge);
       }
 
-      const indirizzo = document.createElement('div');
-      indirizzo.className = 'card-indirizzo';
-      indirizzo.textContent = imp.indirizzo || '';
+      const indirizzo = document.createElement("div");
+      indirizzo.className = "card-indirizzo";
+      indirizzo.textContent = imp.indirizzo;
 
-      const meta = document.createElement('div');
-      meta.className = 'card-meta';
+      const prezzo = document.createElement("div");
+      prezzo.className = "card-prezzo";
+      prezzo.textContent = "€ " + formatPrezzo(imp.prezzo);
 
-      const prezzo = document.createElement('span');
-      prezzo.className = 'card-prezzo';
-      prezzo.textContent = '€ ' + formatPrezzo(imp.prezzo);
+      const meta = document.createElement("div");
+      meta.className = "card-meta";
 
-      const distanza = document.createElement('span');
       if (imp.distanza){
-        distanza.textContent = `Distanza: ${imp.distanza} km`;
-        meta.appendChild(distanza);
+        const span = document.createElement("span");
+        span.textContent = `Distanza: ${imp.distanza} km`;
+        meta.appendChild(span);
       }
 
       if (imp.data){
-        const dataSpan = document.createElement('span');
-        dataSpan.textContent = `Agg.: ${imp.data}`;
-        meta.appendChild(dataSpan);
+        const span = document.createElement("span");
+        span.textContent = `Agg.: ${imp.data}`;
+        meta.appendChild(span);
       }
 
-      const coordSpan = document.createElement('span');
-      if (imp.latitudine && imp.longitudine){
-        coordSpan.textContent = `(${formatCoord(imp.latitudine)}, ${formatCoord(imp.longitudine)})`;
-        meta.appendChild(coordSpan);
-      }
+      const coord = document.createElement("span");
+      coord.textContent = `(${formatCoord(imp.latitudine)}, ${formatCoord(imp.longitudine)})`;
+      meta.appendChild(coord);
 
       card.appendChild(header);
       card.appendChild(indirizzo);
@@ -324,27 +295,27 @@ async function loadImpianti(lat, lon){
       results.appendChild(card);
     });
 
-  }catch(err){
+  } catch(err){
     console.error(err);
-    status.textContent = 'Errore nel caricamento degli impianti. Sei offline o il servizio non risponde.';
+    status.textContent = "Errore nel caricamento degli impianti.";
   }
 }
 
-/* ====== GEOLOCALIZZAZIONE ====== */
+/* ===== GEOLOCALIZZAZIONE ===== */
 function initGeolocation(){
-  const latEl = document.getElementById('lat');
-  const lonEl = document.getElementById('lon');
-  const status = document.getElementById('status');
+  const latEl = document.getElementById("lat");
+  const lonEl = document.getElementById("lon");
+  const status = document.getElementById("status");
 
   if (!navigator.geolocation){
-    status.textContent = 'Geolocalizzazione non supportata dal dispositivo.';
+    status.textContent = "Geolocalizzazione non supportata dal dispositivo.";
     return;
   }
 
-  status.textContent = 'Richiedo la posizione al GPS…';
+  status.textContent = "Richiedo la posizione al GPS…";
 
   navigator.geolocation.getCurrentPosition(
-    (pos) => {
+    pos => {
       const lat = pos.coords.latitude;
       const lon = pos.coords.longitude;
 
@@ -353,57 +324,32 @@ function initGeolocation(){
 
       loadImpianti(lat, lon);
     },
-    (err) => {
-      console.warn(err);
-      switch(err.code){
-        case err.PERMISSION_DENIED:
-          status.textContent = 'Permesso di geolocalizzazione negato. Non posso cercare gli impianti vicini.';
-          break;
-        case err.POSITION_UNAVAILABLE:
-          status.textContent = 'Posizione non disponibile.';
-          break;
-        case err.TIMEOUT:
-          status.textContent = 'Timeout nel recupero della posizione.';
-          break;
-        default:
-          status.textContent = 'Errore nella geolocalizzazione.';
-      }
+    err => {
+      status.textContent = "Impossibile ottenere la posizione.";
     },
-    {
-      enableHighAccuracy: true,
-      timeout: 15000,
-      maximumAge: 0
-    }
+    { enableHighAccuracy:true, timeout:15000, maximumAge:0 }
   );
 }
 
-/* ====== BACK BTN: chiudi iframe in index.html se presente ====== */
-document.getElementById('backBtn').addEventListener('click', (e) => {
-  if (window.top !== window.self) {
-    e.preventDefault();
-    window.top.postMessage('close-lista', '*');
+/* ===== SYNC TEMA ===== */
+window.addEventListener("message",(ev)=>{
+  if (typeof ev.data === "string" && ev.data.startsWith("theme:")){
+    const t = ev.data.split(":")[1];
+    document.documentElement.setAttribute("data-theme", t);
   }
 });
 
-/* ====== THEME SYNC (da index.html via postMessage) ====== */
-(function(){
-  function applyTheme(t){
-    document.documentElement.setAttribute('data-theme', t);
+/* ===== BACK BTN ===== */
+document.getElementById("backBtn").addEventListener("click", e=>{
+  if (window.top !== window.self){
+    e.preventDefault();
+    window.top.postMessage("close-lista","*");
   }
-  window.addEventListener('message', (ev) => {
-    if (typeof ev.data === 'string' && ev.data.startsWith('theme:')) {
-      const t = ev.data.split(':')[1];
-      if (t === 'light' || t === 'dark') applyTheme(t);
-    }
-  });
-})();
-  
-/* ====== BOOT ====== */
-document.addEventListener('DOMContentLoaded', () => {
-  initGeolocation();
 });
+
+/* ===== BOOT ===== */
+document.addEventListener("DOMContentLoaded", initGeolocation);
 </script>
 
 </body>
 </html>
-
