@@ -363,77 +363,77 @@ function initGeolocation(){
   const lonEl = document.getElementById('lon');
   const status = document.getElementById('status');
 
+  const LS_LAT = 'impiantiVicini_lastLat';
+  const LS_LON = 'impiantiVicini_lastLon';
+  const LS_ACC = 'impiantiVicini_lastAcc';
+
+  // 1) Fallback immediato: se ho una posizione valida salvata, uso quella subito (senza far "aspettare" l'utente)
+  const cachedLat = Number(localStorage.getItem(LS_LAT));
+  const cachedLon = Number(localStorage.getItem(LS_LON));
+  const cachedAcc = Number(localStorage.getItem(LS_ACC));
+
+  const hasCached = Number.isFinite(cachedLat) && Number.isFinite(cachedLon);
+
+  if (hasCached) {
+    latEl.textContent = formatCoord(cachedLat);
+    lonEl.textContent = formatCoord(cachedLon);
+    status.textContent = `Uso ultima posizione nota (±${Math.round(cachedAcc || 0)} m). Aggiorno la posizione…`;
+    loadImpianti(cachedLat, cachedLon);
+  } else {
+    status.textContent = 'Richiedo la posizione…';
+  }
+
+  // 2) Provo a ottenere la posizione corrente dal browser.
+  // Su desktop può essere stimata (IP/Wi‑Fi) e quindi anche molto imprecisa: in quel caso NON sostituisco la cache.
   if (!navigator.geolocation){
-    status.textContent = 'Geolocalizzazione non supportata dal dispositivo.';
+    status.textContent = hasCached
+      ? (status.textContent + ' (Geolocalizzazione non disponibile: continuo con ultima posizione.)')
+      : 'Geolocalizzazione non supportata dal dispositivo.';
     return;
   }
 
-  // Su desktop Chrome spesso restituisce una posizione "stimata" (Wi‑Fi/IP) anche a decine di km.
-  // Con watchPosition aspettiamo qualche fix e prendiamo quello con accuratezza migliore.
-  status.textContent = 'Rilevo la posizione… (consenti la geolocalizzazione e attiva i servizi di posizione)';
+  navigator.geolocation.getCurrentPosition(
+    (pos) => {
+      const lat = pos.coords.latitude;
+      const lon = pos.coords.longitude;
+      const acc = pos.coords.accuracy; // metri
 
-  let best = null; // {lat, lon, acc}
-  let updates = 0;
-  const MAX_UPDATES = 6;       // massimo numero di fix da aspettare
-  const GOOD_ACCURACY_M = 200; // sotto questa soglia consideriamo "buona" la posizione
+      // Aggiorna UI
+      latEl.textContent = formatCoord(lat);
+      lonEl.textContent = formatCoord(lon);
 
-  const onPos = (pos) => {
-    updates++;
-    const lat = pos.coords.latitude;
-    const lon = pos.coords.longitude;
-    const acc = typeof pos.coords.accuracy === 'number' ? pos.coords.accuracy : NaN;
+      // Soglia: se l'accuratezza è pessima (es. decine di km), preferisco NON sovrascrivere la cache (se esiste)
+      const isGood = Number.isFinite(acc) ? acc <= 2000 : true; // 2 km
 
-    // aggiorna UI sempre
-    latEl.textContent = formatCoord(lat);
-    lonEl.textContent = formatCoord(lon);
-
-    const accTxt = isFinite(acc) ? `±${Math.round(acc)} m` : 'accuratezza n/d';
-    status.textContent = `Posizione rilevata (${accTxt}).`;
-
-    // scegli il fix migliore (accuratezza più bassa)
-    if (!best || (isFinite(acc) && acc < best.acc)){
-      best = { lat, lon, acc: isFinite(acc) ? acc : Number.POSITIVE_INFINITY };
-    }
-
-    const goodEnough = best && isFinite(best.acc) && best.acc <= GOOD_ACCURACY_M;
-    const tooMany = updates >= MAX_UPDATES;
-
-    if (goodEnough || tooMany){
-      try{ navigator.geolocation.clearWatch(watchId); }catch(e){}
-      // usa sempre il best fix
-      const useLat = best ? best.lat : lat;
-      const useLon = best ? best.lon : lon;
-
-      // se è ancora "lontano" (accuratezza enorme), avvisa l'utente
-      if (best && isFinite(best.acc) && best.acc > 3000){
-        status.textContent = `Attenzione: posizione poco precisa (${Math.round(best.acc)} m). Su desktop può essere stimata: usa il telefono o abilita Wi‑Fi/GPS.`;
+      if (!isGood && hasCached) {
+        // Mantieni risultati della cache
+        status.textContent = `Posizione stimata troppo imprecisa (±${Math.round(acc)} m). Mantengo l'ultima posizione valida.`;
+        return;
       }
 
-      loadImpianti(useLat, useLon);
-    }
-  };
+      // Salva cache e carica impianti
+      localStorage.setItem(LS_LAT, String(lat));
+      localStorage.setItem(LS_LON, String(lon));
+      if (Number.isFinite(acc)) localStorage.setItem(LS_ACC, String(acc));
 
-  const onErr = (err) => {
-    console.warn('[Impianti vicini] errore geoloc:', err);
-    // messaggi utili
-    if (err && err.code === 1){
-      status.textContent = 'Permesso negato: consenti la posizione nel browser.';
-    } else if (err && err.code === 2){
-      status.textContent = 'Posizione non disponibile: verifica GPS/Wi‑Fi.';
-    } else if (err && err.code === 3){
-      status.textContent = 'Timeout nel rilevamento posizione: riprova.';
-    } else {
+      status.textContent = `Posizione rilevata (±${Math.round(acc)} m).`;
+      loadImpianti(lat, lon);
+    },
+    (err) => {
+      console.warn('[Impianti vicini] errore geoloc:', err);
+
+      // Se ho cache, continuo a usare quella e lo dico.
+      if (hasCached) {
+        status.textContent = `Geolocalizzazione non disponibile (${err.message}). Continuo con ultima posizione nota.`;
+        return;
+      }
+
       status.textContent = 'Errore nella geolocalizzazione.';
-    }
-  };
-
-  const watchId = navigator.geolocation.watchPosition(
-    onPos,
-    onErr,
+    },
     {
       enableHighAccuracy: true,
-      timeout: 20000,
-      maximumAge: 0
+      timeout: 15000,
+      maximumAge: 600000 // 10 min: se il browser ha una posizione recente evita di sparare stime IP assurde
     }
   );
 }
