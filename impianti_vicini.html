@@ -368,29 +368,76 @@ function initGeolocation(){
     return;
   }
 
-  status.textContent = 'Richiedo la posizione al GPS…';
+  // Su desktop Chrome spesso restituisce una posizione "stimata" (Wi‑Fi/IP) anche a decine di km.
+  // Con watchPosition aspettiamo qualche fix e prendiamo quello con accuratezza migliore.
+  status.textContent = 'Rilevo la posizione… (consenti la geolocalizzazione e attiva i servizi di posizione)';
 
-  navigator.geolocation.getCurrentPosition(
-    (pos) => {
-      const lat = pos.coords.latitude;
-      const lon = pos.coords.longitude;
+  let best = null; // {lat, lon, acc}
+  let updates = 0;
+  const MAX_UPDATES = 6;       // massimo numero di fix da aspettare
+  const GOOD_ACCURACY_M = 200; // sotto questa soglia consideriamo "buona" la posizione
 
-      latEl.textContent = formatCoord(lat);
-      lonEl.textContent = formatCoord(lon);
+  const onPos = (pos) => {
+    updates++;
+    const lat = pos.coords.latitude;
+    const lon = pos.coords.longitude;
+    const acc = typeof pos.coords.accuracy === 'number' ? pos.coords.accuracy : NaN;
 
-      loadImpianti(lat, lon);
-    },
-    (err) => {
-      console.warn('[Impianti vicini] errore geoloc:', err);
+    // aggiorna UI sempre
+    latEl.textContent = formatCoord(lat);
+    lonEl.textContent = formatCoord(lon);
+
+    const accTxt = isFinite(acc) ? `±${Math.round(acc)} m` : 'accuratezza n/d';
+    status.textContent = `Posizione rilevata (${accTxt}).`;
+
+    // scegli il fix migliore (accuratezza più bassa)
+    if (!best || (isFinite(acc) && acc < best.acc)){
+      best = { lat, lon, acc: isFinite(acc) ? acc : Number.POSITIVE_INFINITY };
+    }
+
+    const goodEnough = best && isFinite(best.acc) && best.acc <= GOOD_ACCURACY_M;
+    const tooMany = updates >= MAX_UPDATES;
+
+    if (goodEnough || tooMany){
+      try{ navigator.geolocation.clearWatch(watchId); }catch(e){}
+      // usa sempre il best fix
+      const useLat = best ? best.lat : lat;
+      const useLon = best ? best.lon : lon;
+
+      // se è ancora "lontano" (accuratezza enorme), avvisa l'utente
+      if (best && isFinite(best.acc) && best.acc > 3000){
+        status.textContent = `Attenzione: posizione poco precisa (${Math.round(best.acc)} m). Su desktop può essere stimata: usa il telefono o abilita Wi‑Fi/GPS.`;
+      }
+
+      loadImpianti(useLat, useLon);
+    }
+  };
+
+  const onErr = (err) => {
+    console.warn('[Impianti vicini] errore geoloc:', err);
+    // messaggi utili
+    if (err && err.code === 1){
+      status.textContent = 'Permesso negato: consenti la posizione nel browser.';
+    } else if (err && err.code === 2){
+      status.textContent = 'Posizione non disponibile: verifica GPS/Wi‑Fi.';
+    } else if (err && err.code === 3){
+      status.textContent = 'Timeout nel rilevamento posizione: riprova.';
+    } else {
       status.textContent = 'Errore nella geolocalizzazione.';
-    },
+    }
+  };
+
+  const watchId = navigator.geolocation.watchPosition(
+    onPos,
+    onErr,
     {
       enableHighAccuracy: true,
-      timeout: 15000,
+      timeout: 20000,
       maximumAge: 0
     }
   );
 }
+
 
 /* ====== BACK BTN: chiudi iframe in index.html se presente ====== */
 document.getElementById('backBtn').addEventListener('click', (e) => {
