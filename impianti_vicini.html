@@ -252,7 +252,7 @@ async function loadImpianti(lat, lon){
   const status  = document.getElementById('status');
   const results = document.getElementById('results');
 
-  status.textContent = 'Cerco gli impianti vicini (3 km, gasolio)…';
+  status.textContent = 'Cerco gli impianti vicini (4 km, gasolio)…';
   results.innerHTML = '';
 
   try{
@@ -261,7 +261,8 @@ async function loadImpianti(lat, lon){
     url.searchParams.set('secret',   SECRET);
     url.searchParams.set('latitude', String(lat));
     url.searchParams.set('longitude',String(lon));
-    url.searchParams.set('distance','3');
+    url.searchParams.set('radius','4');
+    url.searchParams.set('distance','4');
     url.searchParams.set('fuel','gasolio');
     url.searchParams.set('results','100');
 
@@ -286,11 +287,11 @@ async function loadImpianti(lat, lon){
     const list = Array.isArray(data) ? data : [];
 
     if (list.length === 0){
-      status.textContent = 'Nessun impianto trovato nel raggio di 3 km.';
+      status.textContent = 'Nessun impianto trovato nel raggio di 4 km.';
       return;
     }
 
-    status.textContent = `Trovati ${list.length} impianti nel raggio di 3 km (gasolio).`;
+    status.textContent = `Trovati ${list.length} impianti nel raggio di 4 km (gasolio).`;
     results.innerHTML = '';
 
     list.forEach((imp, index) => {
@@ -420,4 +421,3 @@ document.addEventListener('DOMContentLoaded', () => {
 
 </body>
 </html>
-
