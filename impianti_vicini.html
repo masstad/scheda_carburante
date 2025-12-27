@@ -313,6 +313,22 @@ async function loadImpianti(lat, lon){
   const card = document.createElement('section');
   card.className = 'card-block';
 
+  card.style.cursor = 'pointer';
+
+  card.addEventListener('click', (ev) => {
+    // evita che il click sul bottone "Mostra altri carburanti" apra il dettaglio
+    if (ev.target && ev.target.closest && ev.target.closest('button')) return;
+  
+    try{
+      sessionStorage.setItem('impianto_dettaglio', JSON.stringify(imp));
+    }catch(e){}
+  
+    const qs = new URLSearchParams(location.search);
+    const v = qs.get('v');
+    const url = v ? `dettaglio_impianto.html?v=${encodeURIComponent(v)}` : 'dettaglio_impianto.html';
+    window.location.href = url;
+  });
+
   const header = document.createElement('div');
   header.className = 'card-header';
 
@@ -598,4 +614,5 @@ document.addEventListener('DOMContentLoaded', () => {
 
 </body>
 </html>
+
 
