@@ -378,94 +378,68 @@ async function loadImpianti(lat, lon){
     });
   }
 
-// Tabellina carburanti
-// ====== CARBURANTI (SOLO GASOLIO SELF + ESPANDIBILE) ======
-const fuels = Array.isArray(imp.fuels) ? imp.fuels : [];
-
-// Gasolio Self visibile
-const gasolioSelf = fuels.find(f =>
-  String(f.name).toLowerCase() === 'gasolio' && f.isSelf === true
-);
-
-// Altri carburanti nascosti
-const otherFuels = fuels.filter(f => f !== gasolioSelf);
-
-const fuelsWrap = document.createElement('div');
-fuelsWrap.style.marginTop = '10px';
-
-// --- GASOLIO SELF (SE ESISTE) ---
-if (gasolioSelf) {
-  const row = document.createElement('div');
-  row.style.display = 'flex';
-  row.style.justifyContent = 'space-between';
-  row.style.padding = '6px 0';
-  row.style.borderTop = '1px solid var(--divider)';
-
-  const left = document.createElement('div');
-
-  const title = document.createElement('div');
-  title.style.fontWeight = '600';
-  title.textContent = 'Gasolio · Self';
-
-  const dates = document.createElement('div');
-  dates.className = 'muted';
-  dates.textContent =
-    (gasolioSelf.insertDate ? `Agg.: ${formatIsoToLocal(gasolioSelf.insertDate)}` : '') +
-    (gasolioSelf.validityDate ? ` · Val.: ${formatIsoToLocal(gasolioSelf.validityDate)}` : '');
-
-  left.appendChild(title);
-  left.appendChild(dates);
-
-  const price = document.createElement('div');
-  price.className = 'card-prezzo';
-  price.style.fontSize = '16px';
-  price.textContent = '€ ' + eur3(Number(gasolioSelf.price));
-
-  row.appendChild(left);
-  row.appendChild(price);
-  fuelsWrap.appendChild(row);
-} else {
-  const empty = document.createElement('div');
-  empty.className = 'muted';
-  empty.textContent = 'Gasolio Self non disponibile.';
-  fuelsWrap.appendChild(empty);
-}
-
-// --- ALTRI CARBURANTI (ESPANDIBILI) ---
-if (otherFuels.length > 0) {
-  const details = document.createElement('details');
-  details.style.marginTop = '6px';
-
-  const summary = document.createElement('summary');
-  summary.textContent = 'Mostra altri carburanti';
-  summary.style.cursor = 'pointer';
-  summary.style.fontSize = '13px';
-  summary.style.color = 'var(--muted)';
-
-  details.appendChild(summary);
-
-  otherFuels.forEach(f => {
-    const row = document.createElement('div');
-    row.style.display = 'flex';
-    row.style.justifyContent = 'space-between';
-    row.style.padding = '6px 0';
-    row.style.borderTop = '1px solid var(--divider)';
-
-    const left = document.createElement('div');
-    left.textContent = `${f.name} · ${f.isSelf ? 'Self' : 'Servito'}`;
-
-    const price = document.createElement('div');
-    price.textContent = '€ ' + eur3(Number(f.price));
-
-    row.appendChild(left);
-    row.appendChild(price);
-    details.appendChild(row);
+  // Tabellina carburanti
+  const fuels = Array.isArray(imp.fuels) ? imp.fuels : [];
+  fuels.sort((a,b)=>{
+    // ordina per nome carburante, poi self prima
+    const na = String(a.name||'').localeCompare(String(b.name||''), 'it', {sensitivity:'base'});
+    if (na !== 0) return na;
+    return (a.isSelf === b.isSelf) ? 0 : (a.isSelf ? -1 : 1);
   });
 
-  fuelsWrap.appendChild(details);
-}
+  const fuelsWrap = document.createElement('div');
+  fuelsWrap.style.marginTop = '10px';
 
-card.appendChild(fuelsWrap);
+  if (!fuels.length){
+    const empty = document.createElement('div');
+    empty.className = 'muted';
+    empty.textContent = 'Nessun prezzo disponibile.';
+    fuelsWrap.appendChild(empty);
+  } else {
+    // mini tabella HTML “a righe”
+    fuels.forEach(f => {
+      const row = document.createElement('div');
+      row.style.display = 'flex';
+      row.style.justifyContent = 'space-between';
+      row.style.gap = '10px';
+      row.style.padding = '6px 0';
+      row.style.borderTop = '1px solid var(--divider)';
+
+      const leftCol = document.createElement('div');
+      leftCol.style.display = 'flex';
+      leftCol.style.flexDirection = 'column';
+
+      const title = document.createElement('div');
+      title.style.fontWeight = '600';
+      title.style.fontSize = '13px';
+      title.textContent = `${f.name || 'Carburante'} · ${f.isSelf ? 'Self' : 'Servito'}`;
+
+      const dates = document.createElement('div');
+      dates.className = 'muted';
+      dates.textContent =
+        (f.insertDate ? `Agg.: ${formatIsoToLocal(f.insertDate)}` : '') +
+        (f.validityDate ? ` · Val.: ${formatIsoToLocal(f.validityDate)}` : '');
+
+      leftCol.appendChild(title);
+      leftCol.appendChild(dates);
+
+      const price = document.createElement('div');
+      price.className = 'card-prezzo';
+      price.style.marginTop = '0';
+      price.style.fontSize = '16px';
+      price.textContent = '€ ' + eur3(Number(f.price));
+
+      row.appendChild(leftCol);
+      row.appendChild(price);
+      fuelsWrap.appendChild(row);
+    });
+  }
+
+  card.appendChild(header);
+  card.appendChild(indirizzo);
+  card.appendChild(meta);
+  if (servicesRow) card.appendChild(servicesRow);
+  card.appendChild(fuelsWrap);
 
   results.appendChild(card);
 });
@@ -587,7 +561,4 @@ document.addEventListener('DOMContentLoaded', () => {
 
 </body>
 </html>
-
-
-
 
