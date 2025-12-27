@@ -345,6 +345,24 @@
       });
   }
 
+  function buildGoogleMapsUrl(imp){
+  // 1) prova con coordinate
+  const lat = imp?.location?.lat;
+  const lng = imp?.location?.lng;
+  if (typeof lat === 'number' && isFinite(lat) && typeof lng === 'number' && isFinite(lng)) {
+    return 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(`${lat},${lng}`);
+  }
+
+  // 2) fallback su indirizzo
+  const addr = (imp?.address || '').trim();
+  if (addr) {
+    return 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(addr);
+  }
+
+  return null;
+}
+
+
   // ====== DATA LOAD (da sessionStorage) ======
   function loadImpiantoFromSession(){
     try{
@@ -378,6 +396,17 @@
 
     status.textContent = '';
     infoCard.hidden = false;
+
+    // Pulsante "Apri in Google Maps"
+    const mapsBtn = document.getElementById('mapsBtn');
+    const mapsUrl = buildGoogleMapsUrl(imp);
+    
+    if (mapsUrl) {
+      mapsBtn.href = mapsUrl;
+      mapsBtn.style.display = 'inline-flex';
+    } else {
+      mapsBtn.style.display = 'none';
+    }
 
     // Titolo e sottotitolo
     const name = imp.nomeImpianto || imp.name || 'Impianto';
@@ -442,4 +471,5 @@
 </script>
 </body>
 </html>
+
 
