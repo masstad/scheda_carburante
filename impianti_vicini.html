@@ -241,7 +241,6 @@ const LS_BRAND = 'impiantiVicini_brand';
 let ALL_IMPIANTI = [];
 let CURRENT_BRAND = localStorage.getItem(LS_BRAND) || '__ALL__';
 
-
 /* ====== VERSIONE (come scheda_carburante.html) ====== */
 function formatVersionFromDate(d){
   const p=n=>String(n).padStart(2,'0');
@@ -261,10 +260,6 @@ function formatCoord(value){
   if (typeof value !== 'number' || !isFinite(value)) return '—';
   return value.toFixed(6);
 }
-function formatPrezzo(val){
-  if (typeof val !== 'number' || !isFinite(val)) return '—';
-  return val.toFixed(3).replace('.', ',');
-}
 function formatKm(km){
   if (typeof km !== 'number' || !isFinite(km)) return '';
   return km.toFixed(3).replace('.', ',') + ' km';
@@ -273,7 +268,6 @@ function formatIsoToLocal(iso){
   if (!iso) return '';
   const d = new Date(iso);
   if (isNaN(d)) return String(iso);
-  // formato leggibile IT
   return d.toLocaleString('it-IT', { year:'numeric', month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit' });
 }
 function eur3(n){
@@ -281,8 +275,7 @@ function eur3(n){
   return n.toFixed(3).replace('.', ',');
 }
 
-
-/* ====== FILTRO BRAND (logica) ====== */
+/* ====== FILTRO: helpers ====== */
 function normalizeBrand(b){
   return String(b || '').trim();
 }
@@ -297,7 +290,7 @@ function populateBrandFilter(list){
 
   sel.innerHTML =
     `<option value="__ALL__">Tutti i brand</option>` +
-    brands.map(b => `<option value="${String(b).replaceAll('"','&quot;')}">${b}</option>`).join('');
+    brands.map(b => `<option value="${b.replaceAll('"','&quot;')}">${b}</option>`).join('');
 
   if (CURRENT_BRAND && (CURRENT_BRAND === '__ALL__' || brands.includes(CURRENT_BRAND))) {
     sel.value = CURRENT_BRAND;
@@ -335,7 +328,6 @@ function renderImpiantiFiltered(){
   const results = document.getElementById('results');
 
   const filtered = getFilteredList();
-
   const brandTxt = (CURRENT_BRAND !== '__ALL__') ? ` • filtro: ${CURRENT_BRAND}` : '';
   status.textContent = `Trovati ${filtered.length} impianti nel raggio di 4 km (gasolio)${brandTxt}.`;
 
@@ -343,14 +335,13 @@ function renderImpiantiFiltered(){
   renderImpianti(filtered);
 }
 
-
+/* ====== RENDER CARD IMPIANTO (click -> dettaglio) ====== */
 function renderImpianti(list){
   const results = document.getElementById('results');
 
   (list || []).forEach((imp, index) => {
     const card = document.createElement('section');
     card.className = 'card-block';
-
     card.style.cursor = 'pointer';
 
     card.addEventListener('click', (ev) => {
@@ -379,8 +370,7 @@ function renderImpianti(list){
 
     const right = document.createElement('div');
     right.className = 'badge-self';
-    const km = formatKm(imp.distanceKm);
-    right.textContent = km || '—';
+    right.textContent = formatKm(imp.distanceKm) || '—';
     header.appendChild(right);
 
     const indirizzo = document.createElement('div');
@@ -429,8 +419,7 @@ function renderImpianti(list){
       });
     }
 
-    // ✅ qui resta il tuo blocco carburanti "Gasolio Self + espandi altri"
-    // (lo lascio identico a come ce l’hai già)
+    // ===== carburanti: Gasolio Self visibile, altri espandibili =====
     const fuels = Array.isArray(imp.fuels) ? imp.fuels : [];
     fuels.sort((a,b)=>{
       const na = String(a.name||'').localeCompare(String(b.name||''), 'it', {sensitivity:'base'});
@@ -450,7 +439,6 @@ function renderImpianti(list){
       const primaryFuel = fuels.find(f =>
         String(f.name || '').toLowerCase() === 'gasolio' && f.isSelf === true
       );
-
       const otherFuels = fuels.filter(f => f !== primaryFuel);
 
       function renderFuelRow(f){
@@ -494,7 +482,6 @@ function renderImpianti(list){
         fuelsWrap.appendChild(renderFuelRow(primaryFuel));
       } else {
         fuelsWrap.appendChild(renderFuelRow(fuels[0]));
-        otherFuels.splice(0, 0, ...fuels.slice(1));
       }
 
       if (otherFuels.length){
@@ -506,10 +493,10 @@ function renderImpianti(list){
 
         const hiddenBox = document.createElement('div');
         hiddenBox.style.display = 'none';
-
         otherFuels.forEach(f => hiddenBox.appendChild(renderFuelRow(f)));
 
-        toggleBtn.addEventListener('click', () => {
+        toggleBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
           const open = hiddenBox.style.display === 'block';
           hiddenBox.style.display = open ? 'none' : 'block';
           toggleBtn.textContent = open ? 'Mostra altri carburanti' : 'Nascondi carburanti';
@@ -554,19 +541,16 @@ async function loadImpianti(lat, lon){
 
     console.log('[Impianti vicini] risposta endpoint:', data);
 
-    // Se Apps Script risponde con wrapper {ok:false,...}
     if (data && data.ok === false){
       status.textContent = data.error || 'Errore dal server.';
       return;
     }
 
-    // Se Apps Script è in fallback (health-check)
     if (data && data.ok === true && data.msg === 'Scheda_carburante API up'){
       status.textContent = 'Errore di configurazione backend (action=impianti_vicini non riconosciuta).';
       return;
     }
 
-    // Caso normale: array di impianti (proxy diretto)
     const list = Array.isArray(data) ? data : [];
 
     if (list.length === 0){
@@ -577,74 +561,6 @@ async function loadImpianti(lat, lon){
     ALL_IMPIANTI = list;
     populateBrandFilter(ALL_IMPIANTI);
     renderImpiantiFiltered();
-
-    }
-
-  // Tabellina carburanti
-  const fuels = Array.isArray(imp.fuels) ? imp.fuels : [];
-  fuels.sort((a,b)=>{
-    // ordina per nome carburante, poi self prima
-    const na = String(a.name||'').localeCompare(String(b.name||''), 'it', {sensitivity:'base'});
-    if (na !== 0) return na;
-    return (a.isSelf === b.isSelf) ? 0 : (a.isSelf ? -1 : 1);
-  });
-
-  const fuelsWrap = document.createElement('div');
-  fuelsWrap.style.marginTop = '10px';
-
-  if (!fuels.length){
-    const empty = document.createElement('div');
-    empty.className = 'muted';
-    empty.textContent = 'Nessun prezzo disponibile.';
-    fuelsWrap.appendChild(empty);
-  } else {
-    // mini tabella HTML “a righe”
-    fuels.forEach(f => {
-      const row = document.createElement('div');
-      row.style.display = 'flex';
-      row.style.justifyContent = 'space-between';
-      row.style.gap = '10px';
-      row.style.padding = '6px 0';
-      row.style.borderTop = '1px solid var(--divider)';
-
-      const leftCol = document.createElement('div');
-      leftCol.style.display = 'flex';
-      leftCol.style.flexDirection = 'column';
-
-      const title = document.createElement('div');
-      title.style.fontWeight = '600';
-      title.style.fontSize = '13px';
-      title.textContent = `${f.name || 'Carburante'} · ${f.isSelf ? 'Self' : 'Servito'}`;
-
-      const dates = document.createElement('div');
-      dates.className = 'muted';
-      dates.textContent =
-        (f.insertDate ? `Agg.: ${formatIsoToLocal(f.insertDate)}` : '') +
-        (f.validityDate ? ` · Val.: ${formatIsoToLocal(f.validityDate)}` : '');
-
-      leftCol.appendChild(title);
-      leftCol.appendChild(dates);
-
-      const price = document.createElement('div');
-      price.className = 'card-prezzo';
-      price.style.marginTop = '0';
-      price.style.fontSize = '16px';
-      price.textContent = '€ ' + eur3(Number(f.price));
-
-      row.appendChild(leftCol);
-      row.appendChild(price);
-      fuelsWrap.appendChild(row);
-    });
-  }
-
-  card.appendChild(header);
-  card.appendChild(indirizzo);
-  card.appendChild(meta);
-  if (servicesRow) card.appendChild(servicesRow);
-  card.appendChild(fuelsWrap);
-
-  results.appendChild(card);
-});
 
   }catch(err){
     console.error(err);
@@ -662,11 +578,9 @@ function initGeolocation(){
   const LS_LON = 'impiantiVicini_lastLon';
   const LS_ACC = 'impiantiVicini_lastAcc';
 
-  // 1) Fallback immediato: se ho una posizione valida salvata, uso quella subito (senza far "aspettare" l'utente)
   const cachedLat = Number(localStorage.getItem(LS_LAT));
   const cachedLon = Number(localStorage.getItem(LS_LON));
   const cachedAcc = Number(localStorage.getItem(LS_ACC));
-
   const hasCached = Number.isFinite(cachedLat) && Number.isFinite(cachedLon);
 
   if (hasCached) {
@@ -678,8 +592,6 @@ function initGeolocation(){
     status.textContent = 'Richiedo la posizione…';
   }
 
-  // 2) Provo a ottenere la posizione corrente dal browser.
-  // Su desktop può essere stimata (IP/Wi‑Fi) e quindi anche molto imprecisa: in quel caso NON sostituisco la cache.
   if (!navigator.geolocation){
     status.textContent = hasCached
       ? (status.textContent + ' (Geolocalizzazione non disponibile: continuo con ultima posizione.)')
@@ -691,22 +603,17 @@ function initGeolocation(){
     (pos) => {
       const lat = pos.coords.latitude;
       const lon = pos.coords.longitude;
-      const acc = pos.coords.accuracy; // metri
+      const acc = pos.coords.accuracy;
 
-      // Aggiorna UI
       latEl.textContent = formatCoord(lat);
       lonEl.textContent = formatCoord(lon);
 
-      // Soglia: se l'accuratezza è pessima (es. decine di km), preferisco NON sovrascrivere la cache (se esiste)
-      const isGood = Number.isFinite(acc) ? acc <= 2000 : true; // 2 km
-
+      const isGood = Number.isFinite(acc) ? acc <= 2000 : true;
       if (!isGood && hasCached) {
-        // Mantieni risultati della cache
         status.textContent = `Posizione stimata troppo imprecisa (±${Math.round(acc)} m). Mantengo l'ultima posizione valida.`;
         return;
       }
 
-      // Salva cache e carica impianti
       localStorage.setItem(LS_LAT, String(lat));
       localStorage.setItem(LS_LON, String(lon));
       if (Number.isFinite(acc)) localStorage.setItem(LS_ACC, String(acc));
@@ -716,23 +623,19 @@ function initGeolocation(){
     },
     (err) => {
       console.warn('[Impianti vicini] errore geoloc:', err);
-
-      // Se ho cache, continuo a usare quella e lo dico.
       if (hasCached) {
         status.textContent = `Geolocalizzazione non disponibile (${err.message}). Continuo con ultima posizione nota.`;
         return;
       }
-
       status.textContent = 'Errore nella geolocalizzazione.';
     },
     {
       enableHighAccuracy: true,
       timeout: 15000,
-      maximumAge: 600000 // 10 min: se il browser ha una posizione recente evita di sparare stime IP assurde
+      maximumAge: 600000
     }
   );
 }
-
 
 /* ====== BACK BTN: chiudi iframe in index.html se presente ====== */
 document.getElementById('backBtn').addEventListener('click', (e) => {
@@ -754,7 +657,7 @@ document.getElementById('backBtn').addEventListener('click', (e) => {
     }
   });
 })();
-  
+
 /* ====== BOOT ====== */
 document.addEventListener('DOMContentLoaded', () => {
   initGeolocation();
@@ -763,4 +666,3 @@ document.addEventListener('DOMContentLoaded', () => {
 
 </body>
 </html>
-
