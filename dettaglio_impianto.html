@@ -1,0 +1,439 @@
+<!doctype html>
+<html lang="it" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+
+  <title>Dettaglio impianto • Carburante</title>
+
+  <!-- Tema prima del paint (coerente con le tue pagine) -->
+  <script>
+    (function(){
+      try{
+        const saved = localStorage.getItem('theme');
+        const prefersDark = window.matchMedia &&
+          window.matchMedia('(prefers-color-scheme: dark)').matches;
+        document.documentElement.setAttribute(
+          'data-theme',
+          saved || (prefersDark ? 'dark' : 'light')
+        );
+      }catch(e){}
+    })();
+  </script>
+
+  <style>
+    :root{
+      --space:14px;
+      --bg: #ffffff;
+      --text: #111827;
+      --muted: #666666;
+      --surface: #ffffff;
+      --border: #dddddd;
+      --divider: #eeeeee;
+      --btn-hover: #f7f7f7;
+    }
+    html[data-theme="dark"]{
+      --bg: #0f1115;
+      --text: #e5e7eb;
+      --muted: #9aa0a6;
+      --surface: #151922;
+      --border: #2a2f3a;
+      --divider: #222834;
+      --btn-hover: #1b2130;
+    }
+    body{ color-scheme: light dark; }
+
+    *{ box-sizing:border-box; }
+    html, body{ width:100%; max-width:100%; overflow-x:hidden; margin:0; }
+    body{
+      min-height:100dvh;
+      display:flex;
+      flex-direction:column;
+      padding: var(--space);
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+    }
+
+    .container{ width:100%; max-width:720px; margin:0 auto; }
+
+    /* Topbar */
+    .topbar{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      margin-bottom:12px;
+    }
+    .topbar-left{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      min-width:0;
+    }
+    .brand-logo{
+      width:44px;
+      height:44px;
+      border-radius:12px;
+      border:1px solid var(--border);
+      background: var(--surface);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      overflow:hidden;
+      flex:0 0 auto;
+    }
+    .brand-logo img{
+      width:100%;
+      height:100%;
+      object-fit:cover;
+      display:block;
+    }
+    .title-wrap{
+      min-width:0;
+    }
+    .title{
+      margin:0;
+      font-size:18px;
+      font-weight:800;
+      line-height:1.15;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+    .subtitle{
+      margin-top:2px;
+      font-size:12px;
+      color:var(--muted);
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+
+    .btn{
+      display:inline-flex; align-items:center; gap:6px;
+      padding:10px 14px;
+      border:1px solid var(--border); border-radius:12px; background: var(--surface);
+      text-decoration:none; color:inherit; cursor:pointer;
+      font: inherit; line-height:1;
+      appearance:none; -webkit-appearance:none;
+      flex:0 0 auto;
+    }
+    .btn:hover{ background: var(--btn-hover); }
+    .btn:active{ transform:translateY(1px); }
+    .btn:focus-visible{ outline:2px solid #2684ff; outline-offset:2px; }
+
+    .card{
+      border:1px solid var(--border);
+      border-radius:12px;
+      padding:12px 14px;
+      background: var(--surface);
+      margin-top:10px;
+    }
+
+    .row{
+      display:flex;
+      justify-content:space-between;
+      gap:10px;
+      padding:8px 0;
+      border-top:1px solid var(--divider);
+    }
+    .row:first-child{ border-top:none; padding-top:0; }
+    .label{
+      color:var(--muted);
+      font-size:12px;
+      min-width:110px;
+    }
+    .value{
+      font-size:13px;
+      text-align:right;
+      font-variant-numeric: tabular-nums;
+      word-break: break-word;
+    }
+
+    .section-title{
+      margin:0 0 8px 0;
+      font-size:14px;
+      font-weight:800;
+    }
+
+    .price-row{
+      display:flex;
+      justify-content:space-between;
+      gap:10px;
+      padding:8px 0;
+      border-top:1px solid var(--divider);
+    }
+    .price-left{
+      display:flex;
+      flex-direction:column;
+      gap:2px;
+    }
+    .fuel-name{
+      font-size:13px;
+      font-weight:700;
+    }
+    .fuel-dates{
+      font-size:12px;
+      color:var(--muted);
+    }
+    .fuel-price{
+      font-size:16px;
+      font-weight:900;
+      font-variant-numeric: tabular-nums;
+      white-space:nowrap;
+    }
+
+    .muted{ color:var(--muted); font-size:12px; }
+
+    .version-footer{
+      margin-top:auto;
+      text-align:center;
+      padding: 10px 0 calc(10px + env(safe-area-inset-bottom));
+      width:100%;
+      color: var(--muted);
+    }
+    .badge{
+      display:inline-block;
+      font-size:12px;
+      padding:2px 8px;
+      border-radius:999px;
+      border:1px solid var(--border);
+      margin-left:8px;
+      font-variant-numeric: tabular-nums;
+      background: var(--surface);
+    }
+  </style>
+</head>
+
+<body>
+  <header class="topbar container">
+    <div class="topbar-left">
+      <!-- 1) Logo brand (per ora placeholder) -->
+      <div class="brand-logo" aria-label="Logo brand">
+        <img id="brandLogo" alt="Logo brand" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='96' height='96'%3E%3Crect width='96' height='96' rx='18' ry='18' fill='%23e5e7eb'/%3E%3Cpath d='M28 62h40v6H28zm8-34h24c4 0 8 4 8 8v20H28V36c0-4 4-8 8-8zm0 6c-1 0-2 1-2 2v14h28V36c0-1-1-2-2-2H36z' fill='%236b7280'/%3E%3C/svg%3E">
+      </div>
+
+      <div class="title-wrap">
+        <h1 id="title" class="title">Dettaglio impianto</h1>
+        <div id="subtitle" class="subtitle">—</div>
+      </div>
+    </div>
+
+    <button class="btn" id="backBtn" type="button" aria-label="Torna indietro">← Indietro</button>
+  </header>
+
+  <main class="container" role="main">
+    <div id="status" class="muted">Caricamento…</div>
+
+    <!-- 2) Info dettagli impianto -->
+    <section class="card" id="infoCard" hidden>
+      <h2 class="section-title">Informazioni impianto</h2>
+      <div id="infoRows"></div>
+    </section>
+
+    <!-- 3) Prezzi divisi per Servito / Self service -->
+    <section class="card" id="selfCard" hidden>
+      <h2 class="section-title">Self service</h2>
+      <div id="selfRows"></div>
+    </section>
+
+    <section class="card" id="servCard" hidden>
+      <h2 class="section-title">Servito</h2>
+      <div id="servRows"></div>
+    </section>
+  </main>
+
+  <div class="version-footer muted">
+    Versione:<span id="appVersion" class="badge"></span>
+  </div>
+
+<script>
+  // ====== VERSIONE (coerente con le tue pagine) ======
+  function formatVersionFromDate(d){
+    const p=n=>String(n).padStart(2,'0');
+    return `${d.getFullYear()}.${p(d.getMonth()+1)}.${p(d.getDate())}-${p(d.getHours())}:${p(d.getMinutes())}`;
+  }
+  function computeAppVersion(){
+    const qs = new URLSearchParams(location.search);
+    const v = qs.get('v');
+    if (v) return v;
+    const d = new Date(document.lastModified);
+    return isNaN(d)?'dev':formatVersionFromDate(d);
+  }
+  document.getElementById('appVersion').textContent = computeAppVersion();
+
+  // ====== UTILS ======
+  function formatIsoToLocal(iso){
+    if (!iso) return '';
+    const d = new Date(iso);
+    if (isNaN(d)) return String(iso);
+    return d.toLocaleString('it-IT', { year:'numeric', month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit' });
+  }
+  function eur3(n){
+    if (typeof n !== 'number' || !isFinite(n)) return '—';
+    return n.toFixed(3).replace('.', ',');
+  }
+
+  function addInfoRow(container, label, value){
+    if (value == null || String(value).trim() === '') return;
+    const row = document.createElement('div');
+    row.className = 'row';
+
+    const l = document.createElement('div');
+    l.className = 'label';
+    l.textContent = label;
+
+    const v = document.createElement('div');
+    v.className = 'value';
+    v.textContent = String(value);
+
+    row.appendChild(l);
+    row.appendChild(v);
+    container.appendChild(row);
+  }
+
+  function renderFuelRows(container, fuels){
+    container.innerHTML = '';
+    if (!fuels.length){
+      const empty = document.createElement('div');
+      empty.className = 'muted';
+      empty.textContent = 'Nessun prezzo disponibile.';
+      container.appendChild(empty);
+      return;
+    }
+
+    fuels
+      .slice()
+      .sort((a,b)=> String(a.name||'').localeCompare(String(b.name||''), 'it', {sensitivity:'base'}))
+      .forEach(f => {
+        const row = document.createElement('div');
+        row.className = 'price-row';
+
+        const left = document.createElement('div');
+        left.className = 'price-left';
+
+        const name = document.createElement('div');
+        name.className = 'fuel-name';
+        name.textContent = f.name || 'Carburante';
+
+        const dates = document.createElement('div');
+        dates.className = 'fuel-dates';
+        dates.textContent =
+          (f.insertDate ? `Agg.: ${formatIsoToLocal(f.insertDate)}` : '') +
+          (f.validityDate ? ` · Val.: ${formatIsoToLocal(f.validityDate)}` : '');
+
+        left.appendChild(name);
+        left.appendChild(dates);
+
+        const price = document.createElement('div');
+        price.className = 'fuel-price';
+        price.textContent = '€ ' + eur3(Number(f.price));
+
+        row.appendChild(left);
+        row.appendChild(price);
+        container.appendChild(row);
+      });
+  }
+
+  // ====== DATA LOAD (da sessionStorage) ======
+  function loadImpiantoFromSession(){
+    try{
+      const raw = sessionStorage.getItem('impianto_dettaglio');
+      if (!raw) return null;
+      return JSON.parse(raw);
+    }catch(e){
+      return null;
+    }
+  }
+
+  function boot(){
+    const status = document.getElementById('status');
+    const infoCard = document.getElementById('infoCard');
+    const selfCard = document.getElementById('selfCard');
+    const servCard = document.getElementById('servCard');
+
+    const infoRows = document.getElementById('infoRows');
+    const selfRows = document.getElementById('selfRows');
+    const servRows = document.getElementById('servRows');
+
+    const imp = loadImpiantoFromSession();
+
+    if (!imp){
+      status.textContent = 'Nessun impianto selezionato. Torna alla lista e apri il dettaglio da lì.';
+      infoCard.hidden = true;
+      selfCard.hidden = true;
+      servCard.hidden = true;
+      return;
+    }
+
+    status.textContent = '';
+    infoCard.hidden = false;
+
+    // Titolo e sottotitolo
+    const name = imp.nomeImpianto || imp.name || 'Impianto';
+    const brand = imp.brand || '';
+    document.getElementById('title').textContent = brand ? `${name} · ${brand}` : name;
+    document.getElementById('subtitle').textContent = imp.address || '';
+
+    // (1) Logo brand: placeholder ora. In futuro: mappa brand->img.
+    // document.getElementById('brandLogo').src = 'img/brands/' + (brand.toLowerCase()) + '.png';
+
+    // (2) Tutte le info dettaglio impianto (qui le mostro tutte, senza inventare campi)
+    addInfoRow(infoRows, 'ID', imp.id);
+    addInfoRow(infoRows, 'Brand', imp.brand);
+    addInfoRow(infoRows, 'Nome', imp.nomeImpianto || imp.name);
+    addInfoRow(infoRows, 'Indirizzo', imp.address);
+    addInfoRow(infoRows, 'Società', imp.company);
+    addInfoRow(infoRows, 'Telefono', imp.phoneNumber);
+    addInfoRow(infoRows, 'Email', imp.email);
+    addInfoRow(infoRows, 'Sito web', imp.website);
+    if (imp.distanceKm != null) addInfoRow(infoRows, 'Distanza', (Number(imp.distanceKm).toFixed(3).replace('.', ',') + ' km'));
+    if (imp.location && imp.location.lat && imp.location.lng){
+      addInfoRow(infoRows, 'Coordinate', `${Number(imp.location.lat).toFixed(6)}, ${Number(imp.location.lng).toFixed(6)}`);
+    }
+
+    // Servizi (se ci sono)
+    const services = Array.isArray(imp.services) ? imp.services : [];
+    if (services.length){
+      addInfoRow(infoRows, 'Servizi', services.map(s => s.description || s.id).filter(Boolean).join(', '));
+    }
+
+    // (3) Prezzi: divisi per Self / Servito
+    const fuels = Array.isArray(imp.fuels) ? imp.fuels : [];
+    const self = fuels.filter(f => f && f.isSelf === true);
+    const serv = fuels.filter(f => f && f.isSelf === false);
+
+    selfCard.hidden = false;
+    servCard.hidden = false;
+
+    renderFuelRows(selfRows, self);
+    renderFuelRows(servRows, serv);
+  }
+
+  // Back
+  document.getElementById('backBtn').addEventListener('click', () => {
+    history.back();
+  });
+
+  // Theme sync (come le altre pagine)
+  (function(){
+    function applyTheme(t){
+      document.documentElement.setAttribute('data-theme', t);
+    }
+    window.addEventListener('message', (ev) => {
+      if (typeof ev.data === 'string' && ev.data.startsWith('theme:')) {
+        const t = ev.data.split(':')[1];
+        if (t === 'light' || t === 'dark') applyTheme(t);
+      }
+    });
+  })();
+
+  document.addEventListener('DOMContentLoaded', boot);
+</script>
+</body>
+</html>
