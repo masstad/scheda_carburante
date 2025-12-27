@@ -378,50 +378,50 @@ async function loadImpianti(lat, lon){
     });
   }
 
-  // ================== CARBURANTI ==================
+// Tabellina carburanti
+// ====== CARBURANTI (SOLO GASOLIO SELF + ESPANDIBILE) ======
 const fuels = Array.isArray(imp.fuels) ? imp.fuels : [];
 
-// Gasolio Self come carburante principale
-const primaryFuel = fuels.find(f =>
+// Gasolio Self visibile
+const gasolioSelf = fuels.find(f =>
   String(f.name).toLowerCase() === 'gasolio' && f.isSelf === true
 );
 
-// Altri carburanti (tutto il resto)
-const otherFuels = fuels.filter(f => f !== primaryFuel);
+// Altri carburanti nascosti
+const otherFuels = fuels.filter(f => f !== gasolioSelf);
 
 const fuelsWrap = document.createElement('div');
 fuelsWrap.style.marginTop = '10px';
 
-/* ===== GASOLIO SELF (VISIBILE) ===== */
-if (primaryFuel) {
+// --- GASOLIO SELF (SE ESISTE) ---
+if (gasolioSelf) {
   const row = document.createElement('div');
   row.style.display = 'flex';
   row.style.justifyContent = 'space-between';
-  row.style.alignItems = 'center';
-  row.style.padding = '8px 0';
+  row.style.padding = '6px 0';
   row.style.borderTop = '1px solid var(--divider)';
 
-  const leftCol = document.createElement('div');
+  const left = document.createElement('div');
 
   const title = document.createElement('div');
-  title.style.fontWeight = '700';
-  title.style.fontSize = '14px';
+  title.style.fontWeight = '600';
   title.textContent = 'Gasolio · Self';
 
   const dates = document.createElement('div');
   dates.className = 'muted';
   dates.textContent =
-    (primaryFuel.insertDate ? `Agg.: ${formatIsoToLocal(primaryFuel.insertDate)}` : '') +
-    (primaryFuel.validityDate ? ` · Val.: ${formatIsoToLocal(primaryFuel.validityDate)}` : '');
+    (gasolioSelf.insertDate ? `Agg.: ${formatIsoToLocal(gasolioSelf.insertDate)}` : '') +
+    (gasolioSelf.validityDate ? ` · Val.: ${formatIsoToLocal(gasolioSelf.validityDate)}` : '');
 
-  leftCol.appendChild(title);
-  leftCol.appendChild(dates);
+  left.appendChild(title);
+  left.appendChild(dates);
 
   const price = document.createElement('div');
   price.className = 'card-prezzo';
-  price.textContent = '€ ' + eur3(Number(primaryFuel.price));
+  price.style.fontSize = '16px';
+  price.textContent = '€ ' + eur3(Number(gasolioSelf.price));
 
-  row.appendChild(leftCol);
+  row.appendChild(left);
   row.appendChild(price);
   fuelsWrap.appendChild(row);
 } else {
@@ -431,17 +431,16 @@ if (primaryFuel) {
   fuelsWrap.appendChild(empty);
 }
 
-/* ===== ALTRI CARBURANTI (ESPANDIBILI) ===== */
+// --- ALTRI CARBURANTI (ESPANDIBILI) ---
 if (otherFuels.length > 0) {
   const details = document.createElement('details');
-  details.style.marginTop = '8px';
+  details.style.marginTop = '6px';
 
   const summary = document.createElement('summary');
   summary.textContent = 'Mostra altri carburanti';
   summary.style.cursor = 'pointer';
   summary.style.fontSize = '13px';
   summary.style.color = 'var(--muted)';
-  summary.style.marginBottom = '6px';
 
   details.appendChild(summary);
 
@@ -452,27 +451,13 @@ if (otherFuels.length > 0) {
     row.style.padding = '6px 0';
     row.style.borderTop = '1px solid var(--divider)';
 
-    const leftCol = document.createElement('div');
-
-    const title = document.createElement('div');
-    title.style.fontWeight = '600';
-    title.style.fontSize = '13px';
-    title.textContent = `${f.name} · ${f.isSelf ? 'Self' : 'Servito'}`;
-
-    const dates = document.createElement('div');
-    dates.className = 'muted';
-    dates.textContent =
-      (f.insertDate ? `Agg.: ${formatIsoToLocal(f.insertDate)}` : '') +
-      (f.validityDate ? ` · Val.: ${formatIsoToLocal(f.validityDate)}` : '');
-
-    leftCol.appendChild(title);
-    leftCol.appendChild(dates);
+    const left = document.createElement('div');
+    left.textContent = `${f.name} · ${f.isSelf ? 'Self' : 'Servito'}`;
 
     const price = document.createElement('div');
-    price.style.fontWeight = '600';
     price.textContent = '€ ' + eur3(Number(f.price));
 
-    row.appendChild(leftCol);
+    row.appendChild(left);
     row.appendChild(price);
     details.appendChild(row);
   });
@@ -602,6 +587,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 </body>
 </html>
+
 
 
 
