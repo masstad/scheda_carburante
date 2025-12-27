@@ -378,10 +378,8 @@ async function loadImpianti(lat, lon){
     });
   }
 
-  // ===== TABELLINA CARBURANTI (Gasolio Self visibile, altri espandibili) =====
+  // Tabellina carburanti (mostra Gasolio · Self, altri espandibili)
 const fuels = Array.isArray(imp.fuels) ? imp.fuels : [];
-
-// Ordine coerente
 fuels.sort((a,b)=>{
   const na = String(a.name||'').localeCompare(String(b.name||''), 'it', {sensitivity:'base'});
   if (na !== 0) return na;
@@ -391,19 +389,17 @@ fuels.sort((a,b)=>{
 const fuelsWrap = document.createElement('div');
 fuelsWrap.style.marginTop = '10px';
 
-if (!fuels.length) {
+if (!fuels.length){
   const empty = document.createElement('div');
   empty.className = 'muted';
   empty.textContent = 'Nessun prezzo disponibile.';
   fuelsWrap.appendChild(empty);
 } else {
 
-  // 🔹 Gasolio · Self (primario)
   const primaryFuel = fuels.find(f =>
-    String(f.name).toLowerCase() === 'gasolio' && f.isSelf === true
+    String(f.name || '').toLowerCase() === 'gasolio' && f.isSelf === true
   );
 
-  // 🔹 Tutti gli altri
   const otherFuels = fuels.filter(f => f !== primaryFuel);
 
   function renderFuelRow(f){
@@ -434,25 +430,29 @@ if (!fuels.length) {
 
     const price = document.createElement('div');
     price.className = 'card-prezzo';
+    price.style.marginTop = '0';
     price.style.fontSize = '16px';
     price.textContent = '€ ' + eur3(Number(f.price));
 
     row.appendChild(leftCol);
     row.appendChild(price);
-
     return row;
   }
 
-  // 👉 PRIMARY (sempre visibile)
+  // ✅ Riga primaria sempre visibile
   if (primaryFuel) {
     fuelsWrap.appendChild(renderFuelRow(primaryFuel));
+  } else {
+    // Se non esiste Gasolio Self, mostra comunque la prima riga come fallback
+    fuelsWrap.appendChild(renderFuelRow(fuels[0]));
+    otherFuels.splice(0, 0, ...fuels.slice(1)); // garantisce che il resto finisca tra gli "altri"
   }
 
-  // 👉 ALTRI (collassati)
-  if (otherFuels.length) {
+  // ✅ Altri carburanti collassati
+  if (otherFuels.length){
     const toggleBtn = document.createElement('button');
     toggleBtn.className = 'btn';
-    toggleBtn.style.marginTop = '6px';
+    toggleBtn.style.marginTop = '8px';
     toggleBtn.style.fontSize = '12px';
     toggleBtn.textContent = 'Mostra altri carburanti';
 
@@ -464,9 +464,7 @@ if (!fuels.length) {
     toggleBtn.addEventListener('click', () => {
       const open = hiddenBox.style.display === 'block';
       hiddenBox.style.display = open ? 'none' : 'block';
-      toggleBtn.textContent = open
-        ? 'Mostra altri carburanti'
-        : 'Nascondi carburanti';
+      toggleBtn.textContent = open ? 'Mostra altri carburanti' : 'Nascondi carburanti';
     });
 
     fuelsWrap.appendChild(toggleBtn);
@@ -474,7 +472,11 @@ if (!fuels.length) {
   }
 }
 
-card.appendChild(fuelsWrap);
+  card.appendChild(header);
+  card.appendChild(indirizzo);
+  card.appendChild(meta);
+  if (servicesRow) card.appendChild(servicesRow);
+  card.appendChild(fuelsWrap);
 
   results.appendChild(card);
 });
@@ -596,5 +598,4 @@ document.addEventListener('DOMContentLoaded', () => {
 
 </body>
 </html>
-
 
