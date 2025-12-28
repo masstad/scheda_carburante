@@ -21,7 +21,7 @@
           'data-theme',
           saved || (prefersDark ? 'dark' : 'light')
         );
-      }catch(e){}
+      }catch(e){ console.warn('[Logos] localStorage write failed:', e); }
     })();
   </script>
 
@@ -375,27 +375,110 @@
     return String(a || '').trim().toUpperCase() === String(b || '').trim().toUpperCase();
   }
 
+  
+  // ====== BRAND LOGO HELPERS (robusti, tollerano casing/chiavi diverse) ======
   function mimeFromExt(ext){
-    switch (String(ext || '').toLowerCase()) {
+    switch (String(ext || '').trim().toLowerCase()) {
       case 'svg': return 'image/svg+xml';
       case 'png': return 'image/png';
       case 'jpg':
       case 'jpeg': return 'image/jpeg';
+      case 'webp': return 'image/webp';
       default: return 'application/octet-stream';
     }
   }
 
-  function pickBestMarker(logoMarkerList){
-    if (!Array.isArray(logoMarkerList)) return null;
-    const order = ['logo','th5','th4','th3','th2','th1'];
-    for (const t of order){
-      const found = logoMarkerList.find(x => String(x.tipoFile || x['tipo File'] || '').toLowerCase() === t);
-      if (found) return found;
-    }
-    return logoMarkerList[0] || null;
+  function normBrand(s){
+    return String(s || '').trim().toUpperCase().replace(/\s+/g,' ');
   }
 
-  function getCachedBrandLogos(){
+  function getAny(obj, keys){
+    if (!obj) return undefined;
+    for (const k of keys){
+      if (Object.prototype.hasOwnProperty.call(obj, k)) return obj[k];
+      // prova anche varianti case-insensitive
+      const foundKey = Object.keys(obj).find(x => x.toLowerCase() === String(k).toLowerCase());
+      if (foundKey) return obj[foundKey];
+    }
+    return undefined;
+  }
+
+  function pickBestMarker(list){
+    if (!Array.isArray(list) || !list.length) return null;
+
+    const typeOf = (m) => String(getAny(m, ['tipoFile','tipo File','tipo_file','tipo']) || '').trim().toLowerCase();
+    const order = ['logo','th5','th4','th3','th2','th1'];
+
+    for (const t of order){
+      const found = list.find(m => typeOf(m) === t);
+      if (found) return found;
+    }
+    return list[0];
+  }
+
+  function buildDataUrl(marker){
+    if (!marker) return null;
+
+    const ext = getAny(marker, ['estensione','extension','ext']);
+    const mime = mimeFromExt(ext);
+
+    const raw = getAny(marker, ['content','contenuto','data','base64']);
+    if (!raw) return null;
+
+    const s = String(raw);
+
+    // già una data URL
+    if (s.startsWith('data:image/')) return s;
+
+    // alcuni backend potrebbero restituire SVG "in chiaro" (non base64)
+    if (mime === 'image/svg+xml' && s.trim().startsWith('<svg')) {
+      return 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(s);
+    }
+
+    // default: base64
+    return `data:${mime};base64,${s}`;
+  }
+
+  function findBrandLogoDataUrl(payload, brand){
+    // Supporto formato compatto salvato in localStorage: { __v:1, map:{ BRAND:{ext,mime,content} } }
+    if (payload && payload.map && typeof payload.map === 'object') {
+      const hit = payload.map[normBrand(brand)];
+      if (!hit) return null;
+      const mime = hit.mime || mimeFromExt(hit.ext);
+      const c = String(hit.content || '');
+      if (!c) return null;
+      if (c.startsWith('data:image/')) return c;
+      if (mime === 'image/svg+xml' && c.trim().startsWith('<svg')) {
+        return 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(c);
+      }
+      return `data:${mime};base64,${c}`;
+    }
+
+    if (!payload || !brand) return null;
+
+    // l'API può restituire {loghi:[...]} oppure direttamente [...]
+    const list = Array.isArray(payload) ? payload :
+                 Array.isArray(payload.loghi) ? payload.loghi :
+                 Array.isArray(payload.Loghi) ? payload.Loghi :
+                 Array.isArray(payload.data) ? payload.data : null;
+
+    if (!Array.isArray(list)) return null;
+
+    const b = normBrand(brand);
+
+    const entry = list.find(x => {
+      const flag = getAny(x, ['bandiera','brand','marchio','nomeBrand']);
+      return normBrand(flag) === b;
+    });
+
+    if (!entry) return null;
+
+    const markers = getAny(entry, ['logoMarkerList','logo Marker List','logo_markers','markers','logoMarkers']);
+    const marker = pickBestMarker(markers);
+
+    return buildDataUrl(marker);
+  }
+function getCachedBrandLogos(){
     try{
       const exp = Number(localStorage.getItem(LS_LOGOS_EXP) || 0);
       if (!exp || Date.now() > exp) return null;
@@ -411,7 +494,7 @@
     try{
       localStorage.setItem(LS_LOGOS_KEY, JSON.stringify(payload));
       localStorage.setItem(LS_LOGOS_EXP, String(Date.now() + (ttlMs || (7*24*60*60*1000))));
-    }catch(e){}
+    }catch(e){ console.warn('[Logos] localStorage write failed:', e); }
   }
 
   async function fetchBrandLogosFromBackend(){
