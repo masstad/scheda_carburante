@@ -236,48 +236,56 @@
 const ENDPOINT = 'https://script.google.com/macros/s/AKfycbzbqrHJempNcv0F9yY7FQ9wu5mZWLx1P1oSqvvTa-ztvBF167CGsQLfFokmx-yD4M3O/exec';
 const SECRET   = 'aX4P-92kLq-55T8b-7Hc0Z';
 
-/* ====== BRAND LOGOS CACHE (MISE registry/alllogos) ====== */
-const LOGOS_URL = 'https://carburanti.mise.gov.it/ospzApi/registry/alllogos';
+/* ====== BRAND LOGOS CACHE (via backend per evitare CORS) ====== */
 const LS_LOGOS_KEY = 'mise_brand_logos_v1';
+const LS_LOGOS_EXP = 'mise_brand_logos_v1_exp';
 const LOGOS_TTL_MS = 7 * 24 * 60 * 60 * 1000; // 7 giorni
 
-function getCachedLogos(){
+function getCachedBrandLogos(){
   try{
+    const exp = Number(localStorage.getItem(LS_LOGOS_EXP) || 0);
+    if (!exp || Date.now() > exp) return null;
     const raw = localStorage.getItem(LS_LOGOS_KEY);
     if (!raw) return null;
-    const obj = JSON.parse(raw);
-    if (!obj || !obj.ts || !obj.data) return null;
-    const age = Date.now() - Number(obj.ts);
-    if (!isFinite(age) || age < 0 || age > LOGOS_TTL_MS) return null;
-    return obj.data;
+    return JSON.parse(raw);
   }catch(e){
     return null;
   }
 }
 
-function setCachedLogos(data){
+function setCachedBrandLogos(payload){
   try{
-    localStorage.setItem(LS_LOGOS_KEY, JSON.stringify({ ts: Date.now(), data }));
+    localStorage.setItem(LS_LOGOS_KEY, JSON.stringify(payload));
+    localStorage.setItem(LS_LOGOS_EXP, String(Date.now() + LOGOS_TTL_MS));
   }catch(e){}
 }
 
 async function warmBrandLogosCache(){
-  // Se già in cache valida, non fare nulla
-  const cached = getCachedLogos();
-  if (cached) return;
+  // se già valida, non fare nulla
+  if (getCachedBrandLogos()) return;
 
   try{
-    const res = await fetch(LOGOS_URL, { method:'GET', headers:{ 'Accept':'application/json' }});
-    if (!res.ok) return;
+    const url = new URL(ENDPOINT);
+    url.searchParams.set('action', 'all_logos');
+    url.searchParams.set('secret', SECRET);
+
+    const res = await fetch(url.toString(), { method:'GET' });
     const data = await res.json();
-    // La risposta attesa è { loghi: [...] } (ma gestiamo anche array diretto)
-    const payload = (data && Array.isArray(data.loghi)) ? data.loghi : (Array.isArray(data) ? data : null);
-    if (payload) setCachedLogos(payload);
-  }catch(e){
-    // silenzioso: non blocca la pagina
-    console.warn('[Logos] warm cache failed:', e);
+
+    // se il backend risponde {ok:false,...} gestisci
+    if (data && data.ok === false) {
+      console.warn('[Logos] backend error:', data.error || data);
+      return;
+    }
+
+    // l'API MISE di solito restituisce { loghi: [...] }
+    setCachedBrandLogos(data);
+    console.log('[Logos] cache warm ok');
+  }catch(err){
+    console.warn('[Logos] warm cache failed:', err);
   }
 }
+
 
 /* ====== FILTRO BRAND (UI-only) ====== */
 const LS_BRAND = 'impiantiVicini_brand';
@@ -703,7 +711,6 @@ document.getElementById('backBtn').addEventListener('click', (e) => {
 
 /* ====== BOOT ====== */
 document.addEventListener('DOMContentLoaded', () => {
-  // Pre-carico e metto in cache i loghi brand (non blocca la UI)
   warmBrandLogosCache();
   initGeolocation();
 });
