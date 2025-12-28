@@ -236,117 +236,118 @@
 const ENDPOINT = 'https://script.google.com/macros/s/AKfycbzbqrHJempNcv0F9yY7FQ9wu5mZWLx1P1oSqvvTa-ztvBF167CGsQLfFokmx-yD4M3O/exec';
 const SECRET   = 'aX4P-92kLq-55T8b-7Hc0Z';
 
-/* ====== BRAND LOGOS CACHE (via backend, TTL 7 giorni) ====== */
+/* ====== BRAND LOGOS CACHE (via backend per evitare CORS) ====== */
 const LS_LOGOS_KEY = 'mise_brand_logos_v1';
 const LS_LOGOS_EXP = 'mise_brand_logos_v1_exp';
 const LOGOS_TTL_MS = 7 * 24 * 60 * 60 * 1000; // 7 giorni
 
-function getCachedBrandLogoMap() {
-  try {
-    const exp = parseInt(localStorage.getItem(LS_LOGOS_EXP) || '0', 10);
-    if (!exp || Date.now() > exp) return null;
-    const raw = localStorage.getItem(LS_LOGOS_KEY);
-    if (!raw) return null;
-    const parsed = JSON.parse(raw);
-    // formato compatto: { __v:1, map:{ BRAND: {ext,mime,content,tipo} } }
-    if (parsed && parsed.__v === 1 && parsed.map) return parsed;
-    // compatibilità: se qualcuno ha salvato direttamente la risposta MISE
-    if (parsed && (parsed.loghi || Array.isArray(parsed))) return buildCompactBrandLogoMap(parsed);
-    return null;
-  } catch (e) {
-    return null;
-  }
-}
 
-function setCachedBrandLogoMap(compact) {
-  try {
-    localStorage.setItem(LS_LOGOS_KEY, JSON.stringify(compact));
-    localStorage.setItem(LS_LOGOS_EXP, String(Date.now() + LOGOS_TTL_MS));
-  } catch (e) {
-    console.warn('[Logos] localStorage write failed:', e);
-  }
+function normBrand(s){
+  return String(s || '').trim().toUpperCase().replace(/\s+/g,' ');
 }
-
-function mimeFromExt(ext) {
-  switch (String(ext || '').toLowerCase()) {
+function getAny(obj, keys){
+  if (!obj) return undefined;
+  for (const k of keys){
+    if (Object.prototype.hasOwnProperty.call(obj, k)) return obj[k];
+    const foundKey = Object.keys(obj).find(x => x.toLowerCase() === String(k).toLowerCase());
+    if (foundKey) return obj[foundKey];
+  }
+  return undefined;
+}
+function mimeFromExt(ext){
+  switch (String(ext || '').trim().toLowerCase()) {
     case 'svg': return 'image/svg+xml';
     case 'png': return 'image/png';
     case 'jpg':
     case 'jpeg': return 'image/jpeg';
+    case 'webp': return 'image/webp';
     default: return 'application/octet-stream';
   }
 }
-
-function pickBestMarker(markers) {
-  if (!Array.isArray(markers)) return null;
-  const order = ['logo', 'th5', 'th4', 'th3', 'th2', 'th1'];
-  for (const t of order) {
-    const m = markers.find(x => String(x.tipoFile || x['tipo File'] || '').toLowerCase() === t);
-    if (m) return m;
+function pickBestMarker(list){
+  if (!Array.isArray(list) || !list.length) return null;
+  const typeOf = (m) => String(getAny(m, ['tipoFile','tipo File','tipo_file','tipo']) || '').trim().toLowerCase();
+  const order = ['logo','th5','th4','th3','th2','th1'];
+  for (const t of order){
+    const found = list.find(m => typeOf(m) === t);
+    if (found) return found;
   }
-  return markers[0] || null;
+  return list[0];
 }
 
-function buildCompactBrandLogoMap(payload) {
-  const list = Array.isArray(payload) ? payload : (payload && payload.loghi) ? payload.loghi : null;
+// Converte la risposta enorme di alllogos in una mappa compatta: { __v:1, map:{ BRAND:{ext, mime, content} } }
+function buildCompactBrandLogoMap(payload){
+  const list = Array.isArray(payload) ? payload :
+               Array.isArray(payload?.loghi) ? payload.loghi :
+               Array.isArray(payload?.Loghi) ? payload.Loghi : null;
   if (!Array.isArray(list)) return null;
 
-  const out = { __v: 1, map: {} };
-
-  for (const item of list) {
-    const brand = String(item.bandiera || item.brand || '').trim();
+  const map = {};
+  for (const entry of list){
+    const brand = normBrand(getAny(entry, ['bandiera','brand','marchio','nomeBrand']));
     if (!brand) continue;
 
-    const markers = item.logoMarkerList || item['logo Marker List'] || item.logoMarkers || [];
-    const best = pickBestMarker(markers);
-    if (!best || !best.content) continue;
+    const markers = getAny(entry, ['logoMarkerList','logo Marker List','logo_markers','markers','logoMarkers']);
+    const marker = pickBestMarker(markers);
+    if (!marker) continue;
 
-    const ext = String(best.estensione || '').toLowerCase();
-    out.map[brand.toUpperCase()] = {
-      ext,
-      mime: mimeFromExt(ext),
-      tipo: String(best.tipoFile || '').toLowerCase(),
-      content: best.content
-    };
+    const ext = getAny(marker, ['estensione','extension','ext']);
+    const content = getAny(marker, ['content','contenuto','data','base64']);
+    if (!content) continue;
+
+    map[brand] = { ext: String(ext || ''), mime: mimeFromExt(ext), content: String(content) };
   }
-
-  return out;
+  return { __v: 1, map };
 }
 
-async function warmBrandLogosCache() {
-  // se già valida, non fare nulla
-  if (getCachedBrandLogoMap()) {
-    console.log('[Logos] cache ok');
-    return;
+function getCachedBrandLogos(){
+  try{
+    const exp = Number(localStorage.getItem(LS_LOGOS_EXP) || 0);
+    if (!exp || Date.now() > exp) return null;
+    const raw = localStorage.getItem(LS_LOGOS_KEY);
+    if (!raw) return null;
+    return JSON.parse(raw);
+  }catch(e){
+    return null;
   }
+}
 
-  try {
+function setCachedBrandLogos(payload){
+  try{
+    // salva in forma compatta per evitare QuotaExceededError del localStorage
+    const compact = buildCompactBrandLogoMap(payload) || payload;
+    localStorage.setItem(LS_LOGOS_KEY, JSON.stringify(compact));
+    localStorage.setItem(LS_LOGOS_EXP, String(Date.now() + LOGOS_TTL_MS));
+  }catch(e){
+    console.warn('[Logos] localStorage write failed:', e);
+  }
+}
+
+async function warmBrandLogosCache(){
+  // se già valida, non fare nulla
+  if (getCachedBrandLogos()) return;
+
+  try{
     const url = new URL(ENDPOINT);
     url.searchParams.set('action', 'all_logos');
     url.searchParams.set('secret', SECRET);
 
-    const res = await fetch(url.toString(), { method: 'GET' });
+    const res = await fetch(url.toString(), { method:'GET' });
     const data = await res.json();
 
-    if (!data || data.ok === false || (!data.loghi && !Array.isArray(data))) {
-      console.warn('[Logos] backend returned unexpected payload:', data);
+    // se il backend risponde {ok:false,...} gestisci
+    if (data && data.ok === false) {
+      console.warn('[Logos] backend error:', data.error || data);
       return;
     }
 
-    const compact = buildCompactBrandLogoMap(data);
-    if (!compact) {
-      console.warn('[Logos] cannot build compact map, unexpected payload');
-      return;
-    }
-
-    setCachedBrandLogoMap(compact);
+    // l'API MISE di solito restituisce { loghi: [...] }
+    setCachedBrandLogos(data);
     console.log('[Logos] cache warm ok');
-  } catch (e) {
-    console.warn('[Logos] warm cache failed:', e);
+  }catch(err){
+    console.warn('[Logos] warm cache failed:', err);
   }
 }
-/* ====== /BRAND LOGOS CACHE ====== */
-
 
 
 /* ====== FILTRO BRAND (UI-only) ====== */
@@ -773,6 +774,7 @@ document.getElementById('backBtn').addEventListener('click', (e) => {
 
 /* ====== BOOT ====== */
 document.addEventListener('DOMContentLoaded', () => {
+  warmBrandLogosCache();
   initGeolocation();
 });
 </script>
