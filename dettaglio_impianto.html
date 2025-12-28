@@ -90,7 +90,7 @@
     .brand-logo img{
       width:100%;
       height:100%;
-      object-fit:contain;
+      object-fit:cover;
       display:block;
     }
     .title-wrap{
@@ -284,101 +284,6 @@
     return n.toFixed(3).replace('.', ',');
   }
 
-  // ====== BRAND LOGOS CACHE (MISE registry/alllogos) ======
-  const LOGOS_URL = 'https://carburanti.mise.gov.it/ospzApi/registry/alllogos';
-  const LS_LOGOS_KEY = 'mise_brand_logos_v1';
-  const LOGOS_TTL_MS = 7 * 24 * 60 * 60 * 1000; // 7 giorni
-
-  function normalizeBrandKey(s){
-    return String(s || '').trim().toUpperCase();
-  }
-
-  function mimeFromExt(ext){
-    switch (String(ext || '').toLowerCase()){
-      case 'svg': return 'image/svg+xml';
-      case 'png': return 'image/png';
-      case 'jpg':
-      case 'jpeg': return 'image/jpeg';
-      default: return 'application/octet-stream';
-    }
-  }
-
-  function pickBestMarker(logoMarkerList){
-    if (!Array.isArray(logoMarkerList)) return null;
-    const order = ['logo','th5','th4','th3','th2','th1'];
-    for (const t of order){
-      const found = logoMarkerList.find(x => String(x?.tipoFile || x?.['tipo File'] || '').toLowerCase() === t);
-      if (found) return found;
-    }
-    return logoMarkerList[0] || null;
-  }
-
-  function getCachedLogos(){
-    try{
-      const raw = localStorage.getItem(LS_LOGOS_KEY);
-      if (!raw) return null;
-      const obj = JSON.parse(raw);
-      if (!obj || !obj.ts || !obj.data) return null;
-      const age = Date.now() - Number(obj.ts);
-      if (!isFinite(age) || age < 0 || age > LOGOS_TTL_MS) return null;
-      return obj.data;
-    }catch(e){
-      return null;
-    }
-  }
-
-  function setCachedLogos(data){
-    try{
-      localStorage.setItem(LS_LOGOS_KEY, JSON.stringify({ ts: Date.now(), data }));
-    }catch(e){}
-  }
-
-  async function ensureLogosLoaded(){
-    const cached = getCachedLogos();
-    if (cached) return cached;
-
-    try{
-      const res = await fetch(LOGOS_URL, { method:'GET', headers:{ 'Accept':'application/json' }});
-      if (!res.ok) return null;
-      const data = await res.json();
-      const payload = (data && Array.isArray(data.loghi)) ? data.loghi : (Array.isArray(data) ? data : null);
-      if (payload) setCachedLogos(payload);
-      return payload;
-    }catch(e){
-      return null;
-    }
-  }
-
-  async function resolveBrandLogoDataUrl(brand){
-    const list = await ensureLogosLoaded();
-    if (!Array.isArray(list)) return null;
-
-    const key = normalizeBrandKey(brand);
-    if (!key) return null;
-
-    const entry = list.find(x => normalizeBrandKey(x?.bandiera) === key);
-    if (!entry) return null;
-
-    const markers = entry.logoMarkerList || entry['logo Marker List'];
-    const marker = pickBestMarker(markers);
-    if (!marker || !marker.content) return null;
-
-    const mime = mimeFromExt(marker.estensione);
-    return `data:${mime};base64,${marker.content}`;
-  }
-
-  async function applyBrandLogo(brand){
-    const img = document.getElementById('brandLogo');
-    if (!img) return;
-
-    const url = await resolveBrandLogoDataUrl(brand);
-    if (url){
-      img.src = url;
-    }
-    // se non c'è, resta il placeholder già presente nell'HTML
-  }
-
-
   function addInfoRow(container, label, value){
     if (value == null || String(value).trim() === '') return;
     const row = document.createElement('div');
@@ -458,6 +363,110 @@
 }
 
 
+  /* ====== CONFIG BACKEND (stesso endpoint di impianti_vicini.html) ====== */
+  const ENDPOINT = 'https://script.google.com/macros/s/AKfycbzbqrHJempNcv0F9yY7FQ9wu5mZWLx1P1oSqvvTa-ztvBF167CGsQLfFokmx-yD4M3O/exec';
+  const SECRET   = 'aX4P-92kLq-55T8b-7Hc0Z';
+
+  /* ====== BRAND LOGOS (da localStorage, con fallback backend) ====== */
+  const LS_LOGOS_KEY = 'mise_brand_logos_v1';
+  const LS_LOGOS_EXP = 'mise_brand_logos_v1_exp';
+
+  function brandEquals(a, b){
+    return String(a || '').trim().toUpperCase() === String(b || '').trim().toUpperCase();
+  }
+
+  function mimeFromExt(ext){
+    switch (String(ext || '').toLowerCase()) {
+      case 'svg': return 'image/svg+xml';
+      case 'png': return 'image/png';
+      case 'jpg':
+      case 'jpeg': return 'image/jpeg';
+      default: return 'application/octet-stream';
+    }
+  }
+
+  function pickBestMarker(logoMarkerList){
+    if (!Array.isArray(logoMarkerList)) return null;
+    const order = ['logo','th5','th4','th3','th2','th1'];
+    for (const t of order){
+      const found = logoMarkerList.find(x => String(x.tipoFile || x['tipo File'] || '').toLowerCase() === t);
+      if (found) return found;
+    }
+    return logoMarkerList[0] || null;
+  }
+
+  function getCachedBrandLogos(){
+    try{
+      const exp = Number(localStorage.getItem(LS_LOGOS_EXP) || 0);
+      if (!exp || Date.now() > exp) return null;
+      const raw = localStorage.getItem(LS_LOGOS_KEY);
+      if (!raw) return null;
+      return JSON.parse(raw);
+    }catch(e){
+      return null;
+    }
+  }
+
+  function setCachedBrandLogos(payload, ttlMs){
+    try{
+      localStorage.setItem(LS_LOGOS_KEY, JSON.stringify(payload));
+      localStorage.setItem(LS_LOGOS_EXP, String(Date.now() + (ttlMs || (7*24*60*60*1000))));
+    }catch(e){}
+  }
+
+  async function fetchBrandLogosFromBackend(){
+    const url = new URL(ENDPOINT);
+    url.searchParams.set('action', 'all_logos');
+    url.searchParams.set('secret', SECRET);
+
+    const res = await fetch(url.toString(), { method:'GET' });
+    const data = await res.json();
+
+    if (data && data.ok === false) {
+      throw new Error(data.error || 'Backend error');
+    }
+    return data;
+  }
+
+  function findBrandLogoDataUrl(payload, brand){
+    if (!payload || !brand) return null;
+
+    // l'API MISE tipicamente: { loghi: [...] }
+    const list = Array.isArray(payload.loghi) ? payload.loghi : (Array.isArray(payload) ? payload : []);
+    const entry = list.find(x => brandEquals(x.bandiera, brand));
+    if (!entry) return null;
+
+    const markers = entry.logoMarkerList || entry['logo Marker List'] || entry.logoMarker || [];
+    const marker = pickBestMarker(markers);
+    if (!marker || !marker.content) return null;
+
+    return `data:${mimeFromExt(marker.estensione)};base64,${marker.content}`;
+  }
+
+  async function applyBrandLogo(brand){
+    const img = document.getElementById('brandLogo');
+    if (!img || !brand) return;
+
+    // 1) prova cache
+    const cached = getCachedBrandLogos();
+    const cachedUrl = findBrandLogoDataUrl(cached, brand);
+    if (cachedUrl){
+      img.src = cachedUrl;
+      return;
+    }
+
+    // 2) fallback: fetch backend + cache (TTL 7 giorni) + render
+    try{
+      const payload = await fetchBrandLogosFromBackend();
+      setCachedBrandLogos(payload, 7*24*60*60*1000);
+      const url = findBrandLogoDataUrl(payload, brand);
+      if (url) img.src = url;
+    }catch(err){
+      console.warn('[Logo] impossibile caricare logo brand:', err);
+    }
+  }
+
+
   // ====== DATA LOAD (da sessionStorage) ======
   function loadImpiantoFromSession(){
     try{
@@ -509,7 +518,7 @@
     document.getElementById('title').textContent = brand ? `${name} · ${brand}` : name;
     document.getElementById('subtitle').textContent = imp.address || '';
 
-    // (1) Logo brand: usa la cache localStorage popolata da impianti_vicini.html (fallback: fetch diretto)
+    // (1) Logo brand: da cache localStorage (warmata in impianti_vicini.html) con fallback backend
     applyBrandLogo(brand);
 
     // (2) Tutte le info dettaglio impianto (qui le mostro tutte, senza inventare campi)
