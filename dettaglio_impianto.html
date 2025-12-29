@@ -610,12 +610,18 @@ function getCachedBrandLogos(){
     //loadBrandLogoUrlFromIndex(brand);
     // (1) Logo brand: usa URL già presente nell'oggetto impianto (niente fetch -> niente CORS)
     const img = document.getElementById('brandLogo');
-    if (imp.logoUrl) {
-      img.onerror = () => console.warn('[Logo] errore caricamento immagine:', imp.logoUrl);
-      img.src = imp.logoUrl;  // es: https://drive.google.com/uc?export=view&id=FILE_ID
-    } else {
-      console.warn('[Logo] imp.logoUrl mancante (deve arrivare da impianti_vicini). Brand:', brand);
+    if (brand) {
+      const u = new URL(ENDPOINT);
+      u.searchParams.set('action', 'brand_logo_img');
+      u.searchParams.set('secret', SECRET);
+      u.searchParams.set('brand', brand);
+    
+      img.loading = 'lazy';
+      img.decoding = 'async';
+      img.onerror = () => console.warn('[Logo] errore caricamento:', u.toString());
+      img.src = u.toString();
     }
+
 
     // (2) Tutte le info dettaglio impianto (qui le mostro tutte, senza inventare campi)
     addInfoRow(infoRows, 'ID', imp.id);
@@ -671,6 +677,7 @@ function getCachedBrandLogos(){
 </script>
 </body>
 </html>
+
 
 
 
