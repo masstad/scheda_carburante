@@ -610,16 +610,15 @@ function getCachedBrandLogos(){
     //loadBrandLogoUrlFromIndex(brand);
     // (1) Logo brand: usa URL già presente nell'oggetto impianto (niente fetch -> niente CORS)
     const img = document.getElementById('brandLogo');
-    if (brand) {
-      const u = new URL(ENDPOINT);
-      u.searchParams.set('action', 'brand_logo_img');
-      u.searchParams.set('secret', SECRET);
-      u.searchParams.set('brand', brand);
+    img.loading = 'lazy';
+    img.decoding = 'async';
     
-      img.loading = 'lazy';
-      img.decoding = 'async';
-      img.onerror = () => console.warn('[Logo] errore caricamento:', u.toString());
-      img.src = u.toString();
+    if (imp && imp.logoUrl) {
+      img.src = imp.logoUrl;
+    } else {
+      // fallback: nascondi immagine se non c’è logo
+      img.removeAttribute('src');
+      img.style.display = 'none';
     }
 
 
@@ -677,6 +676,7 @@ function getCachedBrandLogos(){
 </script>
 </body>
 </html>
+
 
 
 
