@@ -526,29 +526,29 @@ function getCachedBrandLogos(){
     return `data:${mimeFromExt(marker.estensione)};base64,${marker.content}`;
   }
 
-  async function applyBrandLogo(brand){
+  async function loadBrandLogoFromIndex(brand) {
     const img = document.getElementById('brandLogo');
     if (!img || !brand) return;
-
-    // 1) prova cache
-    const cached = getCachedBrandLogos();
-    const cachedUrl = findBrandLogoDataUrl(cached, brand);
-    if (cachedUrl){
-      img.src = cachedUrl;
-      return;
-    }
-
-    // 2) fallback: fetch backend + cache (TTL 7 giorni) + render
-    try{
-      const payload = await fetchBrandLogosFromBackend();
-      setCachedBrandLogos(payload, 7*24*60*60*1000);
-      const url = findBrandLogoDataUrl(payload, brand);
-      if (url) img.src = url;
-    }catch(err){
-      console.warn('[Logo] impossibile caricare logo brand:', err);
+  
+    try {
+      const url = new URL(ENDPOINT);
+      url.searchParams.set('action', 'brand_logo');
+      url.searchParams.set('secret', SECRET);
+      url.searchParams.set('brand', brand);
+  
+      const res = await fetch(url.toString(), { method: 'GET' });
+      const data = await res.json();
+  
+      if (!data.ok || !data.content) {
+        console.warn('[Logo] non trovato per brand:', brand);
+        return;
+      }
+  
+      img.src = `data:${data.mime};base64,${data.content}`;
+    } catch (err) {
+      console.warn('[Logo] errore caricamento logo:', err);
     }
   }
-
 
   // ====== DATA LOAD (da sessionStorage) ======
   function loadImpiantoFromSession(){
@@ -602,7 +602,7 @@ function getCachedBrandLogos(){
     document.getElementById('subtitle').textContent = imp.address || '';
 
     // (1) Logo brand: da cache localStorage (warmata in impianti_vicini.html) con fallback backend
-    applyBrandLogo(brand);
+    loadBrandLogoFromIndex(brand);
 
     // (2) Tutte le info dettaglio impianto (qui le mostro tutte, senza inventare campi)
     addInfoRow(infoRows, 'ID', imp.id);
@@ -658,3 +658,4 @@ function getCachedBrandLogos(){
 </script>
 </body>
 </html>
+
