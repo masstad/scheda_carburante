@@ -215,7 +215,7 @@
     <div class="topbar-left">
       <!-- 1) Logo brand (per ora placeholder) -->
       <div class="brand-logo" aria-label="Logo brand">
-        <img id="brandLogo" alt="Logo brand" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='96' height='96'%3E%3Crect width='96' height='96' rx='18' ry='18' fill='%23e5e7eb'/%3E%3Cpath d='M28 62h40v6H28zm8-34h24c4 0 8 4 8 8v20H28V36c0-4 4-8 8-8zm0 6c-1 0-2 1-2 2v14h28V36c0-1-1-2-2-2H36z' fill='%236b7280'/%3E%3C/svg%3E">
+        <img id="brandLogo" alt="Logo brand" loading="lazy" decoding="async" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='96' height='96'%3E%3Crect width='96' height='96' rx='18' ry='18' fill='%23e5e7eb'/%3E%3Cpath d='M28 62h40v6H28zm8-34h24c4 0 8 4 8 8v20H28V36c0-4 4-8 8-8zm0 6c-1 0-2 1-2 2v14h28V36c0-1-1-2-2-2H36z' fill='%236b7280'/%3E%3C/svg%3E">
       </div>
 
       <div class="title-wrap">
@@ -526,29 +526,33 @@ function getCachedBrandLogos(){
     return `data:${mimeFromExt(marker.estensione)};base64,${marker.content}`;
   }
 
-  async function loadBrandLogoFromIndex(brand) {
+  async function loadBrandLogoUrlFromIndex(brand) {
     const img = document.getElementById('brandLogo');
     if (!img || !brand) return;
   
     try {
       const url = new URL(ENDPOINT);
-      url.searchParams.set('action', 'brand_logo');
+      url.searchParams.set('action', 'brand_logo_url');
       url.searchParams.set('secret', SECRET);
       url.searchParams.set('brand', brand);
   
       const res = await fetch(url.toString(), { method: 'GET' });
       const data = await res.json();
   
-      if (!data.ok || !data.content) {
-        console.warn('[Logo] non trovato per brand:', brand);
+      if (!data.ok || !data.url) {
+        console.warn('[Logo] non trovato per brand:', brand, data);
         return;
       }
   
-      img.src = `data:${data.mime};base64,${data.content}`;
+      // se l'immagine fallisce (file non pubblico), resta il placeholder
+      img.onerror = () => console.warn('[Logo] errore caricamento immagine da url:', data.url);
+  
+      img.src = data.url;
     } catch (err) {
       console.warn('[Logo] errore caricamento logo:', err);
     }
   }
+
 
   // ====== DATA LOAD (da sessionStorage) ======
   function loadImpiantoFromSession(){
@@ -602,7 +606,8 @@ function getCachedBrandLogos(){
     document.getElementById('subtitle').textContent = imp.address || '';
 
     // (1) Logo brand: da cache localStorage (warmata in impianti_vicini.html) con fallback backend
-    loadBrandLogoFromIndex(brand);
+    //loadBrandLogoFromIndex(brand);
+    loadBrandLogoUrlFromIndex(brand);
 
     // (2) Tutte le info dettaglio impianto (qui le mostro tutte, senza inventare campi)
     addInfoRow(infoRows, 'ID', imp.id);
@@ -658,4 +663,5 @@ function getCachedBrandLogos(){
 </script>
 </body>
 </html>
+
 
