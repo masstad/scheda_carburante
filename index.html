@@ -13,7 +13,7 @@
 
   <!-- Imposta il tema prima del paint (identico a Pellet) -->
   <script>
-    (function(){
+    (function(){   
       try{
         const saved = localStorage.getItem('theme');
         const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
@@ -796,6 +796,7 @@ addEventListener('pageshow', e => e.persisted && location.reload());
 </script>
 </body>
 </html>
+
 
 
 
