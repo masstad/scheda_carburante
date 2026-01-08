@@ -345,6 +345,13 @@ const ymd  = d => new Date(d).toISOString().slice(0,10);
 let ALL_ROWS = []; // usata per popolare anni e auto alla prima load
 let INIT_FILTERS = null; // filtri iniziali da URL (se presenti)
 
+function formatDateIT(ymd) {
+  if (!ymd) return '';
+  const [y, m, d] = ymd.split('-').map(Number);
+  if (!y || !m || !d) return ymd;
+  return `${String(d).padStart(2,'0')}/${String(m).padStart(2,'0')}/${y}`;
+}
+
 /* ====== UI: FILTRI ATTIVI ====== */
 function updateActiveFiltersLabel(){
   const box = document.getElementById('activeFilters');
@@ -448,7 +455,8 @@ function render(json){
     const tdImport = document.createElement('td');
     const tdPrezzo = document.createElement('td');
 
-    tdData.textContent   = r.data;
+    //tdData.textContent   = r.data;
+    tdData.textContent   = formatDateIT(r.data);
     tdImport.textContent = euro(r.importo);
     tdPrezzo.textContent = r.prezzo != null ? String(r.prezzo) : '';
 
@@ -620,4 +628,5 @@ document.addEventListener('DOMContentLoaded', () => {
 
 </body>
 </html>
+
 
