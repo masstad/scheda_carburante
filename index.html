@@ -336,6 +336,8 @@
       <hr>
 	  <li><a id="goImpianti" href="#">Impianti vicini</a></li>
       <hr>
+		<li><a id="goImpiantiPreferiti" href="#">Impianti preferiti</a></li>
+      <hr>
       <li><button id="themeToggle" class="linklike" type="button">🌙 Tema scuro</button></li>
     </ul>
     <button id="drawerClose" aria-label="Chiudi menu" title="Chiudi">←</button>
@@ -494,11 +496,13 @@ document.addEventListener('DOMContentLoaded', () => {
   const urlScheda = `scheda_carburante.html?v=${encodeURIComponent(vIndex)}`;
   const urlForecast = `forecast_km.html?v=${encodeURIComponent(vIndex)}`;
   const urlImpianti = `impianti_vicini.html?v=${encodeURIComponent(vIndex)}`;
+  const urlImpiantiPreferiti = `impianti_preferiti.html?v=${encodeURIComponent(vIndex)}`;
 
   const linkLista  = document.getElementById('goLista');
   const linkScheda = document.getElementById('goScheda');
   const linkForecast = document.getElementById('goForecast');
   const linkImpianti = document.getElementById('goImpianti');
+  const linkImpiantiPreferiti = document.getElementById('goImpiantiPreferiti');
   const frame      = document.getElementById('pageFrame');
   const drawer     = document.getElementById('drawer');
   const backdrop   = document.getElementById('backdrop');
@@ -556,6 +560,15 @@ document.addEventListener('DOMContentLoaded', () => {
     linkImpianti.addEventListener('click', (e) => {
       e.preventDefault();
       openFrame(urlImpianti, 'impianti');
+    });
+  }
+
+ if (linkImpiantiPreferiti) {
+    linkImpiantiPreferiti.href = urlImpiantiPreferiti;
+    linkImpiantiPreferiti.setAttribute('target','_self');
+    linkImpiantiPreferiti.addEventListener('click', (e) => {
+      e.preventDefault();
+      openFrame(urlImpiantiPreferiti, 'impianti');
     });
   }
 
@@ -796,6 +809,7 @@ addEventListener('pageshow', e => e.persisted && location.reload());
 </script>
 </body>
 </html>
+
 
 
 
