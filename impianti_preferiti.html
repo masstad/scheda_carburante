@@ -472,72 +472,34 @@ function render(){
     card.className = 'card-block';
     card.style.cursor = 'pointer';
 
-    card.addEventListener('click', async (ev) => {
+    card.addEventListener('click', (ev) => {
       // evita che il tap sul bottone "Mostra altri carburanti" apra il dettaglio
       if (ev.target && ev.target.closest && ev.target.closest('button')) return;
 
-      const id = S(st.id);
+      // IMPORTANTISSIMO: salva nello storage lo STESSO oggetto che usa impianti_vicini.html
+      // cioè l'oggetto "detail" della servicearea (con campi: id, brand, nomeImpianto/name, address, fuels, logoUrl, ...)
+      let imp = st.__servicearea || null;
 
-      // 1) Recupera SEMPRE il dettaglio MISE tramite proxy Apps Script (NO CORS)
-      let detail = null;
-      try{
-        const data = await apiGet({ action:'servicearea', id });
-        if (data && data.ok !== false && data.detail) {
-          detail = data.detail;
-        }
-      }catch(e){
-        // se fallisce, andiamo comunque avanti con i dati del foglio
+      // fallback minimo (se i prezzi non sono ancora stati caricati)
+      if (!imp){
+        imp = {
+          id: S(st.id),
+          brand: S(st.marchio),
+          nomeImpianto: S(st.marchio),
+          address: S(st.indirizzo),
+          location: null,
+          fuels: []
+        };
       }
-
-      // 2) Costruisci un oggetto IDENTICO (per chiavi) a quello usato in impianti_vicini.html,
-      // così dettaglio_impianto.html funziona senza modifiche.
-      const brand = S(detail?.brand) || S(st.marchio);
-      // 2b) Recupera URL logo (stesso approccio atteso dal dettaglio: un URL diretto, tipicamente drive thumbnail)
-      let logoUrl = null;
-      if (brand) {
-        try{
-          const lr = await apiGet({ action:'brand_logo_url', brand });
-          if (lr && lr.ok && lr.url) logoUrl = String(lr.url);
-        }catch(e){}
-      }
-
-      const imp = {
-        // campi principali usati dal dettaglio
-        id: (detail && detail.id != null) ? detail.id : id,
-        brand: brand || null,
-        name: detail?.name || null,
-        nomeImpianto: detail?.nomeImpianto || detail?.name || null,
-        address: detail?.address || S(st.indirizzo) || null,
-        company: detail?.company || null,
-        phoneNumber: detail?.phoneNumber || null,
-        email: detail?.email || null,
-        website: detail?.website || null,
-        services: Array.isArray(detail?.services) ? detail.services : [],
-        fuels: Array.isArray(detail?.fuels) ? detail.fuels : [],
-
-        // opzionali (non sempre presenti)
-        location: detail?.location || null,
-
-        // utili per allinearsi a impianti_vicini
-        ranking: idx + 1,
-        distanceKm: null,
-
-        // IMPORTANTISSIMO: NON impostare logoUrl qui.
-        // La pagina dettaglio usa la stessa logica di impianti_vicini.html:
-        // - se imp.logoUrl esiste lo usa direttamente
-        // - altrimenti risolve il logo in autonomia (cache all_logos o chiamata backend brand_logo_url)
-        // Se qui mettiamo un URL diverso (es. brand_logo_img), in dettaglio cambiano le chiamate e può bloccarsi.
-        logoUrl
-      };
 
       try{ sessionStorage.setItem('impianto_dettaglio', JSON.stringify(imp)); }catch(e){}
-
       const qs = new URLSearchParams(location.search);
       const v = qs.get('v');
       const url = v ? `dettaglio_impianto.html?v=${encodeURIComponent(v)}` : 'dettaglio_impianto.html';
       window.location.href = url;
     });
-const header = document.createElement('div');
+
+    const header = document.createElement('div');
     header.className = 'card-header';
 
     const gestore = document.createElement('div');
@@ -623,7 +585,24 @@ async function loadPricesFor(stations){
     try{
       const data = await apiGet({ action:'servicearea', id });
       // conserva i dettagli per la pagina di dettaglio
-      st.__servicearea = data && data.detail ? data.detail : null;
+      st.__servicearea = (data && data.detail) ? data.detail : null;
+
+      // arricchisci con logoUrl ESATTAMENTE come impianti_vicini.html (thumbnail Drive)
+      try{
+        const det = st.__servicearea;
+        const brandForLogo = (det && det.brand) ? det.brand : S(st.marchio);
+        if (brandForLogo){
+          const logoRes = await apiGet({ action:'brand_logo_url', brand: brandForLogo });
+          const fileId = logoRes && (logoRes.logoFileId || logoRes.fileId || logoRes.id || (logoRes.data && (logoRes.data.logoFileId || logoRes.data.fileId || logoRes.data.id)));
+          if (fileId){
+            det.logoFileId = fileId;
+            det.logoUrl = 'https://drive.google.com/thumbnail?id=' + encodeURIComponent(fileId) + '&sz=w200';
+          }
+        }
+      }catch(e){
+        // se fallisce il logo, non bloccare i prezzi
+        // console.warn('[Preferiti] logo fetch failed', e);
+      }
       if (!data || data.ok === false){
         throw new Error((data && data.error) ? data.error : 'Proxy error');
       }
