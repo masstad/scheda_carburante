@@ -546,7 +546,7 @@ function renderImpianti(list){
     card.style.cursor = 'pointer';
 
     card.addEventListener('click', (ev) => {
-      // evita che il click sul bottone "Mostra altri carburanti" apra il dettaglio
+      // evita che il click su bottoni apra il dettaglio
       if (ev.target && ev.target.closest && ev.target.closest('button')) return;
 
       try{
@@ -559,91 +559,102 @@ function renderImpianti(list){
       window.location.href = url;
     });
 
-    const header = document.createElement('div');
-    header.className = 'card-header';
+    // ===== TOP GRID (2 righe x 2 colonne) =====
+    const topGrid = document.createElement('div');
+    topGrid.className = 'card-topgrid';
 
-    const left = document.createElement('div');
-    left.className = 'card-gestore';
-    const rank = (imp.ranking ?? (index + 1));
-    const brand = imp.brand ? ` · ${imp.brand}` : '';
-    left.textContent = `#${rank} · ${imp.nomeImpianto || imp.name || 'Impianto'}${brand}`;
-    header.appendChild(left);
+    // riga 1 col 1: nome impianto
+    const nameEl = document.createElement('div');
+    nameEl.className = 'card-top-name';
+    const rankVal = (imp.ranking ?? (index + 1));
+    const brandTxt = imp.brand ? ` · ${imp.brand}` : '';
+    nameEl.textContent = `#${rankVal} · ${imp.nomeImpianto || imp.name || 'Impianto'}${brandTxt}`;
 
-    const rightWrap = document.createElement('div');
-rightWrap.className = 'km-actions';
+    // riga 1 col 2: badge km
+    const kmEl = document.createElement('div');
+    kmEl.className = 'badge-self card-top-badge';
+    kmEl.textContent = formatKm(imp.distanceKm) || '—';
 
-// badge km
-const right = document.createElement('div');
-right.className = 'badge-self';
-right.textContent = formatKm(imp.distanceKm) || '—';
-rightWrap.appendChild(right);
+    // riga 2 col 1: indirizzo + meta
+    const leftInfo = document.createElement('div');
+    leftInfo.className = 'card-top-leftinfo';
 
-// bottone maps (solo se ho coordinate)
-const lat = imp?.location?.lat;
-const lng = imp?.location?.lng;
+    const addressEl = document.createElement('div');
+    addressEl.className = 'card-indirizzo';
+    addressEl.textContent = imp.address || '';
+    leftInfo.appendChild(addressEl);
 
-if (Number.isFinite(lat) && Number.isFinite(lng)) {
-  const mapsBtn = document.createElement('button');
-  mapsBtn.type = 'button';
-  mapsBtn.className = 'map-icon-btn';
-  mapsBtn.setAttribute('aria-label', 'Apri in Google Maps');
-  mapsBtn.title = 'Apri in Google Maps';
-
-  const icon = document.createElement('span');
-  icon.className = 'map-icon';
-  icon.textContent = '🗺️'; // cambia icona se vuoi (es. 📍)
-  mapsBtn.appendChild(icon);
-
-  mapsBtn.addEventListener('click', (e) => {
-    e.stopPropagation(); // IMPORTANTISSIMO: non apre la pagina dettaglio
-    const q = `${lat},${lng}`;
-    const url = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(q)}`;
-    window.open(url, '_blank', 'noopener');
-  });
-
-  rightWrap.appendChild(mapsBtn);
-}
-
-header.appendChild(rightWrap);
-
-
-    const indirizzo = document.createElement('div');
-    indirizzo.className = 'card-indirizzo';
-    indirizzo.textContent = imp.address || '';
-
-    const meta = document.createElement('div');
-    meta.className = 'card-meta';
+    const metaEl = document.createElement('div');
+    metaEl.className = 'card-meta';
 
     if (imp.company){
       const s = document.createElement('span');
       s.textContent = `Società: ${imp.company}`;
-      meta.appendChild(s);
+      metaEl.appendChild(s);
     }
     if (imp.phoneNumber){
       const s = document.createElement('span');
       s.textContent = `Tel: ${imp.phoneNumber}`;
-      meta.appendChild(s);
+      metaEl.appendChild(s);
     }
     if (imp.email){
       const s = document.createElement('span');
       s.textContent = `Email: ${imp.email}`;
-      meta.appendChild(s);
+      metaEl.appendChild(s);
     }
     if (imp.website){
       const s = document.createElement('span');
       s.textContent = `Web: ${imp.website}`;
-      meta.appendChild(s);
+      metaEl.appendChild(s);
     }
     if (imp.location && imp.location.lat && imp.location.lng){
       const s = document.createElement('span');
       s.textContent = `${formatCoord(imp.location.lat)}, ${formatCoord(imp.location.lng)}`;
-      meta.appendChild(s);
+      metaEl.appendChild(s);
     }
 
+    leftInfo.appendChild(metaEl);
+
+    // riga 2 col 2: icona maps
+    const mapCell = document.createElement('div');
+    mapCell.className = 'card-top-map';
+
+    const latVal = imp?.location?.lat;
+    const lngVal = imp?.location?.lng;
+
+    if (Number.isFinite(latVal) && Number.isFinite(lngVal)) {
+      const mapsBtn = document.createElement('button');
+      mapsBtn.type = 'button';
+      mapsBtn.className = 'map-icon-btn';
+      mapsBtn.setAttribute('aria-label', 'Apri in Google Maps');
+      mapsBtn.title = 'Apri in Google Maps';
+
+      const icon = document.createElement('span');
+      icon.className = 'map-icon';
+      icon.textContent = '🗺️';
+      mapsBtn.appendChild(icon);
+
+      mapsBtn.addEventListener('click', (e) => {
+        e.stopPropagation(); // NON aprire dettaglio
+        const q = `${latVal},${lngVal}`;
+        const url = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(q)}`;
+        window.open(url, '_blank', 'noopener');
+      });
+
+      mapCell.appendChild(mapsBtn);
+    }
+
+    topGrid.appendChild(nameEl);
+    topGrid.appendChild(kmEl);
+    topGrid.appendChild(leftInfo);
+    topGrid.appendChild(mapCell);
+
+    card.appendChild(topGrid);
+
+    // servizi (se presenti)
     const services = Array.isArray(imp.services) ? imp.services : [];
-    let servicesRow = null;
     if (services.length){
-      servicesRow = document.createElement('div');
+      const servicesRow = document.createElement('div');
       servicesRow.className = 'card-meta';
       services.slice(0, 8).forEach(sv => {
         const chip = document.createElement('span');
@@ -651,6 +662,7 @@ header.appendChild(rightWrap);
         chip.textContent = sv.description || sv.id || 'Servizio';
         servicesRow.appendChild(chip);
       });
+      card.appendChild(servicesRow);
     }
 
     // ===== carburanti: Gasolio Self visibile, altri espandibili =====
@@ -712,11 +724,7 @@ header.appendChild(rightWrap);
         return row;
       }
 
-      if (primaryFuel) {
-        fuelsWrap.appendChild(renderFuelRow(primaryFuel));
-      } else {
-        fuelsWrap.appendChild(renderFuelRow(fuels[0]));
-      }
+      fuelsWrap.appendChild(renderFuelRow(primaryFuel || fuels[0]));
 
       if (otherFuels.length){
         const toggleBtn = document.createElement('button');
@@ -741,107 +749,11 @@ header.appendChild(rightWrap);
       }
     }
 
-    // ===== TOP GRID (2 righe x 2 colonne) =====
-const topGrid = document.createElement('div');
-topGrid.className = 'card-topgrid';
-
-// riga 1 col 1: nome impianto
-const nameEl = document.createElement('div');
-nameEl.className = 'card-top-name';
-const rank = (imp.ranking ?? (index + 1));
-const brand = imp.brand ? ` · ${imp.brand}` : '';
-nameEl.textContent = `#${rank} · ${imp.nomeImpianto || imp.name || 'Impianto'}${brand}`;
-
-// riga 1 col 2: badge km
-const kmEl = document.createElement('div');
-kmEl.className = 'badge-self card-top-badge';
-kmEl.textContent = formatKm(imp.distanceKm) || '—';
-
-// riga 2 col 1: indirizzo + meta (società ecc.)
-const leftInfo = document.createElement('div');
-leftInfo.className = 'card-top-leftinfo';
-
-// indirizzo
-const indirizzo = document.createElement('div');
-indirizzo.className = 'card-indirizzo';
-indirizzo.textContent = imp.address || '';
-leftInfo.appendChild(indirizzo);
-
-// meta
-const meta = document.createElement('div');
-meta.className = 'card-meta';
-
-if (imp.company){
-  const s = document.createElement('span');
-  s.textContent = `Società: ${imp.company}`;
-  meta.appendChild(s);
-}
-if (imp.phoneNumber){
-  const s = document.createElement('span');
-  s.textContent = `Tel: ${imp.phoneNumber}`;
-  meta.appendChild(s);
-}
-if (imp.email){
-  const s = document.createElement('span');
-  s.textContent = `Email: ${imp.email}`;
-  meta.appendChild(s);
-}
-if (imp.website){
-  const s = document.createElement('span');
-  s.textContent = `Web: ${imp.website}`;
-  meta.appendChild(s);
-}
-if (imp.location && imp.location.lat && imp.location.lng){
-  const s = document.createElement('span');
-  s.textContent = `${formatCoord(imp.location.lat)}, ${formatCoord(imp.location.lng)}`;
-  meta.appendChild(s);
-}
-leftInfo.appendChild(meta);
-
-// riga 2 col 2: icona maps
-const mapCell = document.createElement('div');
-mapCell.className = 'card-top-map';
-
-const lat = imp?.location?.lat;
-const lng = imp?.location?.lng;
-
-if (Number.isFinite(lat) && Number.isFinite(lng)) {
-  const mapsBtn = document.createElement('button');
-  mapsBtn.type = 'button';
-  mapsBtn.className = 'map-icon-btn';
-  mapsBtn.setAttribute('aria-label', 'Apri in Google Maps');
-  mapsBtn.title = 'Apri in Google Maps';
-
-  const icon = document.createElement('span');
-  icon.className = 'map-icon';
-  icon.textContent = '🗺️'; // oppure 📍
-  mapsBtn.appendChild(icon);
-
-  mapsBtn.addEventListener('click', (e) => {
-    e.stopPropagation(); // NON aprire dettaglio
-    const q = `${lat},${lng}`;
-    const url = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(q)}`;
-    window.open(url, '_blank', 'noopener');
-  });
-
-  mapCell.appendChild(mapsBtn);
-}
-
-// monta la griglia
-topGrid.appendChild(nameEl);
-topGrid.appendChild(kmEl);
-topGrid.appendChild(leftInfo);
-topGrid.appendChild(mapCell);
-
-// attacca tutto alla card
-card.appendChild(topGrid);
-if (servicesRow) card.appendChild(servicesRow);
-card.appendChild(fuelsWrap);
-
-
+    card.appendChild(fuelsWrap);
     results.appendChild(card);
   });
 }
+
 
 /* ====== CARICAMENTO IMPIANTI (via Apps Script -> proxy prezzi-carburante) ====== */
 async function loadImpianti(lat, lon){
@@ -993,5 +905,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
 </body>
 </html>
+
 
 
