@@ -1,0 +1,594 @@
+<!doctype html>
+<html lang="it" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Carburante">
+  <title>Impianti preferiti • Carburante</title>
+
+  <!-- No-cache -->
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+
+  <!-- Tema prima del paint (come impianti_vicini.html) -->
+  <script>
+    (function(){
+      try{
+        const saved = localStorage.getItem('theme');
+        const prefersDark = window.matchMedia &&
+          window.matchMedia('(prefers-color-scheme: dark)').matches;
+        document.documentElement.setAttribute(
+          'data-theme',
+          saved || (prefersDark ? 'dark' : 'light')
+        );
+      }catch(e){}
+    })();
+  </script>
+
+  <style>
+    :root{
+      --space:14px;
+
+      /* Tema chiaro */
+      --bg: #ffffff;
+      --text: #111827;
+      --muted: #666666;
+      --surface: #ffffff;
+      --border: #dddddd;
+      --divider: #eeeeee;
+      --btn-hover: #f7f7f7;
+    }
+    html[data-theme="dark"]{
+      --bg: #0f1115;
+      --text: #e5e7eb;
+      --muted: #9aa0a6;
+      --surface: #151922;
+      --border: #2a2f3a;
+      --divider: #222834;
+      --btn-hover: #1b2130;
+    }
+    body{ color-scheme: light dark; }
+
+    * { box-sizing: border-box; }
+    html, body { width:100%; max-width:100%; overflow-x:hidden; margin:0; }
+    body{
+      min-height:100dvh;
+      display:flex;
+      flex-direction:column;
+      padding: var(--space);
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+    }
+
+    .container { width:100%; max-width:640px; margin:0 auto; }
+
+    /* HEADER */
+    .topbar{
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      gap:8px;
+      margin-bottom:18px;
+      text-align:center;
+    }
+
+    .title{
+      margin:0;
+      font-size:22px;
+      font-weight:700;
+    }
+
+    /* Card come scheda_carburante / impianti_vicini */
+    .card-block{
+      border:1px solid var(--border);
+      border-radius:12px;
+      padding:12px 14px;
+      margin-top:10px;
+      background: var(--surface);
+    }
+
+    .card-header{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      margin-bottom:4px;
+      gap:8px;
+    }
+
+    .card-gestore{
+      font-weight:600;
+      font-size:14px;
+    }
+
+    .badge-self{
+      font-size:11px;
+      padding:2px 6px;
+      border-radius:999px;
+      border:1px solid var(--border);
+    }
+
+    .card-indirizzo{
+      font-size:13px;
+      margin-bottom:4px;
+      white-space: pre-wrap;
+    }
+
+    .card-meta{
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+      font-size:12px;
+      color:var(--muted);
+      margin-top:4px;
+    }
+
+    .card-prezzo{
+      font-size:18px;
+      font-weight:700;
+      font-variant-numeric: tabular-nums;
+      margin-top:2px;
+    }
+
+    .muted {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    #status{
+      margin-top:4px;
+      margin-bottom:8px;
+      text-align:center;
+    }
+
+    #results{
+      margin-top:4px;
+    }
+
+    /* Footer azioni + versione (come impianti_vicini) */
+    .actions-footer{
+      display:flex; gap:10px; justify-content:center;
+      margin-top:auto;
+      padding-top:12px;
+    }
+    .version-footer{
+      text-align:center;
+      padding: 10px 0 calc(10px + env(safe-area-inset-bottom));
+      width:100%;
+      color: var(--muted);
+    }
+    .badge {
+      display: inline-block;
+      font-size: 12px;
+      padding: 2px 8px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      margin-left: 8px;
+      font-variant-numeric: tabular-nums;
+      background: var(--surface);
+    }
+
+    .btn{
+      display:inline-flex; align-items:center; gap:6px;
+      padding:10px 14px;
+      border:1px solid var(--border); border-radius:12px; background: var(--surface);
+      text-decoration:none; color:inherit; cursor:pointer;
+      font: inherit; line-height:1;
+      appearance:none; -webkit-appearance:none;
+    }
+    .btn:hover{ background: var(--btn-hover); }
+    .btn:active{ transform:translateY(1px); }
+    .btn:focus-visible{ outline:2px solid #2684ff; outline-offset:2px; }
+
+    .row-sep{
+      border-top: 1px solid var(--divider);
+      margin-top: 10px;
+      padding-top: 10px;
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- HEADER -->
+  <header class="topbar container">
+    <h1 class="title">⭐️ Impianti preferiti</h1>
+    <div class="muted">Elenco dal foglio “Stazioni”</div>
+  </header>
+
+  <!-- CONTENUTO -->
+  <main class="container" role="main">
+
+    <!-- FILTRI -->
+    <div id="filters" style="display:flex; gap:10px; justify-content:center; align-items:center; flex-wrap:wrap; margin: 6px 0 10px;">
+      <label for="cityFilter" class="muted" style="display:flex; align-items:center; gap:8px;">
+        Città
+        <select id="cityFilter" class="btn" style="padding:10px 12px;">
+          <option value="__ALL__">Tutte</option>
+        </select>
+      </label>
+
+      <button id="clearCity" class="btn" type="button" style="display:none;">✕ Reset</button>
+
+      <label for="brandFilter" class="muted" style="display:flex; align-items:center; gap:8px;">
+        Marchio
+        <select id="brandFilter" class="btn" style="padding:10px 12px;">
+          <option value="__ALL__">Tutti</option>
+        </select>
+      </label>
+
+      <button id="clearBrand" class="btn" type="button" style="display:none;">✕ Reset</button>
+    </div>
+
+    <div id="status" class="muted">Carico elenco preferiti…</div>
+    <div id="results"></div>
+  </main>
+
+  <!-- AZIONI -->
+  <div class="actions-footer container">
+    <a class="btn" id="backBtn" href="index.html" target="_self" aria-label="Torna indietro">← Indietro</a>
+  </div>
+
+  <!-- Versione -->
+  <div class="version-footer muted">
+    Versione:<span id="appVersion" class="badge"></span>
+  </div>
+
+<script>
+/* ====== CONFIG BACKEND (uguale a impianti_vicini.html) ====== */
+const ENDPOINT = 'https://script.google.com/macros/s/AKfycbzbqrHJempNcv0F9yY7FQ9wu5mZWLx1P1oSqvvTa-ztvBF167CGsQLfFokmx-yD4M3O/exec';
+const SECRET   = 'aX4P-92kLq-55T8b-7Hc0Z';
+
+/* ====== LOCALSTORAGE FILTRI ====== */
+const LS_CITY  = 'impiantiPreferiti_city';
+const LS_BRAND = 'impiantiPreferiti_brand';
+let CURRENT_CITY  = localStorage.getItem(LS_CITY)  || '__ALL__';
+let CURRENT_BRAND = localStorage.getItem(LS_BRAND) || '__ALL__';
+
+let ALL_STATIONS = [];
+
+/* ====== VERSIONE (come impianti_vicini) ====== */
+function formatVersionFromDate(d){
+  const p=n=>String(n).padStart(2,'0');
+  return `${d.getFullYear()}.${p(d.getMonth()+1)}.${p(d.getDate())}-${p(d.getHours())}:${p(d.getMinutes())}`;
+}
+function computeAppVersion(){
+  const qs = new URLSearchParams(location.search);
+  const v = qs.get('v');
+  if (v) return v;
+  const d = new Date(document.lastModified);
+  return isNaN(d)?'dev':formatVersionFromDate(d);
+}
+document.getElementById('appVersion').textContent = computeAppVersion();
+
+/* ====== UTILS ====== */
+function S(x){ return String(x ?? '').trim(); }
+function normKey(x){ return S(x).toUpperCase().replace(/\s+/g,' '); }
+function formatIsoToLocal(iso){
+  if (!iso) return '—';
+  const d = new Date(iso);
+  if (isNaN(d)) return String(iso);
+  return d.toLocaleString('it-IT', { year:'numeric', month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit' });
+}
+function eur3(n){
+  const v = Number(n);
+  if (!isFinite(v)) return '—';
+  return v.toFixed(3).replace('.', ',');
+}
+
+/* ====== FILTRI: populate ====== */
+function populateSelect(selectEl, items, allLabel){
+  const uniq = Array.from(new Set(items.filter(Boolean)))
+    .sort((a,b)=>a.localeCompare(b,'it',{sensitivity:'base'}));
+  selectEl.innerHTML =
+    `<option value="__ALL__">${allLabel}</option>` +
+    uniq.map(v => `<option value="${v.replaceAll('"','&quot;')}">${v}</option>`).join('');
+}
+
+function refreshFiltersUI(){
+  const citySel   = document.getElementById('cityFilter');
+  const brandSel  = document.getElementById('brandFilter');
+  const clearCity = document.getElementById('clearCity');
+  const clearBrand= document.getElementById('clearBrand');
+
+  const cities  = ALL_STATIONS.map(s => S(s.citta)).filter(Boolean);
+  const brands  = ALL_STATIONS.map(s => S(s.marchio)).filter(Boolean);
+
+  populateSelect(citySel, cities, 'Tutte');
+  populateSelect(brandSel, brands, 'Tutti');
+
+  if (CURRENT_CITY !== '__ALL__' && cities.includes(CURRENT_CITY)) citySel.value = CURRENT_CITY;
+  else { CURRENT_CITY='__ALL__'; citySel.value='__ALL__'; localStorage.setItem(LS_CITY, CURRENT_CITY); }
+
+  if (CURRENT_BRAND !== '__ALL__' && brands.includes(CURRENT_BRAND)) brandSel.value = CURRENT_BRAND;
+  else { CURRENT_BRAND='__ALL__'; brandSel.value='__ALL__'; localStorage.setItem(LS_BRAND, CURRENT_BRAND); }
+
+  clearCity.style.display  = (citySel.value !== '__ALL__') ? 'inline-flex' : 'none';
+  clearBrand.style.display = (brandSel.value !== '__ALL__') ? 'inline-flex' : 'none';
+
+  citySel.onchange = () => {
+    CURRENT_CITY = citySel.value;
+    localStorage.setItem(LS_CITY, CURRENT_CITY);
+    clearCity.style.display = (CURRENT_CITY !== '__ALL__') ? 'inline-flex' : 'none';
+    renderFiltered();
+  };
+  brandSel.onchange = () => {
+    CURRENT_BRAND = brandSel.value;
+    localStorage.setItem(LS_BRAND, CURRENT_BRAND);
+    clearBrand.style.display = (CURRENT_BRAND !== '__ALL__') ? 'inline-flex' : 'none';
+    renderFiltered();
+  };
+
+  clearCity.onclick = () => {
+    CURRENT_CITY='__ALL__';
+    localStorage.setItem(LS_CITY, CURRENT_CITY);
+    citySel.value='__ALL__';
+    clearCity.style.display='none';
+    renderFiltered();
+  };
+  clearBrand.onclick = () => {
+    CURRENT_BRAND='__ALL__';
+    localStorage.setItem(LS_BRAND, CURRENT_BRAND);
+    brandSel.value='__ALL__';
+    clearBrand.style.display='none';
+    renderFiltered();
+  };
+}
+
+function getFilteredStations(){
+  return ALL_STATIONS.filter(s => {
+    const okCity  = (CURRENT_CITY  === '__ALL__') || (S(s.citta)   === CURRENT_CITY);
+    const okBrand = (CURRENT_BRAND === '__ALL__') || (S(s.marchio) === CURRENT_BRAND);
+    return okCity && okBrand;
+  });
+}
+
+/* ====== RENDER ====== */
+function renderFiltered(){
+  const status  = document.getElementById('status');
+  const results = document.getElementById('results');
+
+  const list = getFilteredStations();
+  const cityTxt  = (CURRENT_CITY  !== '__ALL__') ? ` • città: ${CURRENT_CITY}` : '';
+  const brandTxt = (CURRENT_BRAND !== '__ALL__') ? ` • marchio: ${CURRENT_BRAND}` : '';
+  status.textContent = `Trovati ${list.length} impianti preferiti${cityTxt}${brandTxt}.`;
+
+  results.innerHTML = '';
+  renderStations(list);
+
+  // dopo aver creato le card, carica prezzi (Gasolio Self) in background
+  loadPricesForStations(list);
+}
+
+function renderStations(list){
+  const results = document.getElementById('results');
+
+  (list || []).forEach((st, idx) => {
+    const id = S(st.id);
+
+    const card = document.createElement('section');
+    card.className = 'card-block';
+
+    // header
+    const header = document.createElement('div');
+    header.className = 'card-header';
+
+    const left = document.createElement('div');
+    left.className = 'card-gestore';
+    left.textContent = `#${idx+1} · ${S(st.marchio) || '—'} · ${S(st.citta) || '—'}`;
+    header.appendChild(left);
+
+    const right = document.createElement('div');
+    right.className = 'badge-self';
+    right.textContent = `ID ${id || '—'}`;
+    header.appendChild(right);
+
+    // indirizzo
+    const indirizzo = document.createElement('div');
+    indirizzo.className = 'card-indirizzo';
+    indirizzo.textContent = S(st.indirizzo);
+
+    // meta
+    const meta = document.createElement('div');
+    meta.className = 'card-meta';
+
+    const prov = document.createElement('span');
+    prov.textContent = `Provincia: ${S(st.provincia) || '—'}`;
+    meta.appendChild(prov);
+
+    // se vuoi, puoi mostrare anche la label
+    // const lbl = document.createElement('span');
+    // lbl.textContent = st.label || '';
+    // meta.appendChild(lbl);
+
+    // blocco prezzo
+    const fuelBox = document.createElement('div');
+    fuelBox.className = 'row-sep';
+    fuelBox.dataset.stationId = id;
+
+    const fuelTitle = document.createElement('div');
+    fuelTitle.style.fontWeight = '600';
+    fuelTitle.style.fontSize = '13px';
+    fuelTitle.textContent = `Gasolio · Self`;
+    fuelBox.appendChild(fuelTitle);
+
+    const fuelDate = document.createElement('div');
+    fuelDate.className = 'muted';
+    fuelDate.textContent = `Agg.: —`;
+    fuelDate.dataset.role = 'insertDate';
+    fuelBox.appendChild(fuelDate);
+
+    const fuelPrice = document.createElement('div');
+    fuelPrice.className = 'card-prezzo';
+    fuelPrice.style.marginTop = '6px';
+    fuelPrice.textContent = `€ —`;
+    fuelPrice.dataset.role = 'price';
+    fuelBox.appendChild(fuelPrice);
+
+    const fuelErr = document.createElement('div');
+    fuelErr.className = 'muted';
+    fuelErr.style.display = 'none';
+    fuelErr.dataset.role = 'error';
+    fuelBox.appendChild(fuelErr);
+
+    card.appendChild(header);
+    card.appendChild(indirizzo);
+    card.appendChild(meta);
+    card.appendChild(fuelBox);
+
+    results.appendChild(card);
+  });
+}
+
+/* ====== CARICAMENTO LISTA DAL FOGLIO STAZIONI (Apps Script) ====== */
+async function loadPreferredStations(){
+  const status = document.getElementById('status');
+
+  try{
+    const url = new URL(ENDPOINT);
+    url.searchParams.set('action', 'stazioni_full');
+    url.searchParams.set('secret', SECRET);
+
+    const res = await fetch(url.toString(), { method:'GET' });
+    const data = await res.json();
+
+    if (!data || data.ok === false){
+      status.textContent = (data && data.error) ? data.error : 'Errore nel caricamento stazioni.';
+      return;
+    }
+
+    const list = Array.isArray(data.stations) ? data.stations : [];
+    ALL_STATIONS = list;
+
+    if (!ALL_STATIONS.length){
+      status.textContent = 'Nessun impianto presente nel foglio "Stazioni".';
+      return;
+    }
+
+    refreshFiltersUI();
+    renderFiltered();
+
+  }catch(err){
+    console.error(err);
+    status.textContent = 'Errore nel caricamento stazioni. Sei offline o il servizio non risponde.';
+  }
+}
+
+/* ====== PREZZI: per ogni ID chiama servicearea/{id} e cerca Gasolio Self ====== */
+function findGasolioSelf(detail){
+  const fuels = Array.isArray(detail?.fuels) ? detail.fuels : [];
+  return fuels.find(f =>
+    String(f?.name || '').trim().toLowerCase() === 'gasolio' &&
+    f?.isSelf === true
+  ) || null;
+}
+
+// prova prima chiamata diretta MISE, poi fallback via Apps Script (?action=servicearea&id=...)
+async function fetchServiceAreaWithFallback(id){
+  const directUrl = `https://carburanti.mise.gov.it/ospzApi/registry/servicearea/${encodeURIComponent(id)}`;
+  try{
+    const r = await fetch(directUrl, { method:'GET', headers:{ 'Accept':'application/json' } });
+    if (!r.ok) throw new Error(`HTTP ${r.status}`);
+    return await r.json();
+  }catch(e){
+    const proxy = new URL(ENDPOINT);
+    proxy.searchParams.set('action','servicearea');
+    proxy.searchParams.set('secret', SECRET);
+    proxy.searchParams.set('id', String(id));
+
+    const r2 = await fetch(proxy.toString(), { method:'GET' });
+    const j2 = await r2.json();
+    if (j2 && j2.ok === false) throw new Error(j2.error || 'Proxy error');
+    // il proxy restituisce { ok:true, detail:{...} }
+    return j2.detail || j2;
+  }
+}
+
+// limiter semplice per non sparare 50 fetch simultanei
+async function mapLimit(items, limit, fn){
+  const out = new Array(items.length);
+  let i = 0;
+  const workers = Array.from({length: Math.min(limit, items.length)}, async () => {
+    while (true){
+      const idx = i++;
+      if (idx >= items.length) break;
+      out[idx] = await fn(items[idx], idx);
+    }
+  });
+  await Promise.all(workers);
+  return out;
+}
+
+async function loadPricesForStations(stations){
+  if (!Array.isArray(stations) || !stations.length) return;
+
+  await mapLimit(stations, 6, async (st) => {
+    const id = S(st.id);
+    if (!id) return;
+
+    const fuelBox = document.querySelector(`[data-station-id="${CSS.escape(id)}"]`);
+    if (!fuelBox) return;
+
+    const priceEl = fuelBox.querySelector('[data-role="price"]');
+    const dateEl  = fuelBox.querySelector('[data-role="insertDate"]');
+    const errEl   = fuelBox.querySelector('[data-role="error"]');
+
+    try{
+      const detail = await fetchServiceAreaWithFallback(id);
+      const fuel = findGasolioSelf(detail);
+
+      if (!fuel){
+        priceEl.textContent = '€ —';
+        dateEl.textContent  = 'Agg.: —';
+        errEl.style.display = 'block';
+        errEl.textContent = 'Gasolio Self non disponibile per questo impianto.';
+        return;
+      }
+
+      priceEl.textContent = `€ ${eur3(fuel.price)}`;
+      dateEl.textContent  = `Agg.: ${formatIsoToLocal(fuel.insertDate)}`;
+      errEl.style.display = 'none';
+      errEl.textContent = '';
+
+    }catch(err){
+      console.warn('[Preferiti] errore servicearea per id', id, err);
+      priceEl.textContent = '€ —';
+      dateEl.textContent  = 'Agg.: —';
+      errEl.style.display = 'block';
+      errEl.textContent = 'Errore nel recupero prezzo (servizio non disponibile).';
+    }
+  });
+}
+
+/* ====== BACK BTN: chiudi iframe in index.html se presente ====== */
+document.getElementById('backBtn').addEventListener('click', (e) => {
+  if (window.top !== window.self) {
+    e.preventDefault();
+    window.top.postMessage('close-lista', '*');
+  }
+});
+
+/* ====== THEME SYNC (da index.html via postMessage) ====== */
+(function(){
+  function applyTheme(t){
+    document.documentElement.setAttribute('data-theme', t);
+  }
+  window.addEventListener('message', (ev) => {
+    if (typeof ev.data === 'string' && ev.data.startsWith('theme:')) {
+      const t = ev.data.split(':')[1];
+      if (t === 'light' || t === 'dark') applyTheme(t);
+    }
+  });
+})();
+
+/* ====== BOOT ====== */
+document.addEventListener('DOMContentLoaded', () => {
+  loadPreferredStations();
+});
+</script>
+
+</body>
+</html>
