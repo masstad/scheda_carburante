@@ -13,7 +13,7 @@
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
 
-  <!-- Tema prima del paint (come impianti_vicini.html) -->
+  <!-- Tema prima del paint (come scheda_carburante.html) -->
   <script>
     (function(){
       try{
@@ -82,7 +82,16 @@
       font-weight:700;
     }
 
-    /* Card come scheda_carburante / impianti_vicini */
+    .coords{
+      font-size:13px;
+      color:var(--muted);
+    }
+
+    .coords span{
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* Lista impianti: card come scheda_carburante */
     .card-block{
       border:1px solid var(--border);
       border-radius:12px;
@@ -114,7 +123,6 @@
     .card-indirizzo{
       font-size:13px;
       margin-bottom:4px;
-      white-space: pre-wrap;
     }
 
     .card-meta{
@@ -148,7 +156,7 @@
       margin-top:4px;
     }
 
-    /* Footer azioni + versione (come impianti_vicini) */
+    /* Footer azioni + versione (come scheda_carburante) */
     .actions-footer{
       display:flex; gap:10px; justify-content:center;
       margin-top:auto;
@@ -182,24 +190,17 @@
     .btn:hover{ background: var(--btn-hover); }
     .btn:active{ transform:translateY(1px); }
     .btn:focus-visible{ outline:2px solid #2684ff; outline-offset:2px; }
-
-    .row-sep{
-      border-top: 1px solid var(--divider);
-      margin-top: 10px;
-      padding-top: 10px;
-    }
   </style>
 </head>
-
 <body>
 
   <!-- HEADER -->
   <header class="topbar container">
     <h1 class="title">⭐️ Impianti preferiti</h1>
-    <div class="muted">Elenco dal foglio “Stazioni”</div>
+    <div class="muted">Elenco dal foglio “Stazioni” • Filtra per città e marchio</div>
   </header>
 
-  <!-- CONTENUTO -->
+<!-- CONTENUTO -->
   <main class="container" role="main">
 
     <!-- FILTRI -->
@@ -223,11 +224,12 @@
       <button id="clearBrand" class="btn" type="button" style="display:none;">✕ Reset</button>
     </div>
 
-    <div id="status" class="muted">Carico elenco preferiti…</div>
+    <div id="status" class="muted" style="text-align:center; margin-top:4px; margin-bottom:8px;">Carico elenco preferiti…</div>
     <div id="results"></div>
+
   </main>
 
-  <!-- AZIONI -->
+<!-- AZIONI -->
   <div class="actions-footer container">
     <a class="btn" id="backBtn" href="index.html" target="_self" aria-label="Torna indietro">← Indietro</a>
   </div>
@@ -238,19 +240,11 @@
   </div>
 
 <script>
-/* ====== CONFIG BACKEND (uguale a impianti_vicini.html) ====== */
+/* ====== CONFIG BACKEND (STESSO DI impianti_vicini.html) ====== */
 const ENDPOINT = 'https://script.google.com/macros/s/AKfycbzbqrHJempNcv0F9yY7FQ9wu5mZWLx1P1oSqvvTa-ztvBF167CGsQLfFokmx-yD4M3O/exec';
 const SECRET   = 'aX4P-92kLq-55T8b-7Hc0Z';
 
-/* ====== LOCALSTORAGE FILTRI ====== */
-const LS_CITY  = 'impiantiPreferiti_city';
-const LS_BRAND = 'impiantiPreferiti_brand';
-let CURRENT_CITY  = localStorage.getItem(LS_CITY)  || '__ALL__';
-let CURRENT_BRAND = localStorage.getItem(LS_BRAND) || '__ALL__';
-
-let ALL_STATIONS = [];
-
-/* ====== VERSIONE (come impianti_vicini) ====== */
+/* ====== VERSIONE (uguale allo stile esistente) ====== */
 function formatVersionFromDate(d){
   const p=n=>String(n).padStart(2,'0');
   return `${d.getFullYear()}.${p(d.getMonth()+1)}.${p(d.getDate())}-${p(d.getHours())}:${p(d.getMinutes())}`;
@@ -264,9 +258,16 @@ function computeAppVersion(){
 }
 document.getElementById('appVersion').textContent = computeAppVersion();
 
+/* ====== STATE (filtri persistenti) ====== */
+const LS_CITY  = 'impiantiPreferiti_city';
+const LS_BRAND = 'impiantiPreferiti_brand';
+let CURRENT_CITY  = localStorage.getItem(LS_CITY)  || '__ALL__';
+let CURRENT_BRAND = localStorage.getItem(LS_BRAND) || '__ALL__';
+
+let ALL_STATIONS = [];
+
 /* ====== UTILS ====== */
 function S(x){ return String(x ?? '').trim(); }
-function normKey(x){ return S(x).toUpperCase().replace(/\s+/g,' '); }
 function formatIsoToLocal(iso){
   if (!iso) return '—';
   const d = new Date(iso);
@@ -278,63 +279,69 @@ function eur3(n){
   if (!isFinite(v)) return '—';
   return v.toFixed(3).replace('.', ',');
 }
+function normalizeForSort(x){
+  return S(x).toLowerCase();
+}
 
-/* ====== FILTRI: populate ====== */
-function populateSelect(selectEl, items, allLabel){
-  const uniq = Array.from(new Set(items.filter(Boolean)))
-    .sort((a,b)=>a.localeCompare(b,'it',{sensitivity:'base'}));
+/* ====== FILTRI ====== */
+function populateSelect(selectEl, values, allLabel){
+  const uniq = Array.from(new Set(values.map(S).filter(Boolean)))
+    .sort((a,b)=>normalizeForSort(a).localeCompare(normalizeForSort(b),'it',{sensitivity:'base'}));
   selectEl.innerHTML =
     `<option value="__ALL__">${allLabel}</option>` +
     uniq.map(v => `<option value="${v.replaceAll('"','&quot;')}">${v}</option>`).join('');
 }
 
-function refreshFiltersUI(){
-  const citySel   = document.getElementById('cityFilter');
-  const brandSel  = document.getElementById('brandFilter');
-  const clearCity = document.getElementById('clearCity');
-  const clearBrand= document.getElementById('clearBrand');
+function setupFilters(){
+  const citySel    = document.getElementById('cityFilter');
+  const brandSel   = document.getElementById('brandFilter');
+  const clearCity  = document.getElementById('clearCity');
+  const clearBrand = document.getElementById('clearBrand');
 
-  const cities  = ALL_STATIONS.map(s => S(s.citta)).filter(Boolean);
-  const brands  = ALL_STATIONS.map(s => S(s.marchio)).filter(Boolean);
+  populateSelect(citySel,  ALL_STATIONS.map(s => s.citta),  'Tutte');
+  populateSelect(brandSel, ALL_STATIONS.map(s => s.marchio), 'Tutti');
 
-  populateSelect(citySel, cities, 'Tutte');
-  populateSelect(brandSel, brands, 'Tutti');
+  // ripristina stato se valido
+  const cities = new Set(ALL_STATIONS.map(s => S(s.citta)).filter(Boolean));
+  const brands = new Set(ALL_STATIONS.map(s => S(s.marchio)).filter(Boolean));
 
-  if (CURRENT_CITY !== '__ALL__' && cities.includes(CURRENT_CITY)) citySel.value = CURRENT_CITY;
-  else { CURRENT_CITY='__ALL__'; citySel.value='__ALL__'; localStorage.setItem(LS_CITY, CURRENT_CITY); }
+  if (!cities.has(CURRENT_CITY))  CURRENT_CITY  = '__ALL__';
+  if (!brands.has(CURRENT_BRAND)) CURRENT_BRAND = '__ALL__';
 
-  if (CURRENT_BRAND !== '__ALL__' && brands.includes(CURRENT_BRAND)) brandSel.value = CURRENT_BRAND;
-  else { CURRENT_BRAND='__ALL__'; brandSel.value='__ALL__'; localStorage.setItem(LS_BRAND, CURRENT_BRAND); }
+  citySel.value  = CURRENT_CITY;
+  brandSel.value = CURRENT_BRAND;
 
-  clearCity.style.display  = (citySel.value !== '__ALL__') ? 'inline-flex' : 'none';
-  clearBrand.style.display = (brandSel.value !== '__ALL__') ? 'inline-flex' : 'none';
+  clearCity.style.display  = (CURRENT_CITY  !== '__ALL__') ? 'inline-flex' : 'none';
+  clearBrand.style.display = (CURRENT_BRAND !== '__ALL__') ? 'inline-flex' : 'none';
 
   citySel.onchange = () => {
     CURRENT_CITY = citySel.value;
     localStorage.setItem(LS_CITY, CURRENT_CITY);
     clearCity.style.display = (CURRENT_CITY !== '__ALL__') ? 'inline-flex' : 'none';
-    renderFiltered();
+    render();
   };
+
   brandSel.onchange = () => {
     CURRENT_BRAND = brandSel.value;
     localStorage.setItem(LS_BRAND, CURRENT_BRAND);
     clearBrand.style.display = (CURRENT_BRAND !== '__ALL__') ? 'inline-flex' : 'none';
-    renderFiltered();
+    render();
   };
 
   clearCity.onclick = () => {
-    CURRENT_CITY='__ALL__';
+    CURRENT_CITY = '__ALL__';
     localStorage.setItem(LS_CITY, CURRENT_CITY);
-    citySel.value='__ALL__';
-    clearCity.style.display='none';
-    renderFiltered();
+    citySel.value = '__ALL__';
+    clearCity.style.display = 'none';
+    render();
   };
+
   clearBrand.onclick = () => {
-    CURRENT_BRAND='__ALL__';
+    CURRENT_BRAND = '__ALL__';
     localStorage.setItem(LS_BRAND, CURRENT_BRAND);
-    brandSel.value='__ALL__';
-    clearBrand.style.display='none';
-    renderFiltered();
+    brandSel.value = '__ALL__';
+    clearBrand.style.display = 'none';
+    render();
   };
 }
 
@@ -346,138 +353,133 @@ function getFilteredStations(){
   });
 }
 
-/* ====== RENDER ====== */
-function renderFiltered(){
+/* ====== BACKEND CALLS (SOLO APPS SCRIPT: NO CORS) ====== */
+async function apiGet(params){
+  const url = new URL(ENDPOINT);
+  url.searchParams.set('secret', SECRET);
+  Object.entries(params || {}).forEach(([k,v]) => url.searchParams.set(k, String(v)));
+
+  const r = await fetch(url.toString(), { method:'GET' });
+  return await r.json();
+}
+
+async function loadStations(){
+  const status = document.getElementById('status');
+  status.textContent = 'Carico elenco preferiti…';
+
+  const data = await apiGet({ action:'stazioni_full' });
+
+  if (!data || data.ok === false){
+    status.textContent = (data && data.error) ? data.error : 'Errore nel caricamento stazioni.';
+    ALL_STATIONS = [];
+    return;
+  }
+
+  ALL_STATIONS = Array.isArray(data.stations) ? data.stations : [];
+  if (!ALL_STATIONS.length){
+    status.textContent = 'Nessun impianto presente nel foglio "Stazioni".';
+    return;
+  }
+
+  setupFilters();
+  render();
+}
+
+/* ====== RENDER LISTA ====== */
+function render(){
+  const list = getFilteredStations();
   const status  = document.getElementById('status');
   const results = document.getElementById('results');
 
-  const list = getFilteredStations();
   const cityTxt  = (CURRENT_CITY  !== '__ALL__') ? ` • città: ${CURRENT_CITY}` : '';
   const brandTxt = (CURRENT_BRAND !== '__ALL__') ? ` • marchio: ${CURRENT_BRAND}` : '';
   status.textContent = `Trovati ${list.length} impianti preferiti${cityTxt}${brandTxt}.`;
 
   results.innerHTML = '';
-  renderStations(list);
 
-  // dopo aver creato le card, carica prezzi (Gasolio Self) in background
-  loadPricesForStations(list);
-}
-
-function renderStations(list){
-  const results = document.getElementById('results');
-
-  (list || []).forEach((st, idx) => {
+  // cards
+  list.forEach((st, idx) => {
     const id = S(st.id);
 
     const card = document.createElement('section');
     card.className = 'card-block';
 
-    // header
     const header = document.createElement('div');
     header.className = 'card-header';
 
-    const left = document.createElement('div');
-    left.className = 'card-gestore';
-    left.textContent = `#${idx+1} · ${S(st.marchio) || '—'} · ${S(st.citta) || '—'}`;
-    header.appendChild(left);
+    const gestore = document.createElement('div');
+    gestore.className = 'card-gestore';
+    gestore.textContent = `#${idx+1} · ${S(st.marchio) || '—'} · ${S(st.citta) || '—'}`;
+    header.appendChild(gestore);
 
-    const right = document.createElement('div');
-    right.className = 'badge-self';
-    right.textContent = `ID ${id || '—'}`;
-    header.appendChild(right);
+    const badge = document.createElement('div');
+    badge.className = 'badge-self';
+    badge.textContent = `ID ${id || '—'}`;
+    header.appendChild(badge);
 
-    // indirizzo
-    const indirizzo = document.createElement('div');
-    indirizzo.className = 'card-indirizzo';
-    indirizzo.textContent = S(st.indirizzo);
+    const addr = document.createElement('div');
+    addr.className = 'card-indirizzo';
+    addr.textContent = S(st.indirizzo) || '—';
 
-    // meta
     const meta = document.createElement('div');
     meta.className = 'card-meta';
-
     const prov = document.createElement('span');
     prov.textContent = `Provincia: ${S(st.provincia) || '—'}`;
     meta.appendChild(prov);
 
-    // se vuoi, puoi mostrare anche la label
-    // const lbl = document.createElement('span');
-    // lbl.textContent = st.label || '';
-    // meta.appendChild(lbl);
+    // prezzi
+    const fuelsWrap = document.createElement('div');
+    fuelsWrap.className = 'fuels-wrap'; // esiste già nel CSS della pagina vicini
+    fuelsWrap.dataset.stationId = id;
 
-    // blocco prezzo
-    const fuelBox = document.createElement('div');
-    fuelBox.className = 'row-sep';
-    fuelBox.dataset.stationId = id;
+    const row = document.createElement('div');
+    row.className = 'fuel-row';
 
-    const fuelTitle = document.createElement('div');
-    fuelTitle.style.fontWeight = '600';
-    fuelTitle.style.fontSize = '13px';
-    fuelTitle.textContent = `Gasolio · Self`;
-    fuelBox.appendChild(fuelTitle);
+    const left = document.createElement('div');
+    left.className = 'fuel-left';
+    const nameEl = document.createElement('div');
+    nameEl.className = 'fuel-name';
+    nameEl.textContent = 'Gasolio';
+    const modeEl = document.createElement('div');
+    modeEl.className = 'fuel-meta';
+    modeEl.textContent = 'Self · Agg.: —';
+    modeEl.dataset.role = 'insertDate';
+    left.appendChild(nameEl);
+    left.appendChild(modeEl);
 
-    const fuelDate = document.createElement('div');
-    fuelDate.className = 'muted';
-    fuelDate.textContent = `Agg.: —`;
-    fuelDate.dataset.role = 'insertDate';
-    fuelBox.appendChild(fuelDate);
+    const right = document.createElement('div');
+    right.className = 'fuel-right';
+    const priceEl = document.createElement('div');
+    priceEl.className = 'fuel-price';
+    priceEl.textContent = '€ —';
+    priceEl.dataset.role = 'price';
+    right.appendChild(priceEl);
 
-    const fuelPrice = document.createElement('div');
-    fuelPrice.className = 'card-prezzo';
-    fuelPrice.style.marginTop = '6px';
-    fuelPrice.textContent = `€ —`;
-    fuelPrice.dataset.role = 'price';
-    fuelBox.appendChild(fuelPrice);
+    row.appendChild(left);
+    row.appendChild(right);
 
-    const fuelErr = document.createElement('div');
-    fuelErr.className = 'muted';
-    fuelErr.style.display = 'none';
-    fuelErr.dataset.role = 'error';
-    fuelBox.appendChild(fuelErr);
+    fuelsWrap.appendChild(row);
+
+    const err = document.createElement('div');
+    err.className = 'muted';
+    err.style.marginTop = '6px';
+    err.style.display = 'none';
+    err.dataset.role = 'error';
+    fuelsWrap.appendChild(err);
 
     card.appendChild(header);
-    card.appendChild(indirizzo);
+    card.appendChild(addr);
     card.appendChild(meta);
-    card.appendChild(fuelBox);
+    card.appendChild(fuelsWrap);
 
     results.appendChild(card);
   });
+
+  // carica prezzi per le card renderizzate
+  loadPricesFor(list);
 }
 
-/* ====== CARICAMENTO LISTA DAL FOGLIO STAZIONI (Apps Script) ====== */
-async function loadPreferredStations(){
-  const status = document.getElementById('status');
-
-  try{
-    const url = new URL(ENDPOINT);
-    url.searchParams.set('action', 'stazioni_full');
-    url.searchParams.set('secret', SECRET);
-
-    const res = await fetch(url.toString(), { method:'GET' });
-    const data = await res.json();
-
-    if (!data || data.ok === false){
-      status.textContent = (data && data.error) ? data.error : 'Errore nel caricamento stazioni.';
-      return;
-    }
-
-    const list = Array.isArray(data.stations) ? data.stations : [];
-    ALL_STATIONS = list;
-
-    if (!ALL_STATIONS.length){
-      status.textContent = 'Nessun impianto presente nel foglio "Stazioni".';
-      return;
-    }
-
-    refreshFiltersUI();
-    renderFiltered();
-
-  }catch(err){
-    console.error(err);
-    status.textContent = 'Errore nel caricamento stazioni. Sei offline o il servizio non risponde.';
-  }
-}
-
-/* ====== PREZZI: per ogni ID chiama servicearea/{id} e cerca Gasolio Self ====== */
+/* ====== PREZZI: servicearea via PROXY (Apps Script) ====== */
 function findGasolioSelf(detail){
   const fuels = Array.isArray(detail?.fuels) ? detail.fuels : [];
   return fuels.find(f =>
@@ -486,28 +488,7 @@ function findGasolioSelf(detail){
   ) || null;
 }
 
-// prova prima chiamata diretta MISE, poi fallback via Apps Script (?action=servicearea&id=...)
-async function fetchServiceAreaWithFallback(id){
-  const directUrl = `https://carburanti.mise.gov.it/ospzApi/registry/servicearea/${encodeURIComponent(id)}`;
-  try{
-    const r = await fetch(directUrl, { method:'GET', headers:{ 'Accept':'application/json' } });
-    if (!r.ok) throw new Error(`HTTP ${r.status}`);
-    return await r.json();
-  }catch(e){
-    const proxy = new URL(ENDPOINT);
-    proxy.searchParams.set('action','servicearea');
-    proxy.searchParams.set('secret', SECRET);
-    proxy.searchParams.set('id', String(id));
-
-    const r2 = await fetch(proxy.toString(), { method:'GET' });
-    const j2 = await r2.json();
-    if (j2 && j2.ok === false) throw new Error(j2.error || 'Proxy error');
-    // il proxy restituisce { ok:true, detail:{...} }
-    return j2.detail || j2;
-  }
-}
-
-// limiter semplice per non sparare 50 fetch simultanei
+// limiter per non saturare l'endpoint
 async function mapLimit(items, limit, fn){
   const out = new Array(items.length);
   let i = 0;
@@ -522,48 +503,50 @@ async function mapLimit(items, limit, fn){
   return out;
 }
 
-async function loadPricesForStations(stations){
+async function loadPricesFor(stations){
   if (!Array.isArray(stations) || !stations.length) return;
 
   await mapLimit(stations, 6, async (st) => {
     const id = S(st.id);
     if (!id) return;
 
-    const fuelBox = document.querySelector(`[data-station-id="${CSS.escape(id)}"]`);
-    if (!fuelBox) return;
+    const wrap = document.querySelector(`[data-station-id="${CSS.escape(id)}"]`);
+    if (!wrap) return;
 
-    const priceEl = fuelBox.querySelector('[data-role="price"]');
-    const dateEl  = fuelBox.querySelector('[data-role="insertDate"]');
-    const errEl   = fuelBox.querySelector('[data-role="error"]');
+    const priceEl = wrap.querySelector('[data-role="price"]');
+    const dateEl  = wrap.querySelector('[data-role="insertDate"]');
+    const errEl   = wrap.querySelector('[data-role="error"]');
 
     try{
-      const detail = await fetchServiceAreaWithFallback(id);
-      const fuel = findGasolioSelf(detail);
+      const data = await apiGet({ action:'servicearea', id });
+      if (!data || data.ok === false){
+        throw new Error((data && data.error) ? data.error : 'Proxy error');
+      }
 
+      const fuel = findGasolioSelf(data.detail);
       if (!fuel){
         priceEl.textContent = '€ —';
-        dateEl.textContent  = 'Agg.: —';
+        dateEl.textContent  = 'Self · Agg.: —';
         errEl.style.display = 'block';
         errEl.textContent = 'Gasolio Self non disponibile per questo impianto.';
         return;
       }
 
       priceEl.textContent = `€ ${eur3(fuel.price)}`;
-      dateEl.textContent  = `Agg.: ${formatIsoToLocal(fuel.insertDate)}`;
+      dateEl.textContent  = `Self · Agg.: ${formatIsoToLocal(fuel.insertDate)}`;
       errEl.style.display = 'none';
       errEl.textContent = '';
 
-    }catch(err){
-      console.warn('[Preferiti] errore servicearea per id', id, err);
+    }catch(e){
       priceEl.textContent = '€ —';
-      dateEl.textContent  = 'Agg.: —';
+      dateEl.textContent  = 'Self · Agg.: —';
       errEl.style.display = 'block';
-      errEl.textContent = 'Errore nel recupero prezzo (servizio non disponibile).';
+      errEl.textContent = 'Errore nel recupero prezzo (proxy).';
     }
   });
 }
 
-/* ====== BACK BTN: chiudi iframe in index.html se presente ====== */
+/* ====== BACK BTN: se dentro iframe chiudi lista ====== */
 document.getElementById('backBtn').addEventListener('click', (e) => {
   if (window.top !== window.self) {
     e.preventDefault();
@@ -586,7 +569,11 @@ document.getElementById('backBtn').addEventListener('click', (e) => {
 
 /* ====== BOOT ====== */
 document.addEventListener('DOMContentLoaded', () => {
-  loadPreferredStations();
+  loadStations().catch(err => {
+    console.error(err);
+    const status = document.getElementById('status');
+    status.textContent = 'Errore nel caricamento dati.';
+  });
 });
 </script>
 
