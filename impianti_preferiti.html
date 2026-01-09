@@ -82,15 +82,6 @@
       font-weight:700;
     }
 
-    .coords{
-      font-size:13px;
-      color:var(--muted);
-    }
-
-    .coords span{
-      font-variant-numeric: tabular-nums;
-    }
-
     /* Lista impianti: card come scheda_carburante */
     .card-block{
       border:1px solid var(--border);
@@ -132,13 +123,6 @@
       font-size:12px;
       color:var(--muted);
       margin-top:4px;
-    }
-
-    .card-prezzo{
-      font-size:18px;
-      font-weight:700;
-      font-variant-numeric: tabular-nums;
-      margin-top:2px;
     }
 
     .muted {
@@ -190,6 +174,39 @@
     .btn:hover{ background: var(--btn-hover); }
     .btn:active{ transform:translateY(1px); }
     .btn:focus-visible{ outline:2px solid #2684ff; outline-offset:2px; }
+
+    /* ====== PREZZI (stile come impianti_vicini.html) ====== */
+    .fuels-wrap{ margin-top:10px; }
+    .fuel-row{
+      display:flex;
+      justify-content:space-between;
+      gap:10px;
+      padding:6px 0;
+      border-top:1px solid var(--divider);
+    }
+    .fuel-left{ display:flex; flex-direction:column; min-width:0; }
+    .fuel-name{
+      font-weight:600;
+      font-size:13px;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+    .fuel-meta{
+      font-size:12px;
+      color: var(--muted);
+      margin-top:2px;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+    .fuel-right{ display:flex; align-items:flex-start; }
+    .fuel-price{
+      font-size:16px;
+      font-weight:700;
+      font-variant-numeric: tabular-nums;
+      white-space:nowrap;
+    }
   </style>
 </head>
 <body>
@@ -200,7 +217,7 @@
     <div class="muted">Elenco dal foglio “Stazioni” • Filtra per città e marchio</div>
   </header>
 
-<!-- CONTENUTO -->
+  <!-- CONTENUTO -->
   <main class="container" role="main">
 
     <!-- FILTRI -->
@@ -229,7 +246,7 @@
 
   </main>
 
-<!-- AZIONI -->
+  <!-- AZIONI -->
   <div class="actions-footer container">
     <a class="btn" id="backBtn" href="index.html" target="_self" aria-label="Torna indietro">← Indietro</a>
   </div>
@@ -385,6 +402,56 @@ async function loadStations(){
   render();
 }
 
+/* ====== PREZZI: helpers (come impianti_vicini.html) ====== */
+function sortFuelsInPlace(fuels){
+  if (!Array.isArray(fuels)) return;
+  fuels.sort((a,b)=>{
+    const na = String(a?.name||'').localeCompare(String(b?.name||''), 'it', {sensitivity:'base'});
+    if (na !== 0) return na;
+    return (a?.isSelf === b?.isSelf) ? 0 : (a?.isSelf ? -1 : 1);
+  });
+}
+
+function pickPrimaryFuel(fuels){
+  if (!Array.isArray(fuels) || !fuels.length) return null;
+  const primary = fuels.find(f => String(f?.name||'').trim().toLowerCase()==='gasolio' && f?.isSelf===true);
+  return primary || fuels[0];
+}
+
+function renderFuelRow(f){
+  const row = document.createElement('div');
+  row.className = 'fuel-row';
+
+  const leftCol = document.createElement('div');
+  leftCol.className = 'fuel-left';
+
+  const title = document.createElement('div');
+  title.className = 'fuel-name';
+  title.textContent = `${f?.name || 'Carburante'} · ${f?.isSelf ? 'Self' : 'Servito'}`;
+
+  const dates = document.createElement('div');
+  dates.className = 'fuel-meta';
+  dates.textContent =
+    (f?.insertDate ? `Agg.: ${formatIsoToLocal(f.insertDate)}` : 'Agg.: —') +
+    (f?.validityDate ? ` · Val.: ${formatIsoToLocal(f.validityDate)}` : '');
+
+  leftCol.appendChild(title);
+  leftCol.appendChild(dates);
+
+  const right = document.createElement('div');
+  right.className = 'fuel-right';
+
+  const price = document.createElement('div');
+  price.className = 'fuel-price';
+  price.textContent = '€ ' + eur3(Number(f?.price));
+
+  right.appendChild(price);
+
+  row.appendChild(leftCol);
+  row.appendChild(right);
+  return row;
+}
+
 /* ====== RENDER LISTA ====== */
 function render(){
   const list = getFilteredStations();
@@ -397,7 +464,7 @@ function render(){
 
   results.innerHTML = '';
 
-  // cards
+  // cards (con placeholder prezzi)
   list.forEach((st, idx) => {
     const id = S(st.id);
 
@@ -427,38 +494,17 @@ function render(){
     prov.textContent = `Provincia: ${S(st.provincia) || '—'}`;
     meta.appendChild(prov);
 
-    // prezzi
+    // prezzi (placeholder + container per toggle)
     const fuelsWrap = document.createElement('div');
-    fuelsWrap.className = 'fuels-wrap'; // esiste già nel CSS della pagina vicini
+    fuelsWrap.className = 'fuels-wrap';
     fuelsWrap.dataset.stationId = id;
 
-    const row = document.createElement('div');
-    row.className = 'fuel-row';
-
-    const left = document.createElement('div');
-    left.className = 'fuel-left';
-    const nameEl = document.createElement('div');
-    nameEl.className = 'fuel-name';
-    nameEl.textContent = 'Gasolio';
-    const modeEl = document.createElement('div');
-    modeEl.className = 'fuel-meta';
-    modeEl.textContent = 'Self · Agg.: —';
-    modeEl.dataset.role = 'insertDate';
-    left.appendChild(nameEl);
-    left.appendChild(modeEl);
-
-    const right = document.createElement('div');
-    right.className = 'fuel-right';
-    const priceEl = document.createElement('div');
-    priceEl.className = 'fuel-price';
-    priceEl.textContent = '€ —';
-    priceEl.dataset.role = 'price';
-    right.appendChild(priceEl);
-
-    row.appendChild(left);
-    row.appendChild(right);
-
-    fuelsWrap.appendChild(row);
+    const loading = document.createElement('div');
+    loading.className = 'muted';
+    loading.style.marginTop = '6px';
+    loading.textContent = 'Carico prezzi…';
+    loading.dataset.role = 'loading';
+    fuelsWrap.appendChild(loading);
 
     const err = document.createElement('div');
     err.className = 'muted';
@@ -480,14 +526,6 @@ function render(){
 }
 
 /* ====== PREZZI: servicearea via PROXY (Apps Script) ====== */
-function findGasolioSelf(detail){
-  const fuels = Array.isArray(detail?.fuels) ? detail.fuels : [];
-  return fuels.find(f =>
-    String(f?.name || '').trim().toLowerCase() === 'gasolio' &&
-    f?.isSelf === true
-  ) || null;
-}
-
 // limiter per non saturare l'endpoint
 async function mapLimit(items, limit, fn){
   const out = new Array(items.length);
@@ -513,9 +551,8 @@ async function loadPricesFor(stations){
     const wrap = document.querySelector(`[data-station-id="${CSS.escape(id)}"]`);
     if (!wrap) return;
 
-    const priceEl = wrap.querySelector('[data-role="price"]');
-    const dateEl  = wrap.querySelector('[data-role="insertDate"]');
-    const errEl   = wrap.querySelector('[data-role="error"]');
+    const loadingEl = wrap.querySelector('[data-role="loading"]');
+    const errEl     = wrap.querySelector('[data-role="error"]');
 
     try{
       const data = await apiGet({ action:'servicearea', id });
@@ -523,25 +560,55 @@ async function loadPricesFor(stations){
         throw new Error((data && data.error) ? data.error : 'Proxy error');
       }
 
-      const fuel = findGasolioSelf(data.detail);
-      if (!fuel){
-        priceEl.textContent = '€ —';
-        dateEl.textContent  = 'Self · Agg.: —';
+      const fuels = Array.isArray(data?.detail?.fuels) ? data.detail.fuels : [];
+      sortFuelsInPlace(fuels);
+
+      // pulisci placeholder
+      if (loadingEl) loadingEl.remove();
+
+      // se niente prezzi
+      if (!fuels.length){
         errEl.style.display = 'block';
-        errEl.textContent = 'Gasolio Self non disponibile per questo impianto.';
+        errEl.textContent = 'Nessun prezzo disponibile per questo impianto.';
         return;
       }
 
-      priceEl.textContent = `€ ${eur3(fuel.price)}`;
-      dateEl.textContent  = `Self · Agg.: ${formatIsoToLocal(fuel.insertDate)}`;
       errEl.style.display = 'none';
       errEl.textContent = '';
 
+      const primaryFuel = pickPrimaryFuel(fuels);
+      const otherFuels  = fuels.filter(f => f !== primaryFuel);
+
+      // riga principale (Gasolio Self se presente)
+      wrap.appendChild(renderFuelRow(primaryFuel));
+
+      // toggle altri carburanti
+      if (otherFuels.length){
+        const toggleBtn = document.createElement('button');
+        toggleBtn.className = 'btn';
+        toggleBtn.type = 'button';
+        toggleBtn.style.marginTop = '8px';
+        toggleBtn.style.fontSize = '12px';
+        toggleBtn.textContent = 'Mostra altri carburanti';
+
+        const hiddenBox = document.createElement('div');
+        hiddenBox.style.display = 'none';
+        otherFuels.forEach(f => hiddenBox.appendChild(renderFuelRow(f)));
+
+        toggleBtn.addEventListener('click', () => {
+          const open = hiddenBox.style.display === 'block';
+          hiddenBox.style.display = open ? 'none' : 'block';
+          toggleBtn.textContent = open ? 'Mostra altri carburanti' : 'Nascondi carburanti';
+        });
+
+        wrap.appendChild(toggleBtn);
+        wrap.appendChild(hiddenBox);
+      }
+
     }catch(e){
-      priceEl.textContent = '€ —';
-      dateEl.textContent  = 'Self · Agg.: —';
+      if (loadingEl) loadingEl.remove();
       errEl.style.display = 'block';
-      errEl.textContent = 'Errore nel recupero prezzo (proxy).';
+      errEl.textContent = 'Errore nel recupero prezzi (proxy).';
     }
   });
 }
