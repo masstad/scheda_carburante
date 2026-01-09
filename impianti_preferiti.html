@@ -470,6 +470,30 @@ function render(){
 
     const card = document.createElement('section');
     card.className = 'card-block';
+    card.style.cursor = 'pointer';
+
+    card.addEventListener('click', (ev) => {
+      // evita che il tap sul bottone "Mostra altri carburanti" apra il dettaglio
+      if (ev.target && ev.target.closest && ev.target.closest('button')) return;
+
+      const payload = {
+        // dati dal foglio
+        id: S(st.id),
+        marchio: S(st.marchio),
+        citta: S(st.citta),
+        provincia: S(st.provincia),
+        indirizzo: S(st.indirizzo),
+        // se già caricati, includi anche i dettagli MISE (servicearea)
+        servicearea: st.__servicearea || null
+      };
+
+      try{ sessionStorage.setItem('impianto_dettaglio', JSON.stringify(payload)); }catch(e){}
+
+      const qs = new URLSearchParams(location.search);
+      const v = qs.get('v');
+      const url = v ? `dettaglio_impianto.html?v=${encodeURIComponent(v)}` : 'dettaglio_impianto.html';
+      window.location.href = url;
+    });
 
     const header = document.createElement('div');
     header.className = 'card-header';
@@ -556,6 +580,8 @@ async function loadPricesFor(stations){
 
     try{
       const data = await apiGet({ action:'servicearea', id });
+      // conserva i dettagli per la pagina di dettaglio
+      st.__servicearea = (data && data.payload) ? data.payload : data;
       if (!data || data.ok === false){
         throw new Error((data && data.error) ? data.error : 'Proxy error');
       }
