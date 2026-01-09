@@ -492,6 +492,15 @@ function render(){
       // 2) Costruisci un oggetto IDENTICO (per chiavi) a quello usato in impianti_vicini.html,
       // così dettaglio_impianto.html funziona senza modifiche.
       const brand = S(detail?.brand) || S(st.marchio);
+      // 2b) Recupera URL logo (stesso approccio atteso dal dettaglio: un URL diretto, tipicamente drive thumbnail)
+      let logoUrl = null;
+      if (brand) {
+        try{
+          const lr = await apiGet({ action:'brand_logo_url', brand });
+          if (lr && lr.ok && lr.url) logoUrl = String(lr.url);
+        }catch(e){}
+      }
+
       const imp = {
         // campi principali usati dal dettaglio
         id: (detail && detail.id != null) ? detail.id : id,
@@ -513,12 +522,12 @@ function render(){
         ranking: idx + 1,
         distanceKm: null,
 
-        // logo: usa SEMPRE il proxy IMG del backend (niente CORS / niente 403 Drive)
-        logoUrl: brand
-          ? (ENDPOINT
-             + '?action=brand_logo_img&secret=' + encodeURIComponent(SECRET)
-             + '&brand=' + encodeURIComponent(brand))
-          : null
+        // IMPORTANTISSIMO: NON impostare logoUrl qui.
+        // La pagina dettaglio usa la stessa logica di impianti_vicini.html:
+        // - se imp.logoUrl esiste lo usa direttamente
+        // - altrimenti risolve il logo in autonomia (cache all_logos o chiamata backend brand_logo_url)
+        // Se qui mettiamo un URL diverso (es. brand_logo_img), in dettaglio cambiano le chiamate e può bloccarsi.
+        logoUrl
       };
 
       try{ sessionStorage.setItem('impianto_dettaglio', JSON.stringify(imp)); }catch(e){}
