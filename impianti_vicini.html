@@ -220,6 +220,62 @@
   font-size:18px;
 }
 
+    /* TOP GRID: 2 righe x 2 colonne */
+.card-topgrid{
+  display:grid;
+  grid-template-columns: 1fr auto;
+  grid-template-rows: auto auto;
+  gap: 6px 10px;
+  align-items:start;
+}
+
+.card-top-name{
+  grid-column: 1;
+  grid-row: 1;
+  font-weight:600;
+  font-size:14px;
+}
+
+.card-top-badge{
+  grid-column: 2;
+  grid-row: 1;
+  justify-self:end;
+  align-self:start;
+}
+
+.card-top-leftinfo{
+  grid-column: 1;
+  grid-row: 2;
+  min-width: 0;
+}
+
+.card-top-map{
+  grid-column: 2;
+  grid-row: 2;
+  justify-self:end;
+  align-self:start;
+}
+
+/* bottone icona maps */
+.map-icon-btn{
+  width:36px;
+  height:36px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  border:1px solid var(--border);
+  border-radius:12px;
+  background: var(--surface);
+  cursor:pointer;
+  user-select:none;
+  line-height:1;
+}
+.map-icon-btn:hover{ background: var(--btn-hover); }
+.map-icon-btn:active{ transform:translateY(1px); }
+.map-icon-btn:focus-visible{ outline:2px solid #2684ff; outline-offset:2px; }
+
+.map-icon{ font-size:18px; }
+
     
   </style>
 </head>
@@ -685,11 +741,103 @@ header.appendChild(rightWrap);
       }
     }
 
-    card.appendChild(header);
-    card.appendChild(indirizzo);
-    card.appendChild(meta);
-    if (servicesRow) card.appendChild(servicesRow);
-    card.appendChild(fuelsWrap);
+    // ===== TOP GRID (2 righe x 2 colonne) =====
+const topGrid = document.createElement('div');
+topGrid.className = 'card-topgrid';
+
+// riga 1 col 1: nome impianto
+const nameEl = document.createElement('div');
+nameEl.className = 'card-top-name';
+const rank = (imp.ranking ?? (index + 1));
+const brand = imp.brand ? ` · ${imp.brand}` : '';
+nameEl.textContent = `#${rank} · ${imp.nomeImpianto || imp.name || 'Impianto'}${brand}`;
+
+// riga 1 col 2: badge km
+const kmEl = document.createElement('div');
+kmEl.className = 'badge-self card-top-badge';
+kmEl.textContent = formatKm(imp.distanceKm) || '—';
+
+// riga 2 col 1: indirizzo + meta (società ecc.)
+const leftInfo = document.createElement('div');
+leftInfo.className = 'card-top-leftinfo';
+
+// indirizzo
+const indirizzo = document.createElement('div');
+indirizzo.className = 'card-indirizzo';
+indirizzo.textContent = imp.address || '';
+leftInfo.appendChild(indirizzo);
+
+// meta
+const meta = document.createElement('div');
+meta.className = 'card-meta';
+
+if (imp.company){
+  const s = document.createElement('span');
+  s.textContent = `Società: ${imp.company}`;
+  meta.appendChild(s);
+}
+if (imp.phoneNumber){
+  const s = document.createElement('span');
+  s.textContent = `Tel: ${imp.phoneNumber}`;
+  meta.appendChild(s);
+}
+if (imp.email){
+  const s = document.createElement('span');
+  s.textContent = `Email: ${imp.email}`;
+  meta.appendChild(s);
+}
+if (imp.website){
+  const s = document.createElement('span');
+  s.textContent = `Web: ${imp.website}`;
+  meta.appendChild(s);
+}
+if (imp.location && imp.location.lat && imp.location.lng){
+  const s = document.createElement('span');
+  s.textContent = `${formatCoord(imp.location.lat)}, ${formatCoord(imp.location.lng)}`;
+  meta.appendChild(s);
+}
+leftInfo.appendChild(meta);
+
+// riga 2 col 2: icona maps
+const mapCell = document.createElement('div');
+mapCell.className = 'card-top-map';
+
+const lat = imp?.location?.lat;
+const lng = imp?.location?.lng;
+
+if (Number.isFinite(lat) && Number.isFinite(lng)) {
+  const mapsBtn = document.createElement('button');
+  mapsBtn.type = 'button';
+  mapsBtn.className = 'map-icon-btn';
+  mapsBtn.setAttribute('aria-label', 'Apri in Google Maps');
+  mapsBtn.title = 'Apri in Google Maps';
+
+  const icon = document.createElement('span');
+  icon.className = 'map-icon';
+  icon.textContent = '🗺️'; // oppure 📍
+  mapsBtn.appendChild(icon);
+
+  mapsBtn.addEventListener('click', (e) => {
+    e.stopPropagation(); // NON aprire dettaglio
+    const q = `${lat},${lng}`;
+    const url = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(q)}`;
+    window.open(url, '_blank', 'noopener');
+  });
+
+  mapCell.appendChild(mapsBtn);
+}
+
+// monta la griglia
+topGrid.appendChild(nameEl);
+topGrid.appendChild(kmEl);
+topGrid.appendChild(leftInfo);
+topGrid.appendChild(mapCell);
+
+// attacca tutto alla card
+card.appendChild(topGrid);
+if (servicesRow) card.appendChild(servicesRow);
+card.appendChild(fuelsWrap);
+
 
     results.appendChild(card);
   });
@@ -845,4 +993,5 @@ document.addEventListener('DOMContentLoaded', () => {
 
 </body>
 </html>
+
 
