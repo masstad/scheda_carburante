@@ -190,6 +190,37 @@
     .btn:hover{ background: var(--btn-hover); }
     .btn:active{ transform:translateY(1px); }
     .btn:focus-visible{ outline:2px solid #2684ff; outline-offset:2px; }
+
+
+  .km-actions{
+  display:flex;
+  flex-direction:column;
+  align-items:flex-end;
+  gap:6px;
+}
+
+.map-icon-btn{
+  width:36px;
+  height:36px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  border:1px solid var(--border);
+  border-radius:12px;
+  background: var(--surface);
+  cursor:pointer;
+  user-select:none;
+  line-height:1;
+}
+.map-icon-btn:hover{ background: var(--btn-hover); }
+.map-icon-btn:active{ transform:translateY(1px); }
+.map-icon-btn:focus-visible{ outline:2px solid #2684ff; outline-offset:2px; }
+
+.map-icon{
+  font-size:18px;
+}
+
+    
   </style>
 </head>
 <body>
@@ -482,10 +513,43 @@ function renderImpianti(list){
     left.textContent = `#${rank} · ${imp.nomeImpianto || imp.name || 'Impianto'}${brand}`;
     header.appendChild(left);
 
-    const right = document.createElement('div');
-    right.className = 'badge-self';
-    right.textContent = formatKm(imp.distanceKm) || '—';
-    header.appendChild(right);
+    const rightWrap = document.createElement('div');
+rightWrap.className = 'km-actions';
+
+// badge km
+const right = document.createElement('div');
+right.className = 'badge-self';
+right.textContent = formatKm(imp.distanceKm) || '—';
+rightWrap.appendChild(right);
+
+// bottone maps (solo se ho coordinate)
+const lat = imp?.location?.lat;
+const lng = imp?.location?.lng;
+
+if (Number.isFinite(lat) && Number.isFinite(lng)) {
+  const mapsBtn = document.createElement('button');
+  mapsBtn.type = 'button';
+  mapsBtn.className = 'map-icon-btn';
+  mapsBtn.setAttribute('aria-label', 'Apri in Google Maps');
+  mapsBtn.title = 'Apri in Google Maps';
+
+  const icon = document.createElement('span');
+  icon.className = 'map-icon';
+  icon.textContent = '🗺️'; // cambia icona se vuoi (es. 📍)
+  mapsBtn.appendChild(icon);
+
+  mapsBtn.addEventListener('click', (e) => {
+    e.stopPropagation(); // IMPORTANTISSIMO: non apre la pagina dettaglio
+    const q = `${lat},${lng}`;
+    const url = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(q)}`;
+    window.open(url, '_blank', 'noopener');
+  });
+
+  rightWrap.appendChild(mapsBtn);
+}
+
+header.appendChild(rightWrap);
+
 
     const indirizzo = document.createElement('div');
     indirizzo.className = 'card-indirizzo';
@@ -781,3 +845,4 @@ document.addEventListener('DOMContentLoaded', () => {
 
 </body>
 </html>
+
