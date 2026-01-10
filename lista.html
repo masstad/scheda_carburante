@@ -229,19 +229,118 @@
     .drawer-actions{
       margin-top:16px;
     }
+  
+    /* ===== MENU (copiato da index.html) ===== */
+    :root{ --shadow: 0 2px 10px rgba(0,0,0,.08); }
+    html[data-theme="dark"]{ --shadow: 0 2px 16px rgba(0,0,0,.35); }
+
+    .menu-btn{
+      justify-self:start;
+      background:none;
+      border:none;
+      font-size:22px;
+      line-height:1;
+      padding:8px 12px;
+      cursor:pointer;
+      color: var(--text);
+    }
+
+    /* Drawer look&feel */
+    #drawer{
+      position:fixed; inset:0 35% 0 0; max-width:280px;
+      transform:translateX(-105%); transition:transform .2s ease; z-index:9998; padding:16px;
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+    }
+    #drawer a, #drawer button.linklike{
+      text-decoration: none;
+      color: inherit;
+      display: inline-block;
+      padding: 8px 0;
+      background: none;
+      border: none;
+      font: inherit;
+      cursor: pointer;
+      text-align: left;
+      width: 100%;
+    }
+    #drawer hr{ border:0; border-top:1px solid var(--divider); margin:10px 0; }
+    #drawerClose{
+      position: absolute;
+      left: 12px; bottom: 12px;
+      width: 44px; height: 44px;
+      display: inline-flex; align-items: center; justify-content: center;
+      border: 1px solid var(--border); border-radius: 999px;
+      background: var(--surface); color: var(--text); font-size: 18px;
+      cursor: pointer; box-shadow: var(--shadow);
+    }
+    #drawerClose:active{ transform: translateY(1px); }
+    #drawerClose:focus-visible{ outline: 2px solid #2684ff; outline-offset: 2px; }
+
+    /* Backdrop menu */
+    #backdrop{ position:fixed; inset:0; background:rgba(0,0,0,.15); display:none; z-index:9997; }
+
+    /* FAB hamburger in basso */
+    .fab-menu{
+      position: fixed;
+      left: 12px;
+      bottom: calc(12px + env(safe-area-inset-bottom));
+      width: 48px; height: 48px;
+      display: inline-flex; align-items: center; justify-content: center;
+      border: 1px solid var(--border); border-radius: 999px; background: var(--surface);
+      color: var(--text);
+      font-size: 22px; line-height: 1; cursor: pointer;
+      box-shadow: var(--shadow);
+      z-index: 10000;
+      transition: opacity .15s ease, transform .15s ease;
+    }
+    .fab-menu:active{ transform: translateY(1px); }
+    .fab-menu:focus-visible{ outline: 2px solid #2684ff; outline-offset: 2px; }
+    body.drawer-open .fab-menu, body.frame-open .fab-menu{
+      opacity: 0; pointer-events: none; transform: translateY(8px);
+    }
+
   </style>
 </head>
 <body>
 
   <!-- HEADER -->
   <header class="topbar container">
-    <div></div>
+    <button id="menuBtn" class="menu-btn" aria-label="Apri menu">☰</button>
     <h1 class="title">⛽️ Lista rifornimenti</h1>
     <button id="openFilterDrawer" class="filter-btn" type="button" aria-label="Apri filtri di ricerca">
       <span aria-hidden="true">🔍</span>
       <span>Filtri</span>
     </button>
   </header>
+
+  <!-- MENU (identico a index.html) -->
+  <nav id="drawer" aria-label="Menu">
+    <h3 style="margin-top:0;">Menu</h3>
+    <ul style="list-style:none;padding:0;margin:0;">
+      <li><a id="goLista" href="#">Lista movimenti</a></li>
+      <hr>
+      <li><a id="goScheda" href="#">Scheda carburante</a></li>
+      <hr>
+      <li><a id="goForecast" href="#">Forecast Km</a></li>
+      <hr>
+      <li><a id="goImpianti" href="#">Impianti vicini</a></li>
+      <hr>
+      <li><a id="goImpiantiPreferiti" href="#">Impianti preferiti</a></li>
+      <hr>
+      <li><button id="themeToggle" class="linklike" type="button">🌙 Tema scuro</button></li>
+    </ul>
+    <button id="drawerClose" aria-label="Chiudi menu" title="Chiudi">←</button>
+  </nav>
+  <div id="backdrop"></div>
+  <button id="menuBtnBottom" class="fab-menu" aria-label="Apri menu" title="Menu">☰</button>
+
+  <!-- Overlay pagina secondaria (identico a index.html) -->
+  <iframe id="pageFrame" style="
+    position:fixed; inset:0; width:100vw; height:100vh; border:0;
+    display:none; background:var(--bg); z-index:9999;
+  "></iframe>
+
 
   <main class="container" role="main">
     <div id="status" class="loading">Carico…</div>
@@ -337,6 +436,124 @@ function computeAppVersion(){
   return isNaN(d)?'dev':formatVersionFromDate(d);
 }
 document.getElementById('appVersion').textContent = computeAppVersion();
+
+/* ===== Menu + Theme toggle + Nav full-screen (copiato da index.html) ===== */
+(function(){
+  const btn = document.getElementById('menuBtn');
+  const btnBottom = document.getElementById('menuBtnBottom');
+  const drawer = document.getElementById('drawer');
+  const backdrop = document.getElementById('backdrop');
+  const frame = document.getElementById('pageFrame');
+
+  function updateThemeToggleLabel(){
+    const el = document.getElementById('themeToggle');
+    if(!el) return;
+    const t = document.documentElement.getAttribute('data-theme') || 'light';
+    el.textContent = (t === 'dark') ? '☀️ Tema chiaro' : '🌙 Tema scuro';
+  }
+  function setTheme(t){
+    document.documentElement.setAttribute('data-theme', t);
+    try { localStorage.setItem('theme', t); } catch(e){}
+    updateThemeToggleLabel();
+    // Propaga al frame, se aperto
+    try{ frame?.contentWindow?.postMessage(`theme:${t}`, '*'); }catch{}
+  }
+  updateThemeToggleLabel();
+
+  const openDrawer = () => {
+    if (!drawer || !backdrop) return;
+    drawer.style.transform='translateX(0)';
+    backdrop.style.display='block';
+    document.body.classList.add('drawer-open');
+  };
+  const closeDrawer= () => {
+    if (!drawer || !backdrop) return;
+    drawer.style.transform='translateX(-105%)';
+    backdrop.style.display='none';
+    document.body.classList.remove('drawer-open');
+  };
+
+  if (btn) btn.addEventListener('click', openDrawer);
+  if (btnBottom) btnBottom.addEventListener('click', openDrawer);
+  if (backdrop) backdrop.addEventListener('click', closeDrawer);
+  const drawerClose = document.getElementById('drawerClose');
+  if (drawerClose) drawerClose.addEventListener('click', closeDrawer);
+
+  const themeToggle = document.getElementById('themeToggle');
+  if (themeToggle){
+    themeToggle.addEventListener('click', () => {
+      const curr = document.documentElement.getAttribute('data-theme') || 'light';
+      setTheme(curr === 'dark' ? 'light' : 'dark');
+    });
+  }
+
+  try {
+    const mql = window.matchMedia('(prefers-color-scheme: dark)');
+    mql.addEventListener?.('change', (e) => {
+      const saved = localStorage.getItem('theme');
+      if (!saved) setTheme(e.matches ? 'dark' : 'light');
+    });
+  } catch(e){}
+
+  // Nav in iframe full-screen (stesso pattern di index.html)
+  const pad2 = n => String(n).padStart(2,'0');
+  const d = new Date(document.lastModified);
+  const v = isNaN(d) ? 'dev'
+    : `${d.getFullYear()}.${pad2(d.getMonth()+1)}.${pad2(d.getDate())}-${pad2(d.getHours())}:${pad2(d.getMinutes())}`;
+
+  const urlLista  = `lista.html?v=${encodeURIComponent(v)}`;
+  const urlScheda = `scheda_carburante.html?v=${encodeURIComponent(v)}`;
+  const urlForecast = `forecast_km.html?v=${encodeURIComponent(v)}`;
+  const urlImpianti = `impianti_vicini.html?v=${encodeURIComponent(v)}`;
+  const urlImpiantiPreferiti = `impianti_preferiti.html?v=${encodeURIComponent(v)}`;
+
+  function openFrame(url){
+    closeDrawer();
+    if (!frame) return;
+    frame.src = url;
+    frame.style.display = 'block';
+    document.body.classList.add('frame-open');
+    history.pushState({page:'frame'}, '', '#frame');
+  }
+  function closeFrame(){
+    if (!frame) return;
+    frame.style.display = 'none';
+    frame.src = 'about:blank';
+    document.body.classList.remove('frame-open');
+    if (location.hash === '#frame') history.back();
+  }
+
+  const linkLista  = document.getElementById('goLista');
+  const linkScheda = document.getElementById('goScheda');
+  const linkForecast = document.getElementById('goForecast');
+  const linkImpianti = document.getElementById('goImpianti');
+  const linkImpiantiPreferiti = document.getElementById('goImpiantiPreferiti');
+
+  if (linkLista){ linkLista.href=urlLista; linkLista.addEventListener('click', e=>{ e.preventDefault(); openFrame(urlLista); }); }
+  if (linkScheda){ linkScheda.href=urlScheda; linkScheda.addEventListener('click', e=>{ e.preventDefault(); openFrame(urlScheda); }); }
+  if (linkForecast){ linkForecast.href=urlForecast; linkForecast.addEventListener('click', e=>{ e.preventDefault(); openFrame(urlForecast); }); }
+  if (linkImpianti){ linkImpianti.href=urlImpianti; linkImpianti.addEventListener('click', e=>{ e.preventDefault(); openFrame(urlImpianti); }); }
+  if (linkImpiantiPreferiti){ linkImpiantiPreferiti.href=urlImpiantiPreferiti; linkImpiantiPreferiti.addEventListener('click', e=>{ e.preventDefault(); openFrame(urlImpiantiPreferiti); }); }
+
+  window.addEventListener('popstate', () => {
+    if (frame && frame.style.display === 'block') closeFrame();
+  });
+
+  // Consenti al frame di chiedere la chiusura (stesso messaggio usato già da lista)
+  window.addEventListener('message', (ev) => {
+    if (ev && ev.data === 'close-lista') closeFrame();
+    if (typeof ev.data === 'string' && ev.data.startsWith('theme:')) {
+      const t = ev.data.split(':')[1];
+      if (t === 'light' || t === 'dark') document.documentElement.setAttribute('data-theme', t);
+    }
+  });
+
+  // Sync tema cross-tab
+  window.addEventListener('storage', (e) => {
+    if (e.key === 'theme' && e.newValue) document.documentElement.setAttribute('data-theme', e.newValue);
+  });
+})();
+
 
 /* ====== UTILS ====== */
 const euro = x => Number(x||0).toFixed(2).replace('.', ',');
@@ -596,20 +813,6 @@ document.getElementById('backBtn').addEventListener('click', (e) => {
 document.getElementById('openFilterDrawer').addEventListener('click', openFilterDrawer);
 document.getElementById('closeFilterDrawer').addEventListener('click', closeFilterDrawer);
 
-/* ====== THEME SYNC ====== */
-(function(){
-  function applyTheme(t){ document.documentElement.setAttribute('data-theme', t); }
-  window.addEventListener('storage', (e) => {
-    if (e.key === 'theme' && e.newValue) applyTheme(e.newValue);
-  });
-  window.addEventListener('message', (ev) => {
-    if (typeof ev.data === 'string' && ev.data.startsWith('theme:')) {
-      const t = ev.data.split(':')[1];
-      if (t === 'light' || t === 'dark') applyTheme(t);
-    }
-  });
-})();
-
 /* ====== BOOT ====== */
 document.addEventListener('DOMContentLoaded', () => {
   const qs = new URLSearchParams(location.search);
@@ -628,7 +831,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
 </body>
 </html>
-
 
 
 
