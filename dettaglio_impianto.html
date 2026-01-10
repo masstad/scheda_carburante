@@ -207,6 +207,47 @@
       font-variant-numeric: tabular-nums;
       background: var(--surface);
     }
+
+    /* Accordion header (Informazioni impianto) */
+.acc-head{
+  width:100%;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+
+  padding:0;
+  margin:0 0 8px 0;
+
+  background:transparent;
+  border:none;
+  color:inherit;
+  cursor:pointer;
+  text-align:left;
+  font: inherit;
+}
+
+.acc-head:hover{ opacity: .95; }
+.acc-head:active{ transform: translateY(1px); }
+.acc-head:focus-visible{ outline:2px solid #2684ff; outline-offset:2px; border-radius:10px; }
+
+.chev{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  width:28px;
+  height:28px;
+  border-radius:10px;
+  border:1px solid var(--border);
+  background: var(--surface);
+  font-size:14px;
+  line-height:1;
+  flex:0 0 auto;
+}
+
+.acc-body[hidden]{ display:none !important; }
+
+    
   </style>
 </head>
 
@@ -237,9 +278,16 @@
 
     <!-- 2) Info dettagli impianto -->
     <section class="card" id="infoCard" hidden>
-      <h2 class="section-title">Informazioni impianto</h2>
-      <div id="infoRows"></div>
+      <button class="acc-head" id="infoToggle" type="button" aria-expanded="false" aria-controls="infoBody">
+        <span class="section-title" style="margin:0;">Informazioni impianto</span>
+        <span class="chev" id="infoChev" aria-hidden="true">▼</span>
+      </button>
+    
+      <div id="infoBody" class="acc-body" hidden>
+        <div id="infoRows"></div>
+      </div>
     </section>
+
 
     <!-- 3) Prezzi divisi per Servito / Self service -->
     <section class="card" id="selfCard" hidden>
@@ -565,6 +613,28 @@ function getCachedBrandLogos(){
     }
   }
 
+  function setupInfoAccordion(){
+  const toggle = document.getElementById('infoToggle');
+  const body   = document.getElementById('infoBody');
+  const chev   = document.getElementById('infoChev');
+  if (!toggle || !body || !chev) return;
+
+  function setExpanded(expanded){
+    toggle.setAttribute('aria-expanded', expanded ? 'true' : 'false');
+    body.hidden = !expanded;
+    chev.textContent = expanded ? '▲' : '▼';
+  }
+
+  // chiuso di default
+  setExpanded(false);
+
+  toggle.addEventListener('click', () => {
+    const expanded = toggle.getAttribute('aria-expanded') === 'true';
+    setExpanded(!expanded);
+  });
+}
+
+
   function boot(){
     const status = document.getElementById('status');
     const infoCard = document.getElementById('infoCard');
@@ -587,6 +657,8 @@ function getCachedBrandLogos(){
 
     status.textContent = '';
     infoCard.hidden = false;
+    setupInfoAccordion();
+
 
     // Pulsante "Apri in Google Maps"
     const mapsBtn = document.getElementById('mapsBtn');
@@ -676,6 +748,7 @@ function getCachedBrandLogos(){
 </script>
 </body>
 </html>
+
 
 
 
