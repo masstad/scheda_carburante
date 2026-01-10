@@ -231,15 +231,13 @@
     .drawer-actions{
       margin-top:16px;
     }
-  
-
   </style>
 </head>
 <body>
 
   <!-- HEADER -->
   <header class="topbar container">
-    <!-- <button id="menuBtn" class="menu-btn" aria-label="Apri menu">☰</button> -->
+    <div></div>
     <h1 class="title">⛽️ Lista rifornimenti</h1>
     <button id="openFilterDrawer" class="filter-btn" type="button" aria-label="Apri filtri di ricerca">
       <span aria-hidden="true">🔍</span>
@@ -600,6 +598,20 @@ document.getElementById('backBtn').addEventListener('click', (e) => {
 document.getElementById('openFilterDrawer').addEventListener('click', openFilterDrawer);
 document.getElementById('closeFilterDrawer').addEventListener('click', closeFilterDrawer);
 
+/* ====== THEME SYNC ====== */
+(function(){
+  function applyTheme(t){ document.documentElement.setAttribute('data-theme', t); }
+  window.addEventListener('storage', (e) => {
+    if (e.key === 'theme' && e.newValue) applyTheme(e.newValue);
+  });
+  window.addEventListener('message', (ev) => {
+    if (typeof ev.data === 'string' && ev.data.startsWith('theme:')) {
+      const t = ev.data.split(':')[1];
+      if (t === 'light' || t === 'dark') applyTheme(t);
+    }
+  });
+})();
+
 /* ====== BOOT ====== */
 document.addEventListener('DOMContentLoaded', () => {
   const qs = new URLSearchParams(location.search);
@@ -618,8 +630,3 @@ document.addEventListener('DOMContentLoaded', () => {
 
 </body>
 </html>
-
-
-
-
-
