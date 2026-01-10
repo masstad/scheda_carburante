@@ -1,7 +1,7 @@
-/* menu.auto.js
+/* menu.auto.v2.js
    Auto-injection Drawer + FAB menu (replica di index.html)
    Uso: aggiungi SOLO questa riga in ogni pagina (in <head>):
-     <script src="menu.auto.js" defer></script>
+     <script src="menu.auto.v2.js" defer></script>
 */
 (function(){
   'use strict';
@@ -38,15 +38,24 @@
   const MENU_CSS = `
   /* === Menu injected (da index.html) === */
   .menu-btn{
-    grid-column:1;
-    justify-self:start;
-    background:none;
-    border:none;
-    font-size:22px;
-    line-height:1;
-    padding:8px 12px;
-    cursor:pointer;
+    position: fixed;
+    top: calc(12px + env(safe-area-inset-top));
+    left: 12px;
+    width: 44px;
+    height: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    font-size: 22px;
+    line-height: 1;
+    padding: 0;
+    cursor: pointer;
     color: var(--text);
+    box-shadow: var(--shadow);
+    z-index: 10000;
   }
   #drawer{
     position:fixed; inset:0 35% 0 0; max-width:280px;
@@ -105,20 +114,21 @@
   }
 
   function ensureTopLeftButton(){
-    // Se esiste già, non fare nulla
+    // Se esiste gi\u00e0, non fare nulla
     if (document.getElementById('menuBtn')) return;
 
-    const header = document.querySelector('header.topbar');
-    if (!header) return; // pagina senza topbar: il FAB in basso resta comunque disponibile
-
-    // Inserisci il bottone come primo elemento della topbar (come index.html)
+    // Inietta SEMPRE nel body con position:fixed
+    // (evita che layout centrati/flex dell'header lo spostino al centro)
     const btn = document.createElement('button');
     btn.id = 'menuBtn';
     btn.className = 'menu-btn';
     btn.setAttribute('aria-label', 'Apri menu');
-    btn.textContent = '☰';
+    btn.title = 'Menu';
+    btn.type = 'button';
+    btn.textContent = '\u2630';
 
-    header.insertBefore(btn, header.firstChild);
+    // Inserisci molto in alto nel DOM (prima di tutto)
+    document.body.insertBefore(btn, document.body.firstChild);
   }
 
   function injectMenuMarkupOnce(){
