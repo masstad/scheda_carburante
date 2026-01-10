@@ -26,196 +26,192 @@
   </script>
 
   <style>
-
 html{
-  overflow-y: scroll;          /* forza layout con gutter */
-  scrollbar-gutter: stable;    /* quando supportato, evita shift */
+  overflow-y: scroll;
+  scrollbar-gutter: stable;
 }
 
-    
-    :root{
-      --space:14px;
-      --bg: #ffffff;
-      --text: #111827;
-      --muted: #666666;
-      --surface: #ffffff;
-      --border: #dddddd;
-      --divider: #eeeeee;
-      --btn-hover: #f7f7f7;
-    }
-    html[data-theme="dark"]{
-      --bg: #0f1115;
-      --text: #e5e7eb;
-      --muted: #9aa0a6;
-      --surface: #151922;
-      --border: #2a2f3a;
-      --divider: #222834;
-      --btn-hover: #1b2130;
-    }
-    body{ color-scheme: light dark; }
+:root{
+  --space:14px;
+  --bg: #ffffff;
+  --text: #111827;
+  --muted: #666666;
+  --surface: #ffffff;
+  --border: #dddddd;
+  --divider: #eeeeee;
+  --btn-hover: #f7f7f7;
+}
+html[data-theme="dark"]{
+  --bg: #0f1115;
+  --text: #e5e7eb;
+  --muted: #9aa0a6;
+  --surface: #151922;
+  --border: #2a2f3a;
+  --divider: #222834;
+  --btn-hover: #1b2130;
+}
+body{ color-scheme: light dark; }
 
-    *{ box-sizing:border-box; }
-    html, body{ width:100%; max-width:100%; overflow-x:hidden; margin:0; }
-    body{
-      min-height:100dvh;
-      display:flex;
-      flex-direction:column;
-      padding: var(--space);
-      font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
-      background: var(--bg);
-      color: var(--text);
-    }
+*{ box-sizing:border-box; }
+html, body{ width:100%; max-width:100%; overflow-x:hidden; margin:0; }
+body{
+  min-height:100dvh;
+  display:flex;
+  flex-direction:column;
+  padding: var(--space);
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+}
 
-    .container{ width:100%; max-width:720px; margin:0 auto; }
+.container{ width:100%; max-width:720px; margin:0 auto; }
 
-    /* Topbar */
-    .topbar{
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:10px;
-      margin-bottom:12px;
-    }
-    .topbar-left{
-      display:flex;
-      align-items:center;
-      gap:10px;
-      min-width:0;
-    }
-    .brand-logo{
-      width:44px;
-      height:44px;
-      border-radius:12px;
-      border:1px solid var(--border);
-      background: var(--surface);
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      overflow:hidden;
-      flex:0 0 auto;
-    }
-    .brand-logo img{
-      width:100%;
-      height:100%;
-      object-fit:cover;
-      display:block;
-    }
-    .title-wrap{
-      min-width:0;
-    }
-    .title{
-      margin:0;
-      font-size:18px;
-      font-weight:800;
-      line-height:1.15;
-      white-space:nowrap;
-      overflow:hidden;
-      text-overflow:ellipsis;
-    }
-    .subtitle{
-      margin-top:2px;
-      font-size:12px;
-      color:var(--muted);
-      white-space:nowrap;
-      overflow:hidden;
-      text-overflow:ellipsis;
-    }
+/* Topbar */
+.topbar{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  margin-bottom:12px;
+}
+.topbar-left{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  min-width:0;
+}
+.brand-logo{
+  width:44px;
+  height:44px;
+  border-radius:12px;
+  border:1px solid var(--border);
+  background: var(--surface);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  overflow:hidden;
+  flex:0 0 auto;
+}
+.brand-logo img{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  display:block;
+}
+.title-wrap{ min-width:0; }
+.title{
+  margin:0;
+  font-size:18px;
+  font-weight:800;
+  line-height:1.15;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+.subtitle{
+  margin-top:2px;
+  font-size:12px;
+  color:var(--muted);
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
 
-    .btn{
-      display:inline-flex; align-items:center; gap:6px;
-      padding:10px 14px;
-      border:1px solid var(--border); border-radius:12px; background: var(--surface);
-      text-decoration:none; color:inherit; cursor:pointer;
-      font: inherit; line-height:1;
-      appearance:none; -webkit-appearance:none;
-      flex:0 0 auto;
-    }
-    .btn:hover{ background: var(--btn-hover); }
-    .btn:active{ transform:translateY(1px); }
-    .btn:focus-visible{ outline:2px solid #2684ff; outline-offset:2px; }
+.btn{
+  display:inline-flex; align-items:center; gap:6px;
+  padding:10px 14px;
+  border:1px solid var(--border); border-radius:12px; background: var(--surface);
+  text-decoration:none; color:inherit; cursor:pointer;
+  font: inherit; line-height:1;
+  appearance:none; -webkit-appearance:none;
+  flex:0 0 auto;
+}
+.btn:hover{ background: var(--btn-hover); }
+.btn:active{ transform:translateY(1px); }
+.btn:focus-visible{ outline:2px solid #2684ff; outline-offset:2px; }
 
-    .card{
-      border:1px solid var(--border);
-      border-radius:12px;
-      padding:12px 14px;
-      background: var(--surface);
-      margin-top:10px;
-    }
+.card{
+  border:1px solid var(--border);
+  border-radius:12px;
+  padding:12px 14px;
+  background: var(--surface);
+  margin-top:10px;
+}
 
-    .row{
-      display:flex;
-      justify-content:space-between;
-      gap:10px;
-      padding:8px 0;
-      border-top:1px solid var(--divider);
-    }
-    .row:first-child{ border-top:none; padding-top:0; }
-    .label{
-      color:var(--muted);
-      font-size:12px;
-      min-width:110px;
-    }
-    .value{
-      font-size:13px;
-      text-align:right;
-      font-variant-numeric: tabular-nums;
-      word-break: break-word;
-    }
+.row{
+  display:flex;
+  justify-content:space-between;
+  gap:10px;
+  padding:8px 0;
+  border-top:1px solid var(--divider);
+}
+.row:first-child{ border-top:none; padding-top:0; }
+.label{
+  color:var(--muted);
+  font-size:12px;
+  min-width:110px;
+}
+.value{
+  font-size:13px;
+  text-align:right;
+  font-variant-numeric: tabular-nums;
+  word-break: break-word;
+}
 
-    .section-title{
-      margin:0 0 8px 0;
-      font-size:14px;
-      font-weight:800;
-    }
+.section-title{
+  margin:0 0 8px 0;
+  font-size:14px;
+  font-weight:800;
+}
 
-    .price-row{
-      display:flex;
-      justify-content:space-between;
-      gap:10px;
-      padding:8px 0;
-      border-top:1px solid var(--divider);
-    }
-    .price-left{
-      display:flex;
-      flex-direction:column;
-      gap:2px;
-    }
-    .fuel-name{
-      font-size:13px;
-      font-weight:700;
-    }
-    .fuel-dates{
-      font-size:12px;
-      color:var(--muted);
-    }
-    .fuel-price{
-      font-size:16px;
-      font-weight:900;
-      font-variant-numeric: tabular-nums;
-      white-space:nowrap;
-    }
+.price-row{
+  display:flex;
+  justify-content:space-between;
+  gap:10px;
+  padding:8px 0;
+  border-top:1px solid var(--divider);
+}
+.price-left{
+  display:flex;
+  flex-direction:column;
+  gap:2px;
+}
+.fuel-name{
+  font-size:13px;
+  font-weight:700;
+}
+.fuel-dates{
+  font-size:12px;
+  color:var(--muted);
+}
+.fuel-price{
+  font-size:16px;
+  font-weight:900;
+  font-variant-numeric: tabular-nums;
+  white-space:nowrap;
+}
 
-    .muted{ color:var(--muted); font-size:12px; }
+.muted{ color:var(--muted); font-size:12px; }
 
-    .version-footer{
-      margin-top:auto;
-      text-align:center;
-      padding: 10px 0 calc(10px + env(safe-area-inset-bottom));
-      width:100%;
-      color: var(--muted);
-    }
-    .badge{
-      display:inline-block;
-      font-size:12px;
-      padding:2px 8px;
-      border-radius:999px;
-      border:1px solid var(--border);
-      margin-left:8px;
-      font-variant-numeric: tabular-nums;
-      background: var(--surface);
-    }
+.version-footer{
+  margin-top:auto;
+  text-align:center;
+  padding: 10px 0 calc(10px + env(safe-area-inset-bottom));
+  width:100%;
+  color: var(--muted);
+}
+.badge{
+  display:inline-block;
+  font-size:12px;
+  padding:2px 8px;
+  border-radius:999px;
+  border:1px solid var(--border);
+  margin-left:8px;
+  font-variant-numeric: tabular-nums;
+  background: var(--surface);
+}
 
-    /* Accordion header (Informazioni impianto) */
+/* Accordion header (Informazioni impianto) */
 .acc-head{
   width:100%;
   display:flex;
@@ -233,7 +229,6 @@ html{
   text-align:left;
   font: inherit;
 }
-
 .acc-head:hover{ opacity: .95; }
 .acc-head:focus-visible{ outline:2px solid #2684ff; outline-offset:2px; border-radius:10px; }
 
@@ -250,19 +245,49 @@ html{
   line-height:1;
   flex:0 0 auto;
 }
-
 .acc-body[hidden]{ display:none !important; }
 
-    
+/* ====== TABS (Self/Servito) ====== */
+.tabbar{
+  display:flex;
+  gap:8px;
+  margin: 0 0 10px 0;
+}
+.tabbtn{
+  flex:1 1 0;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+  padding:10px 12px;
+  border:1px solid var(--border);
+  border-radius:12px;
+  background: var(--surface);
+  color:inherit;
+  cursor:pointer;
+  font: inherit;
+  line-height:1;
+  user-select:none;
+}
+.tabbtn:hover{ background: var(--btn-hover); }
+.tabbtn:active{ transform:translateY(1px); }
+.tabbtn:focus-visible{ outline:2px solid #2684ff; outline-offset:2px; }
+
+.tabbtn[aria-selected="true"]{
+  font-weight:900;
+  border-color: var(--text);
+}
+
+.tabpanel[hidden]{ display:none !important; }
   </style>
 </head>
 
 <body>
   <header class="topbar container">
     <div class="topbar-left">
-      <!-- 1) Logo brand (per ora placeholder) -->
       <div class="brand-logo" aria-label="Logo brand">
-        <img id="brandLogo" alt="Logo brand" loading="lazy" decoding="async" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='96' height='96'%3E%3Crect width='96' height='96' rx='18' ry='18' fill='%23e5e7eb'/%3E%3Cpath d='M28 62h40v6H28zm8-34h24c4 0 8 4 8 8v20H28V36c0-4 4-8 8-8zm0 6c-1 0-2 1-2 2v14h28V36c0-1-1-2-2-2H36z' fill='%236b7280'/%3E%3C/svg%3E">
+        <img id="brandLogo" alt="Logo brand" loading="lazy" decoding="async"
+             src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='96' height='96'%3E%3Crect width='96' height='96' rx='18' ry='18' fill='%23e5e7eb'/%3E%3Cpath d='M28 62h40v6H28zm8-34h24c4 0 8 4 8 8v20H28V36c0-4 4-8 8-8zm0 6c-1 0-2 1-2 2v14h28V36c0-1-1-2-2-2H36z' fill='%236b7280'/%3E%3C/svg%3E">
       </div>
 
       <div class="title-wrap">
@@ -272,38 +297,53 @@ html{
     </div>
 
     <div style="display:flex; gap:10px; align-items:center;">
-    <a class="btn" id="mapsBtn" href="#" target="_blank" rel="noopener" aria-label="Apri in Google Maps" style="display:none;">
-      📍 Google Maps
-    </a>
-    <button class="btn" id="backBtn" type="button" aria-label="Torna indietro">← Indietro</button>
-  </div>
+      <a class="btn" id="mapsBtn" href="#" target="_blank" rel="noopener"
+         aria-label="Apri in Google Maps" style="display:none;">
+        📍 Google Maps
+      </a>
+      <button class="btn" id="backBtn" type="button" aria-label="Torna indietro">← Indietro</button>
+    </div>
   </header>
 
   <main class="container" role="main">
     <div id="status" class="muted">Caricamento…</div>
 
-    <!-- 2) Info dettagli impianto -->
+    <!-- Info dettagli impianto -->
     <section class="card" id="infoCard" hidden>
       <button class="acc-head" id="infoToggle" type="button" aria-expanded="false" aria-controls="infoBody">
         <span class="section-title" style="margin:0;">Informazioni impianto</span>
         <span class="chev" id="infoChev" aria-hidden="true">▼</span>
       </button>
-    
+
       <div id="infoBody" class="acc-body" hidden>
         <div id="infoRows"></div>
       </div>
     </section>
 
+    <!-- Prezzi con TAB -->
+    <section class="card" id="pricesCard" hidden>
+      <div class="tabbar" role="tablist" aria-label="Tipologia servizio">
+        <button class="tabbtn" id="tabSelf" role="tab"
+                aria-selected="true" aria-controls="panelSelf" tabindex="0"
+                type="button">
+          Self service
+        </button>
+        <button class="tabbtn" id="tabServ" role="tab"
+                aria-selected="false" aria-controls="panelServ" tabindex="-1"
+                type="button">
+          Servito
+        </button>
+      </div>
 
-    <!-- 3) Prezzi divisi per Servito / Self service -->
-    <section class="card" id="selfCard" hidden>
-      <h2 class="section-title">Self service</h2>
-      <div id="selfRows"></div>
-    </section>
+      <div id="panelSelf" class="tabpanel" role="tabpanel" aria-labelledby="tabSelf">
+        <h2 class="section-title" style="margin:0 0 8px 0;">Self service</h2>
+        <div id="selfRows"></div>
+      </div>
 
-    <section class="card" id="servCard" hidden>
-      <h2 class="section-title">Servito</h2>
-      <div id="servRows"></div>
+      <div id="panelServ" class="tabpanel" role="tabpanel" aria-labelledby="tabServ" hidden>
+        <h2 class="section-title" style="margin:0 0 8px 0;">Servito</h2>
+        <div id="servRows"></div>
+      </div>
     </section>
   </main>
 
@@ -400,213 +440,21 @@ html{
   }
 
   function buildGoogleMapsUrl(imp){
-  // 1) prova con coordinate
-  const lat = imp?.location?.lat;
-  const lng = imp?.location?.lng;
-  if (typeof lat === 'number' && isFinite(lat) && typeof lng === 'number' && isFinite(lng)) {
-    return 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(`${lat},${lng}`);
+    const lat = imp?.location?.lat;
+    const lng = imp?.location?.lng;
+    if (typeof lat === 'number' && isFinite(lat) && typeof lng === 'number' && isFinite(lng)) {
+      return 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(`${lat},${lng}`);
+    }
+    const addr = (imp?.address || '').trim();
+    if (addr) {
+      return 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(addr);
+    }
+    return null;
   }
 
-  // 2) fallback su indirizzo
-  const addr = (imp?.address || '').trim();
-  if (addr) {
-    return 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(addr);
-  }
-
-  return null;
-}
-
-
-  /* ====== CONFIG BACKEND (stesso endpoint di impianti_vicini.html) ====== */
+  /* ====== CONFIG BACKEND ====== */
   const ENDPOINT = 'https://script.google.com/macros/s/AKfycbzbqrHJempNcv0F9yY7FQ9wu5mZWLx1P1oSqvvTa-ztvBF167CGsQLfFokmx-yD4M3O/exec';
   const SECRET   = 'aX4P-92kLq-55T8b-7Hc0Z';
-
-  /* ====== BRAND LOGOS (da localStorage, con fallback backend) ====== */
-  const LS_LOGOS_KEY = 'mise_brand_logos_v1';
-  const LS_LOGOS_EXP = 'mise_brand_logos_v1_exp';
-
-  function brandEquals(a, b){
-    return String(a || '').trim().toUpperCase() === String(b || '').trim().toUpperCase();
-  }
-
-  
-  // ====== BRAND LOGO HELPERS (robusti, tollerano casing/chiavi diverse) ======
-  function mimeFromExt(ext){
-    switch (String(ext || '').trim().toLowerCase()) {
-      case 'svg': return 'image/svg+xml';
-      case 'png': return 'image/png';
-      case 'jpg':
-      case 'jpeg': return 'image/jpeg';
-      case 'webp': return 'image/webp';
-      default: return 'application/octet-stream';
-    }
-  }
-
-  function normBrand(s){
-    return String(s || '').trim().toUpperCase().replace(/\s+/g,' ');
-  }
-
-  function getAny(obj, keys){
-    if (!obj) return undefined;
-    for (const k of keys){
-      if (Object.prototype.hasOwnProperty.call(obj, k)) return obj[k];
-      // prova anche varianti case-insensitive
-      const foundKey = Object.keys(obj).find(x => x.toLowerCase() === String(k).toLowerCase());
-      if (foundKey) return obj[foundKey];
-    }
-    return undefined;
-  }
-
-  function pickBestMarker(list){
-    if (!Array.isArray(list) || !list.length) return null;
-
-    const typeOf = (m) => String(getAny(m, ['tipoFile','tipo File','tipo_file','tipo']) || '').trim().toLowerCase();
-    const order = ['logo','th5','th4','th3','th2','th1'];
-
-    for (const t of order){
-      const found = list.find(m => typeOf(m) === t);
-      if (found) return found;
-    }
-    return list[0];
-  }
-
-  function buildDataUrl(marker){
-    if (!marker) return null;
-
-    const ext = getAny(marker, ['estensione','extension','ext']);
-    const mime = mimeFromExt(ext);
-
-    const raw = getAny(marker, ['content','contenuto','data','base64']);
-    if (!raw) return null;
-
-    const s = String(raw);
-
-    // già una data URL
-    if (s.startsWith('data:image/')) return s;
-
-    // alcuni backend potrebbero restituire SVG "in chiaro" (non base64)
-    if (mime === 'image/svg+xml' && s.trim().startsWith('<svg')) {
-      return 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(s);
-    }
-
-    // default: base64
-    return `data:${mime};base64,${s}`;
-  }
-
-  function findBrandLogoDataUrl(payload, brand){
-    // Supporto formato compatto salvato in localStorage: { __v:1, map:{ BRAND:{ext,mime,content} } }
-    if (payload && payload.map && typeof payload.map === 'object') {
-      const hit = payload.map[normBrand(brand)];
-      if (!hit) return null;
-      const mime = hit.mime || mimeFromExt(hit.ext);
-      const c = String(hit.content || '');
-      if (!c) return null;
-      if (c.startsWith('data:image/')) return c;
-      if (mime === 'image/svg+xml' && c.trim().startsWith('<svg')) {
-        return 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(c);
-      }
-      return `data:${mime};base64,${c}`;
-    }
-
-    if (!payload || !brand) return null;
-
-    // l'API può restituire {loghi:[...]} oppure direttamente [...]
-    const list = Array.isArray(payload) ? payload :
-                 Array.isArray(payload.loghi) ? payload.loghi :
-                 Array.isArray(payload.Loghi) ? payload.Loghi :
-                 Array.isArray(payload.data) ? payload.data : null;
-
-    if (!Array.isArray(list)) return null;
-
-    const b = normBrand(brand);
-
-    const entry = list.find(x => {
-      const flag = getAny(x, ['bandiera','brand','marchio','nomeBrand']);
-      return normBrand(flag) === b;
-    });
-
-    if (!entry) return null;
-
-    const markers = getAny(entry, ['logoMarkerList','logo Marker List','logo_markers','markers','logoMarkers']);
-    const marker = pickBestMarker(markers);
-
-    return buildDataUrl(marker);
-  }
-function getCachedBrandLogos(){
-    try{
-      const exp = Number(localStorage.getItem(LS_LOGOS_EXP) || 0);
-      if (!exp || Date.now() > exp) return null;
-      const raw = localStorage.getItem(LS_LOGOS_KEY);
-      if (!raw) return null;
-      return JSON.parse(raw);
-    }catch(e){
-      return null;
-    }
-  }
-
-  function setCachedBrandLogos(payload, ttlMs){
-    try{
-      localStorage.setItem(LS_LOGOS_KEY, JSON.stringify(payload));
-      localStorage.setItem(LS_LOGOS_EXP, String(Date.now() + (ttlMs || (7*24*60*60*1000))));
-    }catch(e){ console.warn('[Logos] localStorage write failed:', e); }
-  }
-
-  async function fetchBrandLogosFromBackend(){
-    const url = new URL(ENDPOINT);
-    url.searchParams.set('action', 'all_logos');
-    url.searchParams.set('secret', SECRET);
-
-    const res = await fetch(url.toString(), { method:'GET' });
-    const data = await res.json();
-
-    if (data && data.ok === false) {
-      throw new Error(data.error || 'Backend error');
-    }
-    return data;
-  }
-
-  function findBrandLogoDataUrl(payload, brand){
-    if (!payload || !brand) return null;
-
-    // l'API MISE tipicamente: { loghi: [...] }
-    const list = Array.isArray(payload.loghi) ? payload.loghi : (Array.isArray(payload) ? payload : []);
-    const entry = list.find(x => brandEquals(x.bandiera, brand));
-    if (!entry) return null;
-
-    const markers = entry.logoMarkerList || entry['logo Marker List'] || entry.logoMarker || [];
-    const marker = pickBestMarker(markers);
-    if (!marker || !marker.content) return null;
-
-    return `data:${mimeFromExt(marker.estensione)};base64,${marker.content}`;
-  }
-
-  async function loadBrandLogoUrlFromIndex(brand) {
-    const img = document.getElementById('brandLogo');
-    if (!img || !brand) return;
-  
-    try {
-      const url = new URL(ENDPOINT);
-      url.searchParams.set('action', 'brand_logo_url');
-      url.searchParams.set('secret', SECRET);
-      url.searchParams.set('brand', brand);
-  
-      const res = await fetch(url.toString(), { method: 'GET' });
-      const data = await res.json();
-  
-      if (!data.ok || !data.url) {
-        console.warn('[Logo] non trovato per brand:', brand, data);
-        return;
-      }
-  
-      // se l'immagine fallisce (file non pubblico), resta il placeholder
-      img.onerror = () => console.warn('[Logo] errore caricamento immagine da url:', data.url);
-  
-      img.src = data.url;
-    } catch (err) {
-      console.warn('[Logo] errore caricamento logo:', err);
-    }
-  }
-
 
   // ====== DATA LOAD (da sessionStorage) ======
   function loadImpiantoFromSession(){
@@ -620,32 +468,79 @@ function getCachedBrandLogos(){
   }
 
   function setupInfoAccordion(){
-  const toggle = document.getElementById('infoToggle');
-  const body   = document.getElementById('infoBody');
-  const chev   = document.getElementById('infoChev');
-  if (!toggle || !body || !chev) return;
+    const toggle = document.getElementById('infoToggle');
+    const body   = document.getElementById('infoBody');
+    const chev   = document.getElementById('infoChev');
+    if (!toggle || !body || !chev) return;
 
-  function setExpanded(expanded){
-    toggle.setAttribute('aria-expanded', expanded ? 'true' : 'false');
-    body.hidden = !expanded;
-    chev.textContent = expanded ? '▲' : '▼';
+    function setExpanded(expanded){
+      toggle.setAttribute('aria-expanded', expanded ? 'true' : 'false');
+      body.hidden = !expanded;
+      chev.textContent = expanded ? '▲' : '▼';
+    }
+
+    setExpanded(false);
+    toggle.addEventListener('click', () => {
+      const expanded = toggle.getAttribute('aria-expanded') === 'true';
+      setExpanded(!expanded);
+    });
   }
 
-  // chiuso di default
-  setExpanded(false);
+  // ====== TABS LOGIC ======
+  const TAB_STORE_KEY = 'dettaglio_impianto_prices_tab'; // opzionale
 
-  toggle.addEventListener('click', () => {
-    const expanded = toggle.getAttribute('aria-expanded') === 'true';
-    setExpanded(!expanded);
-  });
-}
+  function setupPriceTabs(){
+    const tabSelf = document.getElementById('tabSelf');
+    const tabServ = document.getElementById('tabServ');
+    const panelSelf = document.getElementById('panelSelf');
+    const panelServ = document.getElementById('panelServ');
 
+    if (!tabSelf || !tabServ || !panelSelf || !panelServ) return;
+
+    function activate(which){
+      const isSelf = which === 'self';
+
+      tabSelf.setAttribute('aria-selected', isSelf ? 'true' : 'false');
+      tabServ.setAttribute('aria-selected', isSelf ? 'false' : 'true');
+
+      tabSelf.tabIndex = isSelf ? 0 : -1;
+      tabServ.tabIndex = isSelf ? -1 : 0;
+
+      panelSelf.hidden = !isSelf;
+      panelServ.hidden = isSelf;
+
+      // opzionale: ricorda l’ultimo tab selezionato
+      try { sessionStorage.setItem(TAB_STORE_KEY, which); } catch(e) {}
+    }
+
+    tabSelf.addEventListener('click', () => activate('self'));
+    tabServ.addEventListener('click', () => activate('serv'));
+
+    // keyboard: frecce sx/dx
+    function onKeyDown(ev){
+      if (ev.key === 'ArrowLeft' || ev.key === 'ArrowRight') {
+        ev.preventDefault();
+        const current = tabSelf.getAttribute('aria-selected') === 'true' ? 'self' : 'serv';
+        activate(current === 'self' ? 'serv' : 'self');
+        (current === 'self' ? tabServ : tabSelf).focus();
+      }
+    }
+    tabSelf.addEventListener('keydown', onKeyDown);
+    tabServ.addEventListener('keydown', onKeyDown);
+
+    // default: Self (oppure ripristina l’ultimo)
+    let initial = 'self';
+    try{
+      const saved = sessionStorage.getItem(TAB_STORE_KEY);
+      if (saved === 'self' || saved === 'serv') initial = saved;
+    }catch(e){}
+    activate(initial);
+  }
 
   function boot(){
     const status = document.getElementById('status');
     const infoCard = document.getElementById('infoCard');
-    const selfCard = document.getElementById('selfCard');
-    const servCard = document.getElementById('servCard');
+    const pricesCard = document.getElementById('pricesCard');
 
     const infoRows = document.getElementById('infoRows');
     const selfRows = document.getElementById('selfRows');
@@ -656,8 +551,7 @@ function getCachedBrandLogos(){
     if (!imp){
       status.textContent = 'Nessun impianto selezionato. Torna alla lista e apri il dettaglio da lì.';
       infoCard.hidden = true;
-      selfCard.hidden = true;
-      servCard.hidden = true;
+      pricesCard.hidden = true;
       return;
     }
 
@@ -665,11 +559,9 @@ function getCachedBrandLogos(){
     infoCard.hidden = false;
     setupInfoAccordion();
 
-
     // Pulsante "Apri in Google Maps"
     const mapsBtn = document.getElementById('mapsBtn');
     const mapsUrl = buildGoogleMapsUrl(imp);
-    
     if (mapsUrl) {
       mapsBtn.href = mapsUrl;
       mapsBtn.style.display = 'inline-flex';
@@ -683,24 +575,19 @@ function getCachedBrandLogos(){
     document.getElementById('title').textContent = brand ? `${name} · ${brand}` : name;
     document.getElementById('subtitle').textContent = imp.address || '';
 
-    // (1) Logo brand: da cache localStorage (warmata in impianti_vicini.html) con fallback backend
-    //loadBrandLogoFromIndex(brand);
-    //loadBrandLogoUrlFromIndex(brand);
-    // (1) Logo brand: usa URL già presente nell'oggetto impianto (niente fetch -> niente CORS)
+    // Logo brand: usa URL già presente nell'oggetto impianto
     const img = document.getElementById('brandLogo');
     img.loading = 'lazy';
     img.decoding = 'async';
-    
     if (imp && imp.logoUrl) {
       img.src = imp.logoUrl;
     } else {
-      // fallback: nascondi immagine se non c’è logo
       img.removeAttribute('src');
       img.style.display = 'none';
     }
 
-
-    // (2) Tutte le info dettaglio impianto (qui le mostro tutte, senza inventare campi)
+    // Info impianto
+    infoRows.innerHTML = '';
     addInfoRow(infoRows, 'ID', imp.id);
     addInfoRow(infoRows, 'Brand', imp.brand);
     addInfoRow(infoRows, 'Nome', imp.nomeImpianto || imp.name);
@@ -713,23 +600,22 @@ function getCachedBrandLogos(){
     if (imp.location && imp.location.lat && imp.location.lng){
       addInfoRow(infoRows, 'Coordinate', `${Number(imp.location.lat).toFixed(6)}, ${Number(imp.location.lng).toFixed(6)}`);
     }
-
-    // Servizi (se ci sono)
     const services = Array.isArray(imp.services) ? imp.services : [];
     if (services.length){
       addInfoRow(infoRows, 'Servizi', services.map(s => s.description || s.id).filter(Boolean).join(', '));
     }
 
-    // (3) Prezzi: divisi per Self / Servito
+    // Prezzi: divisi per Self / Servito
     const fuels = Array.isArray(imp.fuels) ? imp.fuels : [];
     const self = fuels.filter(f => f && f.isSelf === true);
     const serv = fuels.filter(f => f && f.isSelf === false);
 
-    selfCard.hidden = false;
-    servCard.hidden = false;
-
+    pricesCard.hidden = false;
     renderFuelRows(selfRows, self);
     renderFuelRows(servRows, serv);
+
+    // Tabs: default Self
+    setupPriceTabs();
   }
 
   // Back
@@ -737,7 +623,7 @@ function getCachedBrandLogos(){
     history.back();
   });
 
-  // Theme sync (come le altre pagine)
+  // Theme sync
   (function(){
     function applyTheme(t){
       document.documentElement.setAttribute('data-theme', t);
@@ -754,11 +640,3 @@ function getCachedBrandLogos(){
 </script>
 </body>
 </html>
-
-
-
-
-
-
-
-
