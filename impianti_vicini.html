@@ -253,8 +253,11 @@
 .map-icon-btn:active{ transform:translateY(1px); }
 .map-icon-btn:focus-visible{ outline:2px solid #2684ff; outline-offset:2px; }
 
-.map-icon{ font-size:18px; }
-
+.map-icon-btn img{
+  width:24px;
+  height:24px;
+  display:block;
+}
     
   </style>
 </head>
@@ -608,10 +611,11 @@ function renderImpianti(list){
       mapsBtn.setAttribute('aria-label', 'Apri in Google Maps');
       mapsBtn.title = 'Apri in Google Maps';
 
-      const icon = document.createElement('span');
-      icon.className = 'map-icon';
-      icon.textContent = '🗺️';
-      mapsBtn.appendChild(icon);
+      const iconImg = document.createElement('img');
+      iconImg.src = 'img/navigation.svg';   // path relativo alla pagina impianti_vicini.html
+      iconImg.alt = '';                     // decorativa (l'aria-label è sul bottone)
+      iconImg.loading = 'lazy';
+      mapsBtn.appendChild(iconImg);
 
       mapsBtn.addEventListener('click', (e) => {
         e.stopPropagation(); // NON aprire dettaglio
@@ -884,6 +888,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 </body>
 </html>
+
 
 
 
