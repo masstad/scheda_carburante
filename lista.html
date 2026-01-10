@@ -68,7 +68,7 @@
     /* Topbar con titolo centrato su griglia 3 colonne */
     .topbar{
       display:grid;
-      grid-template-columns:48px 1fr 48px;
+      grid-template-columns:48px 1fr auto;
       align-items:center;
       height:48px;
       margin-bottom:10px;
@@ -237,7 +237,6 @@
 
   <!-- HEADER -->
   <header class="topbar container">
-    <div></div>
     <h1 class="title">⛽️ Lista rifornimenti</h1>
     <button id="openFilterDrawer" class="filter-btn" type="button" aria-label="Apri filtri di ricerca">
       <span aria-hidden="true">🔍</span>
@@ -630,3 +629,4 @@ document.addEventListener('DOMContentLoaded', () => {
 
 </body>
 </html>
+
