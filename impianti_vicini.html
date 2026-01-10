@@ -54,6 +54,14 @@
     }
     body{ color-scheme: light dark; }
 
+    /* Forza il menu (iniettato da menu.js) ad essere fixed top-left */
+#menuBtn.menu-btn{
+  position: fixed !important;
+  left: calc(var(--space) + env(safe-area-inset-left)) !important;
+  top:  calc(var(--space) + env(safe-area-inset-top)) !important;
+  z-index: 60 !important;
+}
+
     * { box-sizing: border-box; }
     html, body { width:100%; max-width:100%; overflow-x:hidden; margin:0; }
     body{
@@ -890,6 +898,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 </body>
 </html>
+
 
 
 
