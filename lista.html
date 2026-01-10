@@ -66,20 +66,14 @@
     .container { width:100%; max-width:640px; margin:0 auto; }
 
     /* Topbar con titolo centrato su griglia 3 colonne */
-    .topbar{
-      display:grid;
-      grid-template-columns:48px 1fr auto;
-      align-items:center;
-      height:48px;
-      margin-bottom:10px;
-    }
-    .title{
-      grid-column:2;
-      margin:0;
-      text-align:center;
-      font-size:22px;
-      font-weight:700;
-    }
+    .topbar{ margin-bottom:10px; }
+.topbar-inner{
+  display:grid;
+  grid-template-columns:48px 1fr auto;
+  align-items:center;
+  height:48px;
+}
+.title{ grid-column:2; text-align:center; margin:0; font-size:22px; font-weight:700; }
 
     /* Bottone filtri nell'header */
     .filter-btn{
@@ -236,12 +230,13 @@
 <body>
 
   <!-- HEADER -->
-  <header class="topbar container">
-    <h1 class="title">⛽️ Lista rifornimenti</h1>
-    <button id="openFilterDrawer" class="filter-btn" type="button" aria-label="Apri filtri di ricerca">
-      <span aria-hidden="true">🔍</span>
-      <span>Filtri</span>
-    </button>
+  <header class="topbar">
+    <div class="topbar-inner container">
+      <h1 class="title">⛽️ Lista rifornimenti</h1>
+      <button id="openFilterDrawer" class="filter-btn" type="button">
+        <span aria-hidden="true">🔍</span><span>Filtri</span>
+      </button>
+    </div>
   </header>
 
   <main class="container" role="main">
@@ -629,4 +624,5 @@ document.addEventListener('DOMContentLoaded', () => {
 
 </body>
 </html>
+
 
