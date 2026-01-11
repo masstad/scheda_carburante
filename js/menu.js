@@ -115,6 +115,10 @@
     <nav id="drawer">
       <h3 style="margin-top:0;">Menu</h3>
       <ul style="list-style:none;padding:0;margin:0;">
+         <li><a id="goHome" href="#">Home</a></li>
+         <hr>
+         <li><a id="goRifornimento" href="#">Rifornimento</a></li>
+         <hr>
         <li><a id="goLista" href="#">Lista movimenti</a></li>
         <hr>
         <li><a id="goScheda" href="#">Scheda carburante</a></li>
@@ -249,6 +253,8 @@
       ? "dev"
       : `${d.getFullYear()}.${pad2(d.getMonth() + 1)}.${pad2(d.getDate())}-${pad2(d.getHours())}:${pad2(d.getMinutes())}`;
 
+    const urlHome = `index.html?v=${encodeURIComponent(vIndex)}`; 
+    const urlRifornimento = `add_rifornimento.html?v=${encodeURIComponent(vIndex)}`;
     const urlLista = `lista.html?v=${encodeURIComponent(vIndex)}`;
     const urlScheda = `scheda_carburante.html?v=${encodeURIComponent(vIndex)}`;
     const urlForecast = `forecast_km.html?v=${encodeURIComponent(vIndex)}`;
@@ -273,12 +279,22 @@
       }
     }
 
+    const linkHome = document.getElementById("goHome");
+    const linkRifornimento = document.getElementById("goRifornimento");
     const linkLista = document.getElementById("goLista");
     const linkScheda = document.getElementById("goScheda");
     const linkForecast = document.getElementById("goForecast");
     const linkImpianti = document.getElementById("goImpianti");
     const linkImpiantiPreferiti = document.getElementById("goImpiantiPreferiti");
 
+    if (linkHome) {
+      linkHome.href = urlHome;
+      linkHome.addEventListener("click", (e) => { e.preventDefault(); openFrame(urlHome); });
+    }
+    if (linkRifornimento) {
+      linkRifornimento.href = urlRifornimento;
+      linkRifornimento.addEventListener("click", (e) => { e.preventDefault(); openFrame(urlRifornimento); });
+    }
     if (linkLista) {
       linkLista.href = urlLista;
       linkLista.addEventListener("click", (e) => { e.preventDefault(); openFrame(urlLista); });
