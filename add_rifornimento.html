@@ -326,6 +326,27 @@
     <span class="right-slot" aria-hidden="true"></span>
   </header>
 
+  <!-- Drawer identico a Pellet -->
+  <nav id="drawer">
+    <h3 style="margin-top:0;">Menu</h3>
+    <ul style="list-style:none;padding:0;margin:0;">
+      <li><a id="goLista" href="#">Lista movimenti</a></li>
+      <hr>
+      <li><a id="goScheda" href="#">Scheda carburante</a></li>
+      <hr>
+      <li><a id="goForecast" href="#">Forecast Km</a></li>
+      <hr>
+	  <li><a id="goImpianti" href="#">Impianti vicini</a></li>
+      <hr>
+		<li><a id="goImpiantiPreferiti" href="#">Impianti preferiti</a></li>
+      <hr>
+      <li><button id="themeToggle" class="linklike" type="button">🌙 Tema scuro</button></li>
+    </ul>
+    <button id="drawerClose" aria-label="Chiudi menu" title="Chiudi">←</button>
+  </nav>
+  <div id="backdrop"></div>
+  <button id="menuBtnBottom" class="fab-menu" aria-label="Apri menu" title="Menu">☰</button>
+
   <!-- Form (campi a tutta larghezza come Pellet) -->
   <label>Data</label>
   <input id="data" type="date" required>
