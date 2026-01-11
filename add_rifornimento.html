@@ -11,6 +11,8 @@
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
 
+  <script src="js/menu.js" defer></script>
+
   <!-- Imposta il tema prima del paint (identico a Pellet) -->
   <script>
     (function(){   
@@ -184,38 +186,6 @@
   }
   .right-slot{ grid-column:3; }
 
-  /* Drawer look&feel (come Pellet) */
-  #drawer{
-    position:fixed; inset:0 35% 0 0; max-width:280px;
-    transform:translateX(-105%); transition:transform .2s ease; z-index:9998; padding:16px;
-    background: var(--surface);
-    border-right: 1px solid var(--border);
-  }
-  #drawer a, #drawer button.linklike{
-    text-decoration: none;
-    color: inherit;
-    display: inline-block;
-    padding: 8px 0;
-    background: none;
-    border: none;
-    font: inherit;
-    cursor: pointer;
-    text-align: left;
-    width: 100%;
-  }
-  #drawer hr{ border:0; border-top:1px solid var(--divider); margin:10px 0; }
-  #drawerClose{
-    position: absolute;
-    left: 12px; bottom: 12px;
-    width: 44px; height: 44px;
-    display: inline-flex; align-items: center; justify-content: center;
-    border: 1px solid var(--border); border-radius: 999px;
-    background: var(--surface); color: var(--text); font-size: 18px;
-    cursor: pointer; box-shadow: var(--shadow);
-  }
-  #drawerClose:active{ transform: translateY(1px); }
-  #drawerClose:focus-visible{ outline: 2px solid #2684ff; outline-offset: 2px; }
-
   /* Backdrop */
   #backdrop{ position:fixed; inset:0; background:rgba(0,0,0,.15); display:none; z-index:9997; }
 
@@ -323,27 +293,6 @@
     <h2 class="title">⛽️ Carburante</h2>
     <span class="right-slot" aria-hidden="true"></span>
   </header>
-
-  <!-- Drawer identico a Pellet -->
-  <nav id="drawer">
-    <h3 style="margin-top:0;">Menu</h3>
-    <ul style="list-style:none;padding:0;margin:0;">
-      <li><a id="goLista" href="#">Lista movimenti</a></li>
-      <hr>
-      <li><a id="goScheda" href="#">Scheda carburante</a></li>
-      <hr>
-      <li><a id="goForecast" href="#">Forecast Km</a></li>
-      <hr>
-	  <li><a id="goImpianti" href="#">Impianti vicini</a></li>
-      <hr>
-		<li><a id="goImpiantiPreferiti" href="#">Impianti preferiti</a></li>
-      <hr>
-      <li><button id="themeToggle" class="linklike" type="button">🌙 Tema scuro</button></li>
-    </ul>
-    <button id="drawerClose" aria-label="Chiudi menu" title="Chiudi">←</button>
-  </nav>
-  <div id="backdrop"></div>
-  <button id="menuBtnBottom" class="fab-menu" aria-label="Apri menu" title="Menu">☰</button>
 
   <!-- Form (campi a tutta larghezza come Pellet) -->
   <label>Data</label>
