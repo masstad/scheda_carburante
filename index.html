@@ -280,6 +280,141 @@
 .switch input:disabled + .track .thumb{
   background: var(--muted);
 }
+
+
+
+header{
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 8px 2px 14px;
+      position: sticky;
+      top: 0;
+      background: linear-gradient(to bottom, rgba(0,0,0,0.0), rgba(0,0,0,0.0));
+      backdrop-filter: blur(0px);
+      z-index: 10;
+    }
+
+    .title{
+      display:flex;
+      flex-direction: column;
+      line-height: 1.1;
+    }
+    .title h1{
+      font-size: 18px;
+      margin: 0;
+      letter-spacing: 0.2px;
+    }
+    .title span{
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 3px;
+    }
+
+    .iconbtn{
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: var(--card);
+      box-shadow: var(--shadow);
+      display: grid;
+      place-items: center;
+      cursor: pointer;
+      user-select: none;
+    }
+    .iconbtn:active{ transform: scale(0.98); }
+
+    .stack{
+      display: flex;
+      flex-direction: column;
+      gap: var(--gap);
+    }
+
+    .card{
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 14px;
+    }
+
+    .card h2{
+      font-size: 14px;
+      margin: 0 0 10px;
+      color: var(--muted);
+      font-weight: 650;
+      letter-spacing: 0.2px;
+    }
+
+    /* 1) CTA Inserisci rifornimento */
+    .cta-card{
+      display: grid;
+      place-items: center;
+      padding: 18px 14px;
+      text-align: center;
+    }
+
+    .plus{
+      width: 64px;
+      height: 64px;
+      border-radius: 18px;
+      border: 1px solid var(--border);
+      background: linear-gradient(180deg, rgba(37,99,235,0.14), rgba(37,99,235,0.04));
+      display: grid;
+      place-items: center;
+      cursor: pointer;
+      user-select: none;
+      transition: transform .06s ease;
+    }
+    .plus:active{ transform: scale(0.98); }
+
+    .plus svg{
+      width: 28px;
+      height: 28px;
+      fill: none;
+      stroke: var(--accent);
+      stroke-width: 2.6;
+      stroke-linecap: round;
+    }
+
+    .cta-label{
+      margin-top: 10px;
+      font-weight: 750;
+      letter-spacing: 0.2px;
+    }
+    .cta-sub{
+      margin-top: 6px;
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    /* righe key/value */
+    .kv{
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 10px;
+      align-items: baseline;
+      padding: 9px 0;
+      border-top: 1px solid var(--border);
+    }
+    .kv:first-of-type{ border-top: none; padding-top: 0; }
+    .k{ color: var(--muted); font-size: 12px; }
+    .v{ font-weight: 700; }
+
+    .pill{
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      font-size: 12px;
+      background: rgba(0,0,0,0.02);
+    } 
+
     
 </style>
 
@@ -918,4 +1053,5 @@ addEventListener('pageshow', e => e.persisted && location.reload());
 </script>
 </body>
 </html>
+
 
