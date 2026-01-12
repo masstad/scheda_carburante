@@ -666,7 +666,7 @@ header{
     </main>
   </div>
 
-  <!-- Versione centrata in fondo (identico a Pellet) -->
+  <!-- Versione centrata in fondo -->
   <div class="muted">Versione: <span id="appVersion" class="badge"></span></div>
 
   <!-- Overlay globale -->
@@ -688,6 +688,7 @@ const SECRET   = 'aX4P-92kLq-55T8b-7Hc0Z';
 /* ===== Versione (identico a Pellet) ===== */
 function pad(n){ return String(n).padStart(2,'0'); }
 function formatVersionFromDate(d){ return `${d.getFullYear()}.${pad(d.getMonth()+1)}.${pad(d.getDate())}-${pad(d.getHours())}:${pad(d.getMinutes())}`; }
+
 function computeAppVersion(){
   const qs = new URLSearchParams(location.search);
   const v = qs.get('v');
@@ -695,6 +696,7 @@ function computeAppVersion(){
   const d = new Date(document.lastModified);
   return isNaN(d)?'dev':formatVersionFromDate(d);
 }
+  
 function showAppVersion(){
   const el = document.getElementById('appVersion');
   if (el) el.textContent = computeAppVersion();
@@ -947,33 +949,6 @@ function addFallbackStations(sel){
   });
 }
 
-/* ===== Loader ===== */
-const saveBtn = document.getElementById('saveBtn');
-const btnText = saveBtn.querySelector('.btn-text');
-const loaderOverlay = document.getElementById('loaderOverlay');
-function setLoading(isLoading){
-  loaderOverlay.setAttribute('aria-hidden', String(!isLoading));
-  loaderOverlay.setAttribute('aria-busy', String(isLoading));
-  saveBtn.disabled = isLoading;
-  saveBtn.setAttribute('aria-busy', String(isLoading));
-  if (isLoading){
-    if (!saveBtn.querySelector('.btn-spinner')){
-      const s = document.createElement('span');
-      s.className = 'btn-spinner';
-      s.setAttribute('aria-hidden', 'true');
-      saveBtn.prepend(s);
-    }
-    btnText.textContent = 'Salvo…';
-  }else{
-    const s = saveBtn.querySelector('.btn-spinner');
-    if (s) s.remove();
-    btnText.textContent = 'Salva';
-  }
-  document.querySelectorAll('input, select, button').forEach(el => {
-    if (el !== saveBtn) el.disabled = isLoading;
-  });
-}
-
 /* ===== Invio form ===== */
 async function sendForm(data){
   const params = new URLSearchParams(data);
@@ -1080,6 +1055,7 @@ addEventListener('pageshow', e => e.persisted && location.reload());
 </script>
 </body>
 </html>
+
 
 
 
