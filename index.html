@@ -311,22 +311,26 @@
           <h2 style="margin:0">Ultimo rifornimento</h2>
           <span class="pill" id="lastDatePill">—</span>
         </div>
-
+      
         <div class="kv">
           <div class="k">Importo</div>
           <div class="v" id="lastAmount">—</div>
+        </div>
+        <div class="kv">
+          <div class="k">Prezzo</div>
+          <div class="v" id="lastPrice">—</div>
         </div>
         <div class="kv">
           <div class="k">Litri</div>
           <div class="v" id="lastLiters">—</div>
         </div>
         <div class="kv">
-          <div class="k">Prezzo / L</div>
-          <div class="v" id="lastPriceL">—</div>
+          <div class="k">Km</div>
+          <div class="v" id="lastKm">—</div>
         </div>
         <div class="kv">
-          <div class="k">Km / L</div>
-          <div class="v" id="lastKml">—</div>
+          <div class="k">Stazione</div>
+          <div class="v" id="lastStation">—</div>
         </div>
       </section>
 
@@ -428,6 +432,60 @@
   </div>
 
   <script>
+
+    /* ====== CONFIG BACKEND (STESSO DI impianti_vicini.html) ====== */
+    const ENDPOINT = 'https://script.google.com/macros/s/AKfycbzbqrHJempNcv0F9yY7FQ9wu5mZWLx1P1oSqvvTa-ztvBF167CGsQLfFokmx-yD4M3O/exec';
+    const SECRET   = 'aX4P-92kLq-55T8b-7Hc0Z';
+
+    /***********************
+ * FORMATTERS
+ ***********************/
+function fmtEUR(n){
+  if(n === null || n === undefined || Number.isNaN(Number(n))) return '—';
+  return new Intl.NumberFormat('it-IT', { style:'currency', currency:'EUR' }).format(Number(n));
+}
+function fmtNum(n, digits=2){
+  if(n === null || n === undefined || Number.isNaN(Number(n))) return '—';
+  return new Intl.NumberFormat('it-IT', { minimumFractionDigits: digits, maximumFractionDigits: digits }).format(Number(n));
+}
+
+/***********************
+ * LOAD + RENDER LAST REFUEL
+ ***********************/
+async function loadLastRefuel(){
+  try{
+    const url = ENDPOINT
+      + '?action=last_refuel'
+      + '&secret=' + encodeURIComponent(SECRET);
+
+    const resp = await fetch(url, { method:'GET', cache:'no-store' });
+    const json = await resp.json();
+
+    if(!json || !json.ok) throw new Error((json && json.error) ? json.error : 'Errore API');
+    if(!json.found || !json.last) {
+      renderLastRefuel(null);
+      return;
+    }
+    renderLastRefuel(json.last);
+
+  }catch(err){
+    console.warn('[Home] loadLastRefuel failed:', err);
+    renderLastRefuel(null);
+  }
+}
+
+function renderLastRefuel(last){
+  document.getElementById('lastDatePill').textContent = last?.data ?? '—';
+  document.getElementById('lastAmount').textContent   = (last?.importo != null) ? fmtEUR(last.importo) : '—';
+  document.getElementById('lastPrice').textContent    = (last?.prezzo != null)  ? (fmtNum(last.prezzo,3) + ' €/L') : '—';
+  document.getElementById('lastLiters').textContent   = (last?.litri != null)   ? (fmtNum(last.litri,2) + ' L') : '—';
+  document.getElementById('lastKm').textContent       = last?.km ?? '—';
+  document.getElementById('lastStation').textContent  = last?.stazione ?? '—';
+}
+
+// chiama al load
+loadLastRefuel();
+    
     /***********************
      * CONFIG: cambia qui i file se i tuoi nomi sono diversi
      ***********************/
@@ -534,4 +592,5 @@
   </script>
 </body>
 </html>
+
 
