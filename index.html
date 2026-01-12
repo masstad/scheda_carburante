@@ -432,165 +432,103 @@
   </div>
 
   <script>
+  /* ====== CONFIG BACKEND (STESSO DI impianti_vicini.html) ====== */
+  var ENDPOINT = 'https://script.google.com/macros/s/AKfycbzbqrHJempNcv0F9yY7FQ9wu5mZWLx1P1oSqvvTa-ztvBF167CGsQLfFokmx-yD4M3O/exec';
+  var SECRET   = 'aX4P-92kLq-55T8b-7Hc0Z';
 
-    /* ====== CONFIG BACKEND (STESSO DI impianti_vicini.html) ====== */
-    const ENDPOINT = 'https://script.google.com/macros/s/AKfycbzbqrHJempNcv0F9yY7FQ9wu5mZWLx1P1oSqvvTa-ztvBF167CGsQLfFokmx-yD4M3O/exec';
-    const SECRET   = 'aX4P-92kLq-55T8b-7Hc0Z';
+  /* ====== CONFIG PAGINE ====== */
+  var PAGES = {
+    newRefuel: 'scheda_carburante.html',
+    listRefuel: 'lista_rifornimenti.html',
+    impiantiVicini: 'impianti_vicini.html',
+    impiantiPreferiti: 'impianti_preferiti.html',
+    stats: 'statistiche.html',
+    settings: 'settings.html'
+  };
+  var IMPIANTI_DEFAULT = PAGES.impiantiVicini;
 
-    /***********************
- * FORMATTERS
- ***********************/
-function fmtEUR(n){
-  if(n === null || n === undefined || Number.isNaN(Number(n))) return '—';
-  return new Intl.NumberFormat('it-IT', { style:'currency', currency:'EUR' }).format(Number(n));
-}
-function fmtNum(n, digits=2){
-  if(n === null || n === undefined || Number.isNaN(Number(n))) return '—';
-  return new Intl.NumberFormat('it-IT', { minimumFractionDigits: digits, maximumFractionDigits: digits }).format(Number(n));
-}
+  /* ====== FORMAT ====== */
+  function fmtEUR(n){
+    if (n === null || n === undefined || isNaN(Number(n))) return '—';
+    return new Intl.NumberFormat('it-IT', { style:'currency', currency:'EUR' }).format(Number(n));
+  }
+  function fmtNum(n, digits){
+    if (digits === undefined) digits = 2;
+    if (n === null || n === undefined || isNaN(Number(n))) return '—';
+    return new Intl.NumberFormat('it-IT', { minimumFractionDigits: digits, maximumFractionDigits: digits }).format(Number(n));
+  }
 
-/***********************
- * LOAD + RENDER LAST REFUEL
- ***********************/
-async function loadLastRefuel(){
-  try{
-    const url = ENDPOINT
-      + '?action=last_refuel'
-      + '&secret=' + encodeURIComponent(SECRET);
+  /* ====== RENDER LAST REFUEL (NO ?. / ??) ====== */
+  function renderLastRefuel(last){
+    var dateEl = document.getElementById('lastDatePill');
+    var aEl = document.getElementById('lastAmount');
+    var pEl = document.getElementById('lastPrice');
+    var lEl = document.getElementById('lastLiters');
+    var kEl = document.getElementById('lastKm');
+    var sEl = document.getElementById('lastStation');
 
-    const resp = await fetch(url, { method:'GET', cache:'no-store' });
-    const json = await resp.json();
-
-    if(!json || !json.ok) throw new Error((json && json.error) ? json.error : 'Errore API');
-    if(!json.found || !json.last) {
-      renderLastRefuel(null);
+    if (!last){
+      if (dateEl) dateEl.textContent = '—';
+      if (aEl) aEl.textContent = '—';
+      if (pEl) pEl.textContent = '—';
+      if (lEl) lEl.textContent = '—';
+      if (kEl) kEl.textContent = '—';
+      if (sEl) sEl.textContent = '—';
       return;
     }
-    renderLastRefuel(json.last);
 
-  }catch(err){
-    console.warn('[Home] loadLastRefuel failed:', err);
-    renderLastRefuel(null);
+    if (dateEl) dateEl.textContent = last.data ? last.data : '—';
+    if (aEl) aEl.textContent = (last.importo !== null && last.importo !== undefined) ? fmtEUR(last.importo) : '—';
+    if (pEl) pEl.textContent = (last.prezzo !== null && last.prezzo !== undefined) ? (fmtNum(last.prezzo, 3) + ' €/L') : '—';
+    if (lEl) lEl.textContent = (last.litri !== null && last.litri !== undefined) ? (fmtNum(last.litri, 2) + ' L') : '—';
+    if (kEl) kEl.textContent = last.km ? last.km : '—';
+    if (sEl) sEl.textContent = last.stazione ? last.stazione : '—';
   }
-}
 
-function renderLastRefuel(last){
-  document.getElementById('lastDatePill').textContent = last?.data ?? '—';
-  document.getElementById('lastAmount').textContent   = (last?.importo != null) ? fmtEUR(last.importo) : '—';
-  document.getElementById('lastPrice').textContent    = (last?.prezzo != null)  ? (fmtNum(last.prezzo,3) + ' €/L') : '—';
-  document.getElementById('lastLiters').textContent   = (last?.litri != null)   ? (fmtNum(last.litri,2) + ' L') : '—';
-  document.getElementById('lastKm').textContent       = last?.km ?? '—';
-  document.getElementById('lastStation').textContent  = last?.stazione ?? '—';
-}
+  async function loadLastRefuel(){
+    try{
+      var url = ENDPOINT + '?action=last_refuel&secret=' + encodeURIComponent(SECRET);
+      var resp = await fetch(url, { method:'GET', cache:'no-store' });
+      var json = await resp.json();
 
-// chiama al load
-loadLastRefuel();
-    
-    /***********************
-     * CONFIG: cambia qui i file se i tuoi nomi sono diversi
-     ***********************/
-    const PAGES = {
-      newRefuel:   'scheda_carburante.html',     // pagina inserimento rifornimento (la tua "index" attuale)
-      listRefuel:  'lista_rifornimenti.html',
-      impiantiVicini: 'impianti_vicini.html',
-      impiantiPreferiti: 'impianti_preferiti.html',
-      stats:       'statistiche.html',
-      settings:    'settings.html'
-    };
+      if (!json || !json.ok) throw new Error(json && json.error ? json.error : 'Errore API');
+      if (!json.found || !json.last) return renderLastRefuel(null);
 
-    // Se vuoi che "Impianti" apra una pagina hub o un default:
-    const IMPIANTI_DEFAULT = PAGES.impiantiVicini; // oppure impianti_preferiti.html
-
-    /***********************
-     * NAV: click handlers
-     ***********************/
-    document.getElementById('btnNewRefuel').addEventListener('click', () => {
-      location.href = PAGES.newRefuel;
-    });
-
-    document.getElementById('btnSettings').addEventListener('click', () => {
-      location.href = PAGES.settings;
-    });
-
-    document.getElementById('navRifornimenti').addEventListener('click', (e) => {
-      e.preventDefault();
-      location.href = PAGES.listRefuel;
-    });
-
-    document.getElementById('navImpianti').addEventListener('click', (e) => {
-      e.preventDefault();
-      // puoi cambiare qui: vicini/preferiti, o creare una pagina "impianti.html"
-      location.href = IMPIANTI_DEFAULT;
-    });
-
-    document.getElementById('navStats').addEventListener('click', (e) => {
-      e.preventDefault();
-      location.href = PAGES.stats;
-    });
-
-    document.getElementById('navSettings').addEventListener('click', (e) => {
-      e.preventDefault();
-      location.href = PAGES.settings;
-    });
-
-    /***********************
-     * DATA: placeholder (da collegare ai tuoi dati reali)
-     * Qui per ora metto demo.
-     * Dopo lo colleghiamo al tuo Google Sheet / API Apps Script.
-     ***********************/
-    function fmtEUR(n){
-      if(n === null || n === undefined || Number.isNaN(Number(n))) return '—';
-      return new Intl.NumberFormat('it-IT', { style:'currency', currency:'EUR' }).format(Number(n));
+      renderLastRefuel(json.last);
+    }catch(err){
+      console.warn('[Home] loadLastRefuel failed:', err);
+      renderLastRefuel(null);
     }
-    function fmtNum(n, digits=2){
-      if(n === null || n === undefined || Number.isNaN(Number(n))) return '—';
-      return new Intl.NumberFormat('it-IT', { minimumFractionDigits: digits, maximumFractionDigits: digits }).format(Number(n));
-    }
+  }
 
-    function monthLabel(d = new Date()){
-      return d.toLocaleDateString('it-IT', { month:'long', year:'numeric' });
-    }
+  /* ====== NAV ====== */
+  function bindNav(){
+    var btnNew = document.getElementById('btnNewRefuel');
+    if (btnNew) btnNew.addEventListener('click', function(){ location.href = PAGES.newRefuel; });
 
-    // DEMO: sostituisci con la lettura reale
-    const demo = {
-      last: {
-        date: '05/01/2026',
-        amount: 72.40,
-        liters: 38.60,
-        priceL: 1.876,
-        kml: 15.2
-      },
-      last30: {
-        count: 4,
-        liters: 154.2,
-        spent: 289.55,
-        avgPriceL: 1.878
-      },
-      thisMonthSpent: 184.30
-    };
+    var btnSettings = document.getElementById('btnSettings');
+    if (btnSettings) btnSettings.addEventListener('click', function(){ location.href = PAGES.settings; });
 
-    function renderHome(data){
-      // Ultimo rifornimento
-      document.getElementById('lastDatePill').textContent = data.last?.date ?? '—';
-      document.getElementById('lastAmount').textContent   = fmtEUR(data.last?.amount);
-      document.getElementById('lastLiters').textContent   = (data.last?.liters != null) ? (fmtNum(data.last.liters,2) + ' L') : '—';
-      document.getElementById('lastPriceL').textContent   = (data.last?.priceL != null) ? (fmtNum(data.last.priceL,3) + ' €/L') : '—';
-      document.getElementById('lastKml').textContent      = (data.last?.kml != null) ? (fmtNum(data.last.kml,1) + ' km/L') : '—';
+    var navR = document.getElementById('navRifornimenti');
+    if (navR) navR.addEventListener('click', function(e){ e.preventDefault(); location.href = PAGES.listRefuel; });
 
-      // Ultimo mese
-      document.getElementById('mCount').textContent      = (data.last30?.count != null) ? String(data.last30.count) : '—';
-      document.getElementById('mLiters').textContent     = (data.last30?.liters != null) ? (fmtNum(data.last30.liters,1) + ' L') : '—';
-      document.getElementById('mSpent').textContent      = fmtEUR(data.last30?.spent);
-      document.getElementById('mAvgPriceL').textContent  = (data.last30?.avgPriceL != null) ? (fmtNum(data.last30.avgPriceL,3) + ' €/L') : '—';
+    var navI = document.getElementById('navImpianti');
+    if (navI) navI.addEventListener('click', function(e){ e.preventDefault(); location.href = IMPIANTI_DEFAULT; });
 
-      // Spesa mese
-      document.getElementById('thisMonthPill').textContent = monthLabel();
-      document.getElementById('thisMonthSpent').textContent = fmtEUR(data.thisMonthSpent);
-    }
+    var navS = document.getElementById('navStats');
+    if (navS) navS.addEventListener('click', function(e){ e.preventDefault(); location.href = PAGES.stats; });
 
-    renderHome(demo);
-  </script>
+    var navSet = document.getElementById('navSettings');
+    if (navSet) navSet.addEventListener('click', function(e){ e.preventDefault(); location.href = PAGES.settings; });
+  }
+
+  /* ====== INIT ====== */
+  bindNav();
+  loadLastRefuel();
+</script>
+  
 </body>
 </html>
+
 
 
