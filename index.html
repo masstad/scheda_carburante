@@ -949,64 +949,95 @@ function addFallbackStations(sel){
   });
 }
 
-/* ===== Invio form ===== */
-async function sendForm(data){
-  const params = new URLSearchParams(data);
-  const res = await fetch(ENDPOINT, {
-    method:'POST',
-    headers:{ 'Content-Type':'application/x-www-form-urlencoded;charset=UTF-8' },
-    body: params.toString(),
-  });
-  return res.json();
-}
-async function onSaveClick(){
-  const msg = document.getElementById('msg');
-  msg.textContent = '';
-  msg.className = '';
+/* ====== CONFIG PAGINE ====== */
+  var PAGES = {
+    newRefuel: 'scheda_carburante.html',
+    listRefuel: 'lista_rifornimenti.html',
+    impiantiVicini: 'impianti_vicini.html',
+    impiantiPreferiti: 'impianti_preferiti.html',
+    stats: 'statistiche.html',
+    settings: 'settings.html'
+  };
+  var IMPIANTI_DEFAULT = PAGES.impiantiVicini;
 
-  const data = document.getElementById('data').value;
-  const auto = document.getElementById('auto').value;
-  const prezzoNorm = parseMoneySmart(document.getElementById('prezzo').value, 3);
-  const litriNorm  = parseMoneySmart(document.getElementById('litri').value, 2);
+  /* ====== FORMAT ====== */
+  function fmtEUR(n){
+    if (n === null || n === undefined || isNaN(Number(n))) return '—';
+    return new Intl.NumberFormat('it-IT', { style:'currency', currency:'EUR' }).format(Number(n));
+  }
+  function fmtNum(n, digits){
+    if (digits === undefined) digits = 2;
+    if (n === null || n === undefined || isNaN(Number(n))) return '—';
+    return new Intl.NumberFormat('it-IT', { minimumFractionDigits: digits, maximumFractionDigits: digits }).format(Number(n));
+  }
 
-  let importo = String(document.getElementById('importo').value).replace(',', '.');
+  /* ====== RENDER LAST REFUEL (NO ?. / ??) ====== */
+  function renderLastRefuel(last){
+    var dateEl = document.getElementById('lastDatePill');
+    var aEl = document.getElementById('lastAmount');
+    var pEl = document.getElementById('lastPrice');
+    var lEl = document.getElementById('lastLiters');
+    var kEl = document.getElementById('lastKm');
+    var sEl = document.getElementById('lastStation');
 
-  const stSel = document.getElementById('stazione');
-  const stazione   = stSel.value;
-  const stazioneId = stSel.options[stSel.selectedIndex]?.dataset?.id || '';
-  const km = document.getElementById('km').value;
-  // campo: toggle "Scheda carburante"
-  const schedaToggleEl   = document.getElementById('schedaToggle');
-  const schedaCarburante = schedaToggleEl.checked ? '1' : '0'; // oppure 'true'/'false'
-
-  if (!data){ msg.textContent='Inserisci la data.'; msg.className='err'; return; }
-  if (!auto){ msg.textContent='Seleziona un\'auto.'; msg.className='err'; return; }
-  if (!importo || Number(importo) <= 0){ msg.textContent='Seleziona un importo.'; msg.className='err'; return; }
-  if (prezzoNorm === null || Number(prezzoNorm) <= 0){ msg.textContent='Prezzo non valido.'; msg.className='err'; return; }
-  if (litriNorm === null  || Number(litriNorm)  <= 0){ msg.textContent='Litri non validi.'; msg.className='err'; return; }
-  if (!stazione){ msg.textContent='Seleziona una stazione.'; msg.className='err'; return; }
-
-  const payload = { secret: SECRET, data, auto, schedaCarburante, importo, prezzo:prezzoNorm, litri:litriNorm, stazione, stazioneId, km };
-
-  try{
-    setLoading(true);
-    const out = await sendForm(payload);
-    if (out.ok){
-      msg.textContent = 'Salvato ✅';
-      msg.className = 'ok';
-      document.getElementById('prezzo').value=''; 
-      document.getElementById('litri').value='';
-      document.getElementById('importo').selectedIndex = 0; 
-      document.getElementById('stazione').selectedIndex = 0;
-      schedaToggleEl.checked = false;
-      schedaToggleEl.setAttribute('aria-checked', 'false');
-    }else{
-      msg.textContent='Errore di rete o autorizzazione.'; msg.className='err';
+    if (!last){
+      if (dateEl) dateEl.textContent = '—';
+      if (aEl) aEl.textContent = '—';
+      if (pEl) pEl.textContent = '—';
+      if (lEl) lEl.textContent = '—';
+      if (kEl) kEl.textContent = '—';
+      if (sEl) sEl.textContent = '—';
+      return;
     }
-  }catch{
-    msg.textContent='Sei offline. Dato non inviato.'; msg.className='err';
-  }finally{ setLoading(false); }
-}
+
+    if (dateEl) dateEl.textContent = last.data ? last.data : '—';
+    if (aEl) aEl.textContent = (last.importo !== null && last.importo !== undefined) ? fmtEUR(last.importo) : '—';
+    if (pEl) pEl.textContent = (last.prezzo !== null && last.prezzo !== undefined) ? (fmtNum(last.prezzo, 3) + ' €/L') : '—';
+    if (lEl) lEl.textContent = (last.litri !== null && last.litri !== undefined) ? (fmtNum(last.litri, 2) + ' L') : '—';
+    if (kEl) kEl.textContent = last.km ? last.km : '—';
+    if (sEl) sEl.textContent = last.stazione ? last.stazione : '—';
+  }
+
+  async function loadLastRefuel(){
+    try{
+      var url = ENDPOINT + '?action=last_refuel&secret=' + encodeURIComponent(SECRET);
+      var resp = await fetch(url, { method:'GET', cache:'no-store' });
+      var json = await resp.json();
+
+      if (!json || !json.ok) throw new Error(json && json.error ? json.error : 'Errore API');
+      if (!json.found || !json.last) return renderLastRefuel(null);
+
+      renderLastRefuel(json.last);
+    }catch(err){
+      console.warn('[Home] loadLastRefuel failed:', err);
+      renderLastRefuel(null);
+    }
+  }
+
+  /* ====== NAV ====== */
+  function bindNav(){
+    var btnNew = document.getElementById('btnNewRefuel');
+    if (btnNew) btnNew.addEventListener('click', function(){ location.href = PAGES.newRefuel; });
+
+    var btnSettings = document.getElementById('btnSettings');
+    if (btnSettings) btnSettings.addEventListener('click', function(){ location.href = PAGES.settings; });
+
+    var navR = document.getElementById('navRifornimenti');
+    if (navR) navR.addEventListener('click', function(e){ e.preventDefault(); location.href = PAGES.listRefuel; });
+
+    var navI = document.getElementById('navImpianti');
+    if (navI) navI.addEventListener('click', function(e){ e.preventDefault(); location.href = IMPIANTI_DEFAULT; });
+
+    var navS = document.getElementById('navStats');
+    if (navS) navS.addEventListener('click', function(e){ e.preventDefault(); location.href = PAGES.stats; });
+
+    var navSet = document.getElementById('navSettings');
+    if (navSet) navSet.addEventListener('click', function(e){ e.preventDefault(); location.href = PAGES.settings; });
+  }
+
+  /* ====== INIT ====== */
+  bindNav();
+  loadLastRefuel();
 
 /* ===== Boot ===== */
 document.addEventListener('DOMContentLoaded', () => {
@@ -1055,6 +1086,7 @@ addEventListener('pageshow', e => e.persisted && location.reload());
 </script>
 </body>
 </html>
+
 
 
 
