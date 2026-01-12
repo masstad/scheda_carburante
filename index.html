@@ -26,21 +26,24 @@
   </script>
 
   <style>
-  :root{
-    --space:14px;
-
-    /* Tema chiaro (identico a Pellet) */
-    --bg: #ffffff;
-    --text: #111827;
-    --muted: #666666;
-    --surface: #ffffff;
-    --border: #dddddd;
-    --divider: #eeeeee;
-    --shadow: 0 2px 10px rgba(0,0,0,.08);
-    --btn-hover: #f7f7f7;
-    --spinner-track: rgba(0,0,0,0.2);
-    --spinner-head:  rgba(0,0,0,0.7);
-  }
+    :root{
+      --space:14px;
+  
+      /* Tema chiaro (identico a Pellet) */
+      --bg: #ffffff;
+      --text: #111827;
+      --muted: #666666;
+      --surface: #ffffff;
+      --border: #dddddd;
+      --divider: #eeeeee;
+      --shadow: 0 2px 10px rgba(0,0,0,.08);
+      --btn-hover: #f7f7f7;
+      --spinner-track: rgba(0,0,0,0.2);
+      --spinner-head:  rgba(0,0,0,0.7);
+      --radius: 16px;
+      --gap: 14px;
+    }
+    
   html[data-theme="dark"]{
     --bg: #0f1115;
     --text: #e5e7eb;
@@ -665,56 +668,6 @@ header{
     </main>
   </div>
 
-  <!-- Form (campi a tutta larghezza come Pellet) -->
-  <label>Data</label>
-  <input id="data" type="date" required>
-
-  <label for="auto">Auto</label>
-  <select id="auto" required>
-    <option value="">Seleziona auto</option>
-    <option value="Volkswagen - T-Roc">Volkswagen - T-Roc</option>
-    <option value="Jeep - Renegade">Jeep - Renegade</option>
-  </select>
-
-
-  <div class="form-row-5050">
-  <!-- 50% sinistra: Importo -->
-  <div>
-    <label for="importo">Importo (€)</label>
-    <select id="importo" required>
-      <option value="">Seleziona importo</option>
-      <!-- Le opzioni verranno comunque popolate via JS come già fai -->
-    </select>
-  </div>
-
-  <!-- 50% destra: label + toggle -->
-  <div class="toggle-col">
-    <label for="schedaToggle">Scheda carburante</label>
-    <label class="switch" aria-label="Scheda carburante on/off">
-      <input id="schedaToggle" type="checkbox" role="switch" aria-checked="false">
-      <span class="track"><span class="thumb"></span></span>
-    </label>
-  </div>
-</div>
-
-
-  <label>Prezzo al litro (€)</label>
-  <input id="prezzo" type="text" inputmode="numeric" placeholder="es. 1,619" required>
-
-  <label>Litri</label>
-  <input id="litri" type="text" inputmode="numeric" placeholder="es. 25,75" required>
-
-  <label>Stazione</label>
-  <select id="stazione" required>
-    <option value="">Seleziona stazione</option>
-  </select>
-
-  <label>Km</label>
-  <input id="km" type="number" inputmode="numeric" placeholder="opzionale">
-
-  <button id="saveBtn"><span class="btn-text">Salva</span></button>
-  <div id="msg" role="status" aria-live="polite"></div>
-
   <!-- Versione centrata in fondo (identico a Pellet) -->
   <div class="muted">Versione: <span id="appVersion" class="badge"></span></div>
 
@@ -1129,6 +1082,7 @@ addEventListener('pageshow', e => e.persisted && location.reload());
 </script>
 </body>
 </html>
+
 
 
 
