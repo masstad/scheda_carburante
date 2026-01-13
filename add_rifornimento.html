@@ -675,6 +675,42 @@
         if (!new RegExp(`^\\d+(\\.\\d{1,${maxDec}})?$`).test(s)) return null;
         return Number(s).toFixed(maxDec);
       }
+      /* ===== Calcolo automatico Litri = Importo / Prezzo ===== */
+      function formatFixedComma(num, decimals) {
+        if (!Number.isFinite(num)) return '';
+        return num.toFixed(decimals).replace('.', ',');
+      }
+
+      function calcAndSetLitri() {
+        const importoSel = document.getElementById('importo');
+        const prezzoEl = document.getElementById('prezzo');
+        const litriEl = document.getElementById('litri');
+
+        if (!importoSel || !prezzoEl || !litriEl) return;
+
+        // importo viene dal select (es. "10,00") -> normalizza
+        const importoRaw = String(importoSel.value || '').trim();
+        if (!importoRaw) return; // niente importo selezionato
+
+        const importoNum = Number(importoRaw.replace(',', '.'));
+        if (!Number.isFinite(importoNum) || importoNum <= 0) return;
+
+        // prezzo: usa la tua parse (3 decimali) => string "1.619"
+        const prezzoNorm = parseMoneySmart(prezzoEl.value, 3);
+        const prezzoNum = prezzoNorm !== null ? Number(prezzoNorm) : NaN;
+        if (!Number.isFinite(prezzoNum) || prezzoNum <= 0) return;
+
+        const litri = importoNum / prezzoNum;
+
+        // scrivo litri con 2 decimali e virgola
+        litriEl.value = formatFixedComma(litri, 2);
+
+        // trigger input per applicare eventuali listener/formatting
+        try {
+          litriEl.dispatchEvent(new Event('input', { bubbles: true }));
+        } catch (e) {}
+      }
+
       function attachPosMoney(el, decimals) {
         el.addEventListener('input', () => {
           const digits = (el.value || '').replace(/\D/g, '');
@@ -936,6 +972,13 @@
         // POS live (prezzo 3 decimali, litri 2)
         attachPosMoney(document.getElementById('prezzo'), 3);
         attachPosMoney(document.getElementById('litri'), 2);
+
+        // Auto-calc litri quando cambia importo o prezzo
+        document.getElementById('importo').addEventListener('change', calcAndSetLitri);
+        document.getElementById('prezzo').addEventListener('input', calcAndSetLitri);
+
+        // Primo tentativo (se hai valori già presenti)
+        calcAndSetLitri();
 
         document.getElementById('saveBtn').addEventListener('click', onSaveClick);
 
