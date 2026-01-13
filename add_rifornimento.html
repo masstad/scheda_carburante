@@ -385,8 +385,6 @@
     <label for="auto">Auto</label>
     <select id="auto" required>
       <option value="">Seleziona auto</option>
-      <option value="Volkswagen - T-Roc">Volkswagen - T-Roc</option>
-      <option value="Jeep - Renegade">Jeep - Renegade</option>
     </select>
 
     <div class="form-row-5050">
@@ -749,6 +747,60 @@
         });
       }
 
+      /* ===== Auto (dinamiche) ===== */
+      async function initAutos() {
+        const sel = document.getElementById('auto');
+        if (!sel) return;
+
+        // mantieni solo il placeholder
+        sel.length = 1;
+
+        try {
+          const res = await fetch(`${ENDPOINT}?action=autos&secret=${encodeURIComponent(SECRET)}`);
+          const data = await res.json();
+
+          if (data && data.ok && Array.isArray(data.autos)) {
+            data.autos.forEach(a => {
+              const id = String(a.id || '').trim();
+              const marca = String(a.marca || '').trim();
+              const modello = String(a.modello || '').trim();
+              if (!id || !marca || !modello) return;
+
+              const opt = document.createElement('option');
+              opt.value = id;
+              opt.textContent = `${marca} - ${modello}`;
+              sel.appendChild(opt);
+            });
+
+            // preselezione: querystring -> localStorage
+            const qs = new URLSearchParams(location.search);
+            const pre =
+              qs.get('id_auto') ||
+              qs.get('idAuto') ||
+              (function () {
+                try {
+                  return localStorage.getItem('selectedAutoId');
+                } catch (e) {
+                  return '';
+                }
+              })();
+
+            if (pre) sel.value = pre;
+
+            // salva selezione
+            sel.addEventListener('change', () => {
+              try {
+                localStorage.setItem('selectedAutoId', sel.value || '');
+              } catch (e) {}
+            });
+
+            return;
+          }
+        } catch (e) {
+          // fallback: lascia solo placeholder
+        }
+      }
+
       /* ===== Loader ===== */
       const saveBtn = document.getElementById('saveBtn');
       const btnText = saveBtn.querySelector('.btn-text');
@@ -914,6 +966,14 @@
 
         // Aggiorna il toggle quando cambio auto
         autoSel.addEventListener('change', syncSchedaToggle);
+
+        // Popola elenco auto da Anagrafica_Auto (dopo aver definito syncSchedaToggle)
+        initAutos().then(() => {
+          // forza sync dopo popolamento/preselezione
+          try {
+            autoSel.dispatchEvent(new Event('change'));
+          } catch (e) {}
+        });
       });
 
       /* Ricarica se riaperta da bfcache (come Pellet) */
