@@ -3,7 +3,7 @@
    ===================================================== */
 
 (function () {
-  "use strict";
+  'use strict';
 
   // Evita doppia inizializzazione
   if (window.__MENU_AUTO_INIT__) return;
@@ -101,9 +101,9 @@
   `;
 
   function injectCssOnce() {
-    if (document.getElementById("menuAutoCss")) return;
-    const st = document.createElement("style");
-    st.id = "menuAutoCss";
+    if (document.getElementById('menuAutoCss')) return;
+    const st = document.createElement('style');
+    st.id = 'menuAutoCss';
     st.textContent = CSS;
     document.head.appendChild(st);
   }
@@ -143,10 +143,10 @@
   `;
 
   function injectMarkupOnce() {
-    if (document.getElementById("drawer")) return;
+    if (document.getElementById('drawer')) return;
 
-    const root = document.createElement("div");
-    root.id = "menuAutoRoot";
+    const root = document.createElement('div');
+    root.id = 'menuAutoRoot';
     root.innerHTML = MENU_HTML;
     document.body.insertBefore(root, document.body.firstChild);
   }
@@ -157,37 +157,37 @@
      - altrimenti: fixed (stesso look)
      ========================= */
   function ensureTopLeftButton() {
-    let btn = document.getElementById("menuBtn");
+    let btn = document.getElementById('menuBtn');
     if (!btn) {
-      btn = document.createElement("button");
-      btn.id = "menuBtn";
-      btn.className = "menu-btn";
-      btn.type = "button";
-      btn.setAttribute("aria-label", "Apri menu");
-      btn.textContent = "☰";
+      btn = document.createElement('button');
+      btn.id = 'menuBtn';
+      btn.className = 'menu-btn';
+      btn.type = 'button';
+      btn.setAttribute('aria-label', 'Apri menu');
+      btn.textContent = '☰';
     }
 
     // Se la pagina ha topbar come index (grid), lo metto lì
-    const topbar = document.querySelector("header.topbar, .topbar");
+    const topbar = document.querySelector('header.topbar, .topbar');
     let placedInGridTopbar = false;
 
     if (topbar) {
       try {
         const cs = window.getComputedStyle(topbar);
-        if (cs.display === "grid") {
+        if (cs.display === 'grid') {
           // identico a index: prima colonna
-          btn.classList.remove("menu-fixed");
+          btn.classList.remove('menu-fixed');
           if (!btn.parentElement || btn.parentElement !== topbar) {
             topbar.insertBefore(btn, topbar.firstChild);
           }
           placedInGridTopbar = true;
         }
-      } catch (e) {}
+      } catch (_e) {}
     }
 
     // Altrimenti: fixed top-left
     if (!placedInGridTopbar) {
-      btn.classList.add("menu-fixed");
+      btn.classList.add('menu-fixed');
       if (!btn.parentElement || btn.parentElement !== document.body) {
         document.body.insertBefore(btn, document.body.firstChild);
       }
@@ -198,62 +198,68 @@
      Drawer + Theme + Frame (logica di index.html)
      ========================= */
   function setupLogic() {
-    const btn = document.getElementById("menuBtn");
-    const btnBottom = document.getElementById("menuBtnBottom");
-    const drawer = document.getElementById("drawer");
-    const backdrop = document.getElementById("backdrop");
-    const drawerClose = document.getElementById("drawerClose");
-    const frame = document.getElementById("pageFrame");
+    const btn = document.getElementById('menuBtn');
+    const btnBottom = document.getElementById('menuBtnBottom');
+    const drawer = document.getElementById('drawer');
+    const backdrop = document.getElementById('backdrop');
+    const drawerClose = document.getElementById('drawerClose');
+    const frame = document.getElementById('pageFrame');
 
     function updateThemeToggleLabel() {
-      const el = document.getElementById("themeToggle");
+      const el = document.getElementById('themeToggle');
       if (!el) return;
-      const t = document.documentElement.getAttribute("data-theme") || "light";
-      el.textContent = (t === "dark") ? "☀️ Tema chiaro" : "🌙 Tema scuro";
+      const t = document.documentElement.getAttribute('data-theme') || 'light';
+      el.textContent = t === 'dark' ? '☀️ Tema chiaro' : '🌙 Tema scuro';
     }
 
     function setTheme(t) {
-      document.documentElement.setAttribute("data-theme", t);
-      try { localStorage.setItem("theme", t); } catch (e) {}
+      document.documentElement.setAttribute('data-theme', t);
+      try {
+        localStorage.setItem('theme', t);
+      } catch (_e) {}
       updateThemeToggleLabel();
-      try { frame?.contentWindow?.postMessage(`theme:${t}`, "*"); } catch (e) {}
+      try {
+        frame?.contentWindow?.postMessage(`theme:${t}`, '*');
+      } catch (_e) {}
     }
 
     updateThemeToggleLabel();
 
     const openDrawer = () => {
-      drawer.style.transform = "translateX(0)";
-      backdrop.style.display = "block";
-      document.body.classList.add("drawer-open");
+      drawer.style.transform = 'translateX(0)';
+      backdrop.style.display = 'block';
+      document.body.classList.add('drawer-open');
     };
 
     const closeDrawer = () => {
-      drawer.style.transform = "translateX(-105%)";
-      backdrop.style.display = "none";
-      document.body.classList.remove("drawer-open");
+      drawer.style.transform = 'translateX(-105%)';
+      backdrop.style.display = 'none';
+      document.body.classList.remove('drawer-open');
     };
 
-    if (btn) btn.addEventListener("click", openDrawer);
-    if (btnBottom) btnBottom.addEventListener("click", openDrawer);
-    if (backdrop) backdrop.addEventListener("click", closeDrawer);
-    if (drawerClose) drawerClose.addEventListener("click", closeDrawer);
+    if (btn) btn.addEventListener('click', openDrawer);
+    if (btnBottom) btnBottom.addEventListener('click', openDrawer);
+    if (backdrop) backdrop.addEventListener('click', closeDrawer);
+    if (drawerClose) drawerClose.addEventListener('click', closeDrawer);
 
-    const themeToggle = document.getElementById("themeToggle");
+    const themeToggle = document.getElementById('themeToggle');
     if (themeToggle) {
-      themeToggle.addEventListener("click", () => {
-        const curr = document.documentElement.getAttribute("data-theme") || "light";
-        setTheme(curr === "dark" ? "light" : "dark");
+      themeToggle.addEventListener('click', () => {
+        const curr = document.documentElement.getAttribute('data-theme') || 'light';
+        setTheme(curr === 'dark' ? 'light' : 'dark');
       });
     }
 
     // Nav full-screen (come index.html)
-    const pad2 = (n) => String(n).padStart(2, "0");
+    const pad2 = n => String(n).padStart(2, '0');
     const d = new Date(document.lastModified);
     const vIndex = isNaN(d)
-      ? "dev"
-      : `${d.getFullYear()}.${pad2(d.getMonth() + 1)}.${pad2(d.getDate())}-${pad2(d.getHours())}:${pad2(d.getMinutes())}`;
+      ? 'dev'
+      : `${d.getFullYear()}.${pad2(d.getMonth() + 1)}.${pad2(d.getDate())}-${pad2(
+          d.getHours()
+        )}:${pad2(d.getMinutes())}`;
 
-    const urlHome = `index.html?v=${encodeURIComponent(vIndex)}`; 
+    const urlHome = `index.html?v=${encodeURIComponent(vIndex)}`;
     const urlRifornimento = `add_rifornimento.html?v=${encodeURIComponent(vIndex)}`;
     const urlLista = `lista.html?v=${encodeURIComponent(vIndex)}`;
     const urlScheda = `scheda_carburante.html?v=${encodeURIComponent(vIndex)}`;
@@ -264,76 +270,97 @@
     function openFrame(url) {
       closeDrawer();
       frame.src = url;
-      frame.style.display = "block";
-      document.body.classList.add("frame-open");
+      frame.style.display = 'block';
+      document.body.classList.add('frame-open');
       // identico a index: push #lista (non cambiamo logica)
-      history.pushState({ page: "lista" }, "", "#lista");
+      history.pushState({ page: 'lista' }, '', '#lista');
     }
 
     function closeFrame() {
-      frame.style.display = "none";
-      frame.src = "about:blank";
-      document.body.classList.remove("frame-open");
-      if (location.hash === "#lista" || location.hash === "#scheda") {
+      frame.style.display = 'none';
+      frame.src = 'about:blank';
+      document.body.classList.remove('frame-open');
+      if (location.hash === '#lista' || location.hash === '#scheda') {
         history.back();
       }
     }
 
-    const linkHome = document.getElementById("goHome");
-    const linkRifornimento = document.getElementById("goRifornimento");
-    const linkLista = document.getElementById("goLista");
-    const linkScheda = document.getElementById("goScheda");
-    const linkForecast = document.getElementById("goForecast");
-    const linkImpianti = document.getElementById("goImpianti");
-    const linkImpiantiPreferiti = document.getElementById("goImpiantiPreferiti");
+    const linkHome = document.getElementById('goHome');
+    const linkRifornimento = document.getElementById('goRifornimento');
+    const linkLista = document.getElementById('goLista');
+    const linkScheda = document.getElementById('goScheda');
+    const linkForecast = document.getElementById('goForecast');
+    const linkImpianti = document.getElementById('goImpianti');
+    const linkImpiantiPreferiti = document.getElementById('goImpiantiPreferiti');
 
     if (linkHome) {
       linkHome.href = urlHome;
-      linkHome.addEventListener("click", (e) => { e.preventDefault(); openFrame(urlHome); });
+      linkHome.addEventListener('click', e => {
+        e.preventDefault();
+        openFrame(urlHome);
+      });
     }
     if (linkRifornimento) {
       linkRifornimento.href = urlRifornimento;
-      linkRifornimento.addEventListener("click", (e) => { e.preventDefault(); openFrame(urlRifornimento); });
+      linkRifornimento.addEventListener('click', e => {
+        e.preventDefault();
+        openFrame(urlRifornimento);
+      });
     }
     if (linkLista) {
       linkLista.href = urlLista;
-      linkLista.addEventListener("click", (e) => { e.preventDefault(); openFrame(urlLista); });
+      linkLista.addEventListener('click', e => {
+        e.preventDefault();
+        openFrame(urlLista);
+      });
     }
     if (linkScheda) {
       linkScheda.href = urlScheda;
-      linkScheda.addEventListener("click", (e) => { e.preventDefault(); openFrame(urlScheda); });
+      linkScheda.addEventListener('click', e => {
+        e.preventDefault();
+        openFrame(urlScheda);
+      });
     }
     if (linkForecast) {
       linkForecast.href = urlForecast;
-      linkForecast.addEventListener("click", (e) => { e.preventDefault(); openFrame(urlForecast); });
+      linkForecast.addEventListener('click', e => {
+        e.preventDefault();
+        openFrame(urlForecast);
+      });
     }
     if (linkImpianti) {
       linkImpianti.href = urlImpianti;
-      linkImpianti.addEventListener("click", (e) => { e.preventDefault(); openFrame(urlImpianti); });
+      linkImpianti.addEventListener('click', e => {
+        e.preventDefault();
+        openFrame(urlImpianti);
+      });
     }
     if (linkImpiantiPreferiti) {
       linkImpiantiPreferiti.href = urlImpiantiPreferiti;
-      linkImpiantiPreferiti.addEventListener("click", (e) => { e.preventDefault(); openFrame(urlImpiantiPreferiti); });
+      linkImpiantiPreferiti.addEventListener('click', e => {
+        e.preventDefault();
+        openFrame(urlImpiantiPreferiti);
+      });
     }
 
-    window.addEventListener("popstate", () => {
-      if (frame.style.display === "block") {
-        frame.style.display = "none";
-        frame.src = "about:blank";
-        document.body.classList.remove("frame-open");
+    window.addEventListener('popstate', () => {
+      if (frame.style.display === 'block') {
+        frame.style.display = 'none';
+        frame.src = 'about:blank';
+        document.body.classList.remove('frame-open');
       }
     });
 
-    window.addEventListener("message", (ev) => {
-      if (ev && ev.data === "close-lista") closeFrame();
-      if (typeof ev?.data === "string" && ev.data.startsWith("theme:")) {
-        const t = ev.data.split(":")[1];
-        if (t === "dark" || t === "light") setTheme(t);
+    window.addEventListener('message', ev => {
+      if (ev && ev.data === 'close-lista') closeFrame();
+      if (typeof ev?.data === 'string' && ev.data.startsWith('theme:')) {
+        const t = ev.data.split(':')[1];
+        if (t === 'dark' || t === 'light') setTheme(t);
       }
     });
   }
 
-  document.addEventListener("DOMContentLoaded", () => {
+  document.addEventListener('DOMContentLoaded', () => {
     injectCssOnce();
     injectMarkupOnce();
     ensureTopLeftButton();

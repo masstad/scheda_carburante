@@ -1,629 +1,752 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="it" data-theme="light">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <meta name="apple-mobile-web-app-title" content="Carburante">
-  <title>Lista rifornimenti • Carburante</title>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="Carburante" />
+    <title>Lista rifornimenti • Carburante</title>
 
-  <!-- No-cache -->
-  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-  <meta http-equiv="Pragma" content="no-cache">
-  <meta http-equiv="Expires" content="0">
+    <!-- No-cache -->
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
 
-  <script src="js/menu.js" defer></script>
+    <script src="js/menu.js" defer></script>
 
-  <!-- Imposta il tema PRIMA del paint -->
-  <script>
-    (function(){
-      try{
-        const saved = localStorage.getItem('theme');
-        const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-        document.documentElement.setAttribute('data-theme', saved || (prefersDark ? 'dark' : 'light'));
-      }catch(e){}
-    })();
-  </script>
+    <!-- Imposta il tema PRIMA del paint -->
+    <script>
+      (function () {
+        try {
+          const saved = localStorage.getItem('theme');
+          const prefersDark =
+            window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+          document.documentElement.setAttribute(
+            'data-theme',
+            saved || (prefersDark ? 'dark' : 'light')
+          );
+        } catch (e) {}
+      })();
+    </script>
 
-  <style>
-    :root{
-      --space:14px;
+    <style>
+      :root {
+        --space: 14px;
 
-      /* Tema chiaro (default) */
-      --bg: #ffffff;
-      --text: #111827;
-      --muted: #666666;
-      --surface: #ffffff;
-      --border: #dddddd;
-      --divider: #eeeeee;
-      --btn-hover: #f7f7f7;
-    }
-    html[data-theme="dark"]{
-      --bg: #0f1115;
-      --text: #e5e7eb;
-      --muted: #9aa0a6;
-      --surface: #151922;
-      --border: #2a2f3a;
-      --divider: #222834;
-      --btn-hover: #1b2130;
-    }
-    body{ color-scheme: light dark; }
+        /* Tema chiaro (default) */
+        --bg: #ffffff;
+        --text: #111827;
+        --muted: #666666;
+        --surface: #ffffff;
+        --border: #dddddd;
+        --divider: #eeeeee;
+        --btn-hover: #f7f7f7;
+      }
+      html[data-theme='dark'] {
+        --bg: #0f1115;
+        --text: #e5e7eb;
+        --muted: #9aa0a6;
+        --surface: #151922;
+        --border: #2a2f3a;
+        --divider: #222834;
+        --btn-hover: #1b2130;
+      }
+      body {
+        color-scheme: light dark;
+      }
 
-    /* Reset + layout base */
-    * { box-sizing: border-box; }
-    html, body { width:100%; max-width:100%; overflow-x:hidden; margin:0; }
-    body{
-      min-height:100dvh;
-      display:flex;
-      flex-direction:column;
-      padding: var(--space);
-      font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
-      background: var(--bg);
-      color: var(--text);
-    }
+      /* Reset + layout base */
+      * {
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        width: 100%;
+        max-width: 100%;
+        overflow-x: hidden;
+        margin: 0;
+      }
+      body {
+        min-height: 100dvh;
+        display: flex;
+        flex-direction: column;
+        padding: var(--space);
+        font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+        background: var(--bg);
+        color: var(--text);
+      }
 
-    .container { width:100%; max-width:640px; margin:0 auto; }
+      .container {
+        width: 100%;
+        max-width: 640px;
+        margin: 0 auto;
+      }
 
-    /* Topbar con titolo centrato su griglia 3 colonne */
-    .topbar{ margin-bottom:10px; }
-.topbar-inner{
-  display:grid;
-  grid-template-columns:48px 1fr auto;
-  align-items:center;
-  height:48px;
-}
-.title{ grid-column:2; text-align:center; margin:0; font-size:22px; font-weight:700; }
+      /* Topbar con titolo centrato su griglia 3 colonne */
+      .topbar {
+        margin-bottom: 10px;
+      }
+      .topbar-inner {
+        display: grid;
+        grid-template-columns: 48px 1fr auto;
+        align-items: center;
+        height: 48px;
+      }
+      .title {
+        grid-column: 2;
+        text-align: center;
+        margin: 0;
+        font-size: 22px;
+        font-weight: 700;
+      }
 
-    /* Bottone filtri nell'header */
-    .filter-btn{
-      justify-self:end;
-      display:inline-flex;
-      align-items:center;
-      gap:4px;
-      padding:6px 10px;
-      border-radius:999px;
-      border:1px solid var(--border);
-      background:var(--surface);
-      font-size:13px;
-      cursor:pointer;
-    }
-    .filter-btn span[aria-hidden="true"]{
-      font-size:14px;
-    }
-    .filter-btn:hover{ background:var(--btn-hover); }
-    .filter-btn:active{ transform:translateY(1px); }
-    .filter-btn:focus-visible{ outline:2px solid #2684ff; outline-offset:2px; }
+      /* Bottone filtri nell'header */
+      .filter-btn {
+        justify-self: end;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 6px 10px;
+        border-radius: 999px;
+        border: 1px solid var(--border);
+        background: var(--surface);
+        font-size: 13px;
+        cursor: pointer;
+      }
+      .filter-btn span[aria-hidden='true'] {
+        font-size: 14px;
+      }
+      .filter-btn:hover {
+        background: var(--btn-hover);
+      }
+      .filter-btn:active {
+        transform: translateY(1px);
+      }
+      .filter-btn:focus-visible {
+        outline: 2px solid #2684ff;
+        outline-offset: 2px;
+      }
 
-    /* Select generica (riusata anche nel drawer) */
-    .sel{
-      padding:8px 12px;
-      border:1px solid var(--border);
-      border-radius:10px;
-      background: var(--surface);
-      color: var(--text);
-      font:inherit;
-      line-height:1.2;
-      cursor:pointer;
-      max-width: 100%;
-    }
-    .sel:focus-visible{ outline:2px solid #2684ff; outline-offset:2px; }
+      /* Select generica (riusata anche nel drawer) */
+      .sel {
+        padding: 8px 12px;
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        background: var(--surface);
+        color: var(--text);
+        font: inherit;
+        line-height: 1.2;
+        cursor: pointer;
+        max-width: 100%;
+      }
+      .sel:focus-visible {
+        outline: 2px solid #2684ff;
+        outline-offset: 2px;
+      }
 
-    /* Tabella */
-    table { width:100%; border-collapse: collapse; }
-    th, td { text-align:left; padding:10px; border-bottom:1px solid var(--divider); font-size:15px; }
-    th { font-weight:600; }
-    .right { text-align:right; }
+      /* Tabella */
+      table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+      th,
+      td {
+        text-align: left;
+        padding: 10px;
+        border-bottom: 1px solid var(--divider);
+        font-size: 15px;
+      }
+      th {
+        font-weight: 600;
+      }
+      .right {
+        text-align: right;
+      }
 
-    .loading { margin-top:10px; }
-    .err { color:#ef4444; margin-top:8px; }
-    .muted { color: var(--muted); font-size:12px; }
-    .summary { margin-top:10px; font-size:14px; }
+      .loading {
+        margin-top: 10px;
+      }
+      .err {
+        color: #ef4444;
+        margin-top: 8px;
+      }
+      .muted {
+        color: var(--muted);
+        font-size: 12px;
+      }
+      .summary {
+        margin-top: 10px;
+        font-size: 14px;
+      }
 
-    .badge {
-      display:inline-block; font-size:12px; padding:2px 8px; border-radius:999px;
-      border:1px solid var(--border); margin-left:8px; font-variant-numeric: tabular-nums;
-    }
+      .badge {
+        display: inline-block;
+        font-size: 12px;
+        padding: 2px 8px;
+        border-radius: 999px;
+        border: 1px solid var(--border);
+        margin-left: 8px;
+        font-variant-numeric: tabular-nums;
+      }
 
-    /* Filtri attivi sopra la tabella */
-    .active-filters{
-      font-size:12px;
-      color:var(--muted);
-      margin-top:6px;
-      margin-bottom:8px;
-    }
+      /* Filtri attivi sopra la tabella */
+      .active-filters {
+        font-size: 12px;
+        color: var(--muted);
+        margin-top: 6px;
+        margin-bottom: 8px;
+      }
 
-    /* Bottoni */
-    .btn{
-      display:inline-flex; align-items:center; gap:6px;
-      padding:10px 14px;
-      border:1px solid var(--border); border-radius:12px; background: var(--surface);
-      text-decoration:none; color:inherit; cursor:pointer;
-      font: inherit; line-height:1;
-      appearance:none; -webkit-appearance:none;
-    }
-    .btn:hover{ background: var(--btn-hover); }
-    .btn:active{ transform:translateY(1px); }
-    .btn:focus-visible{ outline:2px solid #2684ff; outline-offset:2px; }
+      /* Bottoni */
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 10px 14px;
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        background: var(--surface);
+        text-decoration: none;
+        color: inherit;
+        cursor: pointer;
+        font: inherit;
+        line-height: 1;
+        appearance: none;
+        -webkit-appearance: none;
+      }
+      .btn:hover {
+        background: var(--btn-hover);
+      }
+      .btn:active {
+        transform: translateY(1px);
+      }
+      .btn:focus-visible {
+        outline: 2px solid #2684ff;
+        outline-offset: 2px;
+      }
 
-    /* Footer azioni + versione */
-    .actions-footer{
-      display:flex; gap:10px; justify-content:center;
-      margin-top:auto;
-      padding-top:12px;
-    }
-    .version-footer{
-      text-align:center;
-      padding: 10px 0 calc(10px + env(safe-area-inset-bottom));
-      width:100%;
-      color: var(--muted);
-    }
+      /* Footer azioni + versione */
+      .actions-footer {
+        display: flex;
+        gap: 10px;
+        justify-content: center;
+        margin-top: auto;
+        padding-top: 12px;
+      }
+      .version-footer {
+        text-align: center;
+        padding: 10px 0 calc(10px + env(safe-area-inset-bottom));
+        width: 100%;
+        color: var(--muted);
+      }
 
-    /* DRAWER FILTRI */
-    .drawer{
-      position:fixed;
-      inset:0;
-      z-index:50;
-      display:none;
-    }
-    .drawer.open{
-      display:block;
-    }
-    .drawer-panel{
-      position:absolute;
-      inset:0;
-      background:var(--bg);
-      display:flex;
-      flex-direction:column;
-      padding:var(--space);
-      padding-bottom:calc(var(--space) + env(safe-area-inset-bottom));
-      transform:translateY(100%);
-      transition:transform .25s ease-out;
-    }
-    .drawer.open .drawer-panel{
-      transform:translateY(0);
-    }
-    .drawer-header{
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      margin-bottom:12px;
-    }
-    .drawer-header h2{
-      margin:0;
-      font-size:18px;
-      font-weight:600;
-    }
-    .drawer-close{
-      border:none;
-      background:transparent;
-      color:var(--muted);
-      font-size:22px;
-      cursor:pointer;
-      line-height:1;
-    }
-    .drawer-close:focus-visible{
-      outline:2px solid #2684ff;
-      outline-offset:2px;
-    }
-    .drawer-body{
-      flex:1;
-      overflow-y:auto;
-    }
+      /* DRAWER FILTRI */
+      .drawer {
+        position: fixed;
+        inset: 0;
+        z-index: 50;
+        display: none;
+      }
+      .drawer.open {
+        display: block;
+      }
+      .drawer-panel {
+        position: absolute;
+        inset: 0;
+        background: var(--bg);
+        display: flex;
+        flex-direction: column;
+        padding: var(--space);
+        padding-bottom: calc(var(--space) + env(safe-area-inset-bottom));
+        transform: translateY(100%);
+        transition: transform 0.25s ease-out;
+      }
+      .drawer.open .drawer-panel {
+        transform: translateY(0);
+      }
+      .drawer-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 12px;
+      }
+      .drawer-header h2 {
+        margin: 0;
+        font-size: 18px;
+        font-weight: 600;
+      }
+      .drawer-close {
+        border: none;
+        background: transparent;
+        color: var(--muted);
+        font-size: 22px;
+        cursor: pointer;
+        line-height: 1;
+      }
+      .drawer-close:focus-visible {
+        outline: 2px solid #2684ff;
+        outline-offset: 2px;
+      }
+      .drawer-body {
+        flex: 1;
+        overflow-y: auto;
+      }
 
-    .field{
-      display:flex;
-      flex-direction:column;
-      gap:4px;
-      margin-bottom:12px;
-    }
-    .field label{
-      font-size:13px;
-      color:var(--muted);
-    }
+      .field {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        margin-bottom: 12px;
+      }
+      .field label {
+        font-size: 13px;
+        color: var(--muted);
+      }
 
-    .drawer-actions{
-      margin-top:16px;
-    }
-  </style>
-</head>
-<body>
+      .drawer-actions {
+        margin-top: 16px;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- HEADER -->
+    <header class="topbar">
+      <div class="topbar-inner container">
+        <h1 class="title">⛽️ Lista rifornimenti</h1>
+        <button id="openFilterDrawer" class="filter-btn" type="button">
+          <span aria-hidden="true">🔍</span><span>Filtri</span>
+        </button>
+      </div>
+    </header>
 
-  <!-- HEADER -->
-  <header class="topbar">
-    <div class="topbar-inner container">
-      <h1 class="title">⛽️ Lista rifornimenti</h1>
-      <button id="openFilterDrawer" class="filter-btn" type="button">
-        <span aria-hidden="true">🔍</span><span>Filtri</span>
-      </button>
-    </div>
-  </header>
+    <main class="container" role="main">
+      <div id="status" class="loading">Carico…</div>
+      <div id="activeFilters" class="active-filters" style="display: none"></div>
 
-  <main class="container" role="main">
-    <div id="status" class="loading">Carico…</div>
-    <div id="activeFilters" class="active-filters" style="display:none;"></div>
+      <table id="tbl" aria-live="polite" style="display: none">
+        <thead>
+          <tr>
+            <th>Data</th>
+            <th class="right">Importo (€)</th>
+            <th class="right">Prezzo</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
 
-    <table id="tbl" aria-live="polite" style="display:none;">
-      <thead>
-        <tr>
-          <th>Data</th>
-          <th class="right">Importo (€)</th>
-          <th class="right">Prezzo</th>
-        </tr>
-      </thead>
-      <tbody></tbody>
-    </table>
+      <div id="summary" class="summary" style="display: none"></div>
+    </main>
 
-    <div id="summary" class="summary" style="display:none;"></div>
-  </main>
+    <!-- DRAWER FILTRI -->
+    <div id="filterDrawer" class="drawer" aria-hidden="true">
+      <div class="drawer-panel">
+        <header class="drawer-header">
+          <h2>Filtri rifornimenti</h2>
+          <button
+            id="closeFilterDrawer"
+            class="drawer-close"
+            type="button"
+            aria-label="Chiudi filtri"
+          >
+            ×
+          </button>
+        </header>
+        <div class="drawer-body">
+          <div class="field">
+            <label for="yearFilter">Anno</label>
+            <select id="yearFilter" class="sel" aria-label="Filtra per anno">
+              <option value="">Tutti gli anni</option>
+            </select>
+          </div>
 
-  <!-- DRAWER FILTRI -->
-  <div id="filterDrawer" class="drawer" aria-hidden="true">
-    <div class="drawer-panel">
-      <header class="drawer-header">
-        <h2>Filtri rifornimenti</h2>
-        <button id="closeFilterDrawer" class="drawer-close" type="button" aria-label="Chiudi filtri">×</button>
-      </header>
-      <div class="drawer-body">
-        <div class="field">
-          <label for="yearFilter">Anno</label>
-          <select id="yearFilter" class="sel" aria-label="Filtra per anno">
-            <option value="">Tutti gli anni</option>
-          </select>
-        </div>
+          <div class="field">
+            <label for="monthFilter">Mese</label>
+            <select id="monthFilter" class="sel" aria-label="Filtra per mese">
+              <option value="">Tutti i mesi</option>
+              <option value="1">Gen</option>
+              <option value="2">Feb</option>
+              <option value="3">Mar</option>
+              <option value="4">Apr</option>
+              <option value="5">Mag</option>
+              <option value="6">Giu</option>
+              <option value="7">Lug</option>
+              <option value="8">Ago</option>
+              <option value="9">Set</option>
+              <option value="10">Ott</option>
+              <option value="11">Nov</option>
+              <option value="12">Dic</option>
+            </select>
+          </div>
 
-        <div class="field">
-          <label for="monthFilter">Mese</label>
-          <select id="monthFilter" class="sel" aria-label="Filtra per mese">
-            <option value="">Tutti i mesi</option>
-            <option value="1">Gen</option><option value="2">Feb</option><option value="3">Mar</option>
-            <option value="4">Apr</option><option value="5">Mag</option><option value="6">Giu</option>
-            <option value="7">Lug</option><option value="8">Ago</option><option value="9">Set</option>
-            <option value="10">Ott</option><option value="11">Nov</option><option value="12">Dic</option>
-          </select>
-        </div>
+          <div class="field">
+            <label for="autoFilter">Auto</label>
+            <select id="autoFilter" class="sel" aria-label="Filtra per auto">
+              <option value="">Tutte le auto</option>
+            </select>
+          </div>
 
-        <div class="field">
-          <label for="autoFilter">Auto</label>
-          <select id="autoFilter" class="sel" aria-label="Filtra per auto">
-            <option value="">Tutte le auto</option>
-          </select>
-        </div>
+          <div class="field">
+            <label for="schedaFilter">Scheda carburante</label>
+            <select id="schedaFilter" class="sel" aria-label="Filtra per scheda carburante">
+              <option value="">Scheda: tutte</option>
+              <option value="SI">Solo scheda carburante</option>
+              <option value="NO">Solo non scheda</option>
+            </select>
+          </div>
 
-        <div class="field">
-          <label for="schedaFilter">Scheda carburante</label>
-          <select id="schedaFilter" class="sel" aria-label="Filtra per scheda carburante">
-            <option value="">Scheda: tutte</option>
-            <option value="SI">Solo scheda carburante</option>
-            <option value="NO">Solo non scheda</option>
-          </select>
-        </div>
-
-        <div class="drawer-actions">
-          <button id="applyBtn" class="btn" type="button" aria-label="Applica filtro">Filtra</button>
+          <div class="drawer-actions">
+            <button id="applyBtn" class="btn" type="button" aria-label="Applica filtro">
+              Filtra
+            </button>
+          </div>
         </div>
       </div>
     </div>
-  </div>
 
-  <!-- AZIONI -->
-  <div class="actions-footer container">
-    <a class="btn" id="backBtn" href="add_rifornimento.html" target="_self" aria-label="Torna all'inserimento">← Nuovo rifornimento</a>
-    <button class="btn" id="refreshBtn" type="button" aria-label="Ricarica elenco">⟳ Ricarica</button>
-  </div>
+    <!-- AZIONI -->
+    <div class="actions-footer container">
+      <a
+        class="btn"
+        id="backBtn"
+        href="add_rifornimento.html"
+        target="_self"
+        aria-label="Torna all'inserimento"
+        >← Nuovo rifornimento</a
+      >
+      <button class="btn" id="refreshBtn" type="button" aria-label="Ricarica elenco">
+        ⟳ Ricarica
+      </button>
+    </div>
 
-  <!-- Versione -->
-  <div class="version-footer muted">Versione: <span id="appVersion" class="badge"></span></div>
+    <!-- Versione -->
+    <div class="version-footer muted">Versione: <span id="appVersion" class="badge"></span></div>
 
-<script>
-/* ====== CONFIG ====== */     
-const ENDPOINT = 'https://script.google.com/macros/s/AKfycbzbqrHJempNcv0F9yY7FQ9wu5mZWLx1P1oSqvvTa-ztvBF167CGsQLfFokmx-yD4M3O/exec';
-const SECRET   = 'aX4P-92kLq-55T8b-7Hc0Z';
+    <script>
+      /* ====== CONFIG ====== */
+      const ENDPOINT =
+        'https://script.google.com/macros/s/AKfycbzbqrHJempNcv0F9yY7FQ9wu5mZWLx1P1oSqvvTa-ztvBF167CGsQLfFokmx-yD4M3O/exec';
+      const SECRET = 'aX4P-92kLq-55T8b-7Hc0Z';
 
-/* ====== VERSIONE ====== */
-function formatVersionFromDate(d){
-  const p=n=>String(n).padStart(2,'0');
-  return `${d.getFullYear()}.${p(d.getMonth()+1)}.${p(d.getDate())}-${p(d.getHours())}:${p(d.getMinutes())}`;
-}
-function computeAppVersion(){
-  const qs = new URLSearchParams(location.search);
-  const v = qs.get('v');
-  if (v) return v;
-  const d = new Date(document.lastModified);
-  return isNaN(d)?'dev':formatVersionFromDate(d);
-}
-document.getElementById('appVersion').textContent = computeAppVersion();
+      /* ====== VERSIONE ====== */
+      function formatVersionFromDate(d) {
+        const p = n => String(n).padStart(2, '0');
+        return `${d.getFullYear()}.${p(d.getMonth() + 1)}.${p(d.getDate())}-${p(d.getHours())}:${p(
+          d.getMinutes()
+        )}`;
+      }
+      function computeAppVersion() {
+        const qs = new URLSearchParams(location.search);
+        const v = qs.get('v');
+        if (v) return v;
+        const d = new Date(document.lastModified);
+        return isNaN(d) ? 'dev' : formatVersionFromDate(d);
+      }
+      document.getElementById('appVersion').textContent = computeAppVersion();
 
-/* ====== UTILS ====== */
-const euro = x => Number(x||0).toFixed(2).replace('.', ',');
-const ymd  = d => new Date(d).toISOString().slice(0,10);
+      /* ====== UTILS ====== */
+      const euro = x =>
+        Number(x || 0)
+          .toFixed(2)
+          .replace('.', ',');
+      const ymd = d => new Date(d).toISOString().slice(0, 10);
 
-let ALL_ROWS = []; // usata per popolare anni e auto alla prima load
-let INIT_FILTERS = null; // filtri iniziali da URL (se presenti)
+      let ALL_ROWS = []; // usata per popolare anni e auto alla prima load
+      let INIT_FILTERS = null; // filtri iniziali da URL (se presenti)
 
-function formatDateIT(ymd) {
-  if (!ymd) return '';
-  const [y, m, d] = ymd.split('-').map(Number);
-  if (!y || !m || !d) return ymd;
-  return `${String(d).padStart(2,'0')}/${String(m).padStart(2,'0')}/${y}`;
-}
+      function formatDateIT(ymd) {
+        if (!ymd) return '';
+        const [y, m, d] = ymd.split('-').map(Number);
+        if (!y || !m || !d) return ymd;
+        return `${String(d).padStart(2, '0')}/${String(m).padStart(2, '0')}/${y}`;
+      }
 
-/* ====== UI: FILTRI ATTIVI ====== */
-function updateActiveFiltersLabel(){
-  const box = document.getElementById('activeFilters');
-  if (!box) return;
+      /* ====== UI: FILTRI ATTIVI ====== */
+      function updateActiveFiltersLabel() {
+        const box = document.getElementById('activeFilters');
+        if (!box) return;
 
-  const yearSel   = document.getElementById('yearFilter');
-  const monthSel  = document.getElementById('monthFilter');
-  const autoSel   = document.getElementById('autoFilter');
-  const schedaSel = document.getElementById('schedaFilter');
+        const yearSel = document.getElementById('yearFilter');
+        const monthSel = document.getElementById('monthFilter');
+        const autoSel = document.getElementById('autoFilter');
+        const schedaSel = document.getElementById('schedaFilter');
 
-  const parts = [];
+        const parts = [];
 
-  if (yearSel && yearSel.value){
-    parts.push(yearSel.options[yearSel.selectedIndex].textContent.trim());
-  }
-  if (monthSel && monthSel.value){
-    parts.push(monthSel.options[monthSel.selectedIndex].textContent.trim());
-  }
-  if (autoSel && autoSel.value){
-    parts.push('Auto: ' + autoSel.options[autoSel.selectedIndex].textContent.trim());
-  }
-  if (schedaSel && schedaSel.value){
-    parts.push(schedaSel.options[schedaSel.selectedIndex].textContent.trim());
-  }
+        if (yearSel && yearSel.value) {
+          parts.push(yearSel.options[yearSel.selectedIndex].textContent.trim());
+        }
+        if (monthSel && monthSel.value) {
+          parts.push(monthSel.options[monthSel.selectedIndex].textContent.trim());
+        }
+        if (autoSel && autoSel.value) {
+          parts.push('Auto: ' + autoSel.options[autoSel.selectedIndex].textContent.trim());
+        }
+        if (schedaSel && schedaSel.value) {
+          parts.push(schedaSel.options[schedaSel.selectedIndex].textContent.trim());
+        }
 
-  if (!parts.length){
-    box.style.display = 'none';
-    box.textContent = '';
-  }else{
-    box.textContent = 'Filtri attivi: ' + parts.join(' • ');
-    box.style.display = 'block';
-  }
-}
+        if (!parts.length) {
+          box.style.display = 'none';
+          box.textContent = '';
+        } else {
+          box.textContent = 'Filtri attivi: ' + parts.join(' • ');
+          box.style.display = 'block';
+        }
+      }
 
-/* ====== POPOLAMENTO FILTRI ====== */
-function populateYears(distinctYears){
-  const sel = document.getElementById('yearFilter');
-  sel.querySelectorAll('option:not([value=""])').forEach(o => o.remove());
-  distinctYears.sort((a,b)=>b-a).forEach(y=>{
-    const opt = document.createElement('option');
-    opt.value = String(y);
-    opt.textContent = String(y);
-    sel.appendChild(opt);
-  });
-}
+      /* ====== POPOLAMENTO FILTRI ====== */
+      function populateYears(distinctYears) {
+        const sel = document.getElementById('yearFilter');
+        sel.querySelectorAll('option:not([value=""])').forEach(o => o.remove());
+        distinctYears
+          .sort((a, b) => b - a)
+          .forEach(y => {
+            const opt = document.createElement('option');
+            opt.value = String(y);
+            opt.textContent = String(y);
+            sel.appendChild(opt);
+          });
+      }
 
-function populateAutos(distinctAutos){
-  const sel = document.getElementById('autoFilter');
-  sel.querySelectorAll('option:not([value=""])').forEach(o => o.remove());
-  distinctAutos.sort((a,b)=>a.localeCompare(b,'it',{sensitivity:'base'})).forEach(a=>{
-    const opt = document.createElement('option');
-    opt.value = a;
-    opt.textContent = a;
-    sel.appendChild(opt);
-  });
-}
+      function populateAutos(distinctAutos) {
+        const sel = document.getElementById('autoFilter');
+        sel.querySelectorAll('option:not([value=""])').forEach(o => o.remove());
+        distinctAutos
+          .sort((a, b) => a.localeCompare(b, 'it', { sensitivity: 'base' }))
+          .forEach(a => {
+            const opt = document.createElement('option');
+            opt.value = a;
+            opt.textContent = a;
+            sel.appendChild(opt);
+          });
+      }
 
-function populateFiltersFromRows(rows){
-  const dates = [];
-  const autos = new Set();
+      function populateFiltersFromRows(rows) {
+        const dates = [];
+        const autos = new Set();
 
-  for (const r of rows) {
-    if (r.data) {
-      const d = new Date(r.data);
-      if (!isNaN(d)) dates.push(d.getFullYear());
-    }
-    if (r.auto) {
-      autos.add(String(r.auto));
-    }
-  }
+        for (const r of rows) {
+          if (r.data) {
+            const d = new Date(r.data);
+            if (!isNaN(d)) dates.push(d.getFullYear());
+          }
+          if (r.auto) {
+            autos.add(String(r.auto));
+          }
+        }
 
-  const years = Array.from(new Set(dates));
-  if (years.length) populateYears(years);
+        const years = Array.from(new Set(dates));
+        if (years.length) populateYears(years);
 
-  const autoList = Array.from(autos);
-  if (autoList.length) populateAutos(autoList);
-}
+        const autoList = Array.from(autos);
+        if (autoList.length) populateAutos(autoList);
+      }
 
-/* ====== RENDER TABELLA ====== */
-function render(json){
-  const tbl = document.getElementById('tbl');
-  const tbody = tbl.querySelector('tbody');
-  const status = document.getElementById('status');
-  const summary = document.getElementById('summary');
+      /* ====== RENDER TABELLA ====== */
+      function render(json) {
+        const tbl = document.getElementById('tbl');
+        const tbody = tbl.querySelector('tbody');
+        const status = document.getElementById('status');
+        const summary = document.getElementById('summary');
 
-  tbody.innerHTML = '';
-  const rows = json.rows || [];
+        tbody.innerHTML = '';
+        const rows = json.rows || [];
 
-  if (rows.length === 0) {
-    tbl.style.display = 'none';
-    summary.style.display = 'none';
-    status.textContent = 'Nessun rifornimento per il filtro selezionato.';
-    status.className = 'muted';
-    return;
-  }
+        if (rows.length === 0) {
+          tbl.style.display = 'none';
+          summary.style.display = 'none';
+          status.textContent = 'Nessun rifornimento per il filtro selezionato.';
+          status.className = 'muted';
+          return;
+        }
 
-  for (const r of rows) {
-    const tr = document.createElement('tr');
+        for (const r of rows) {
+          const tr = document.createElement('tr');
 
-    const tdData   = document.createElement('td');
-    const tdImport = document.createElement('td');
-    const tdPrezzo = document.createElement('td');
+          const tdData = document.createElement('td');
+          const tdImport = document.createElement('td');
+          const tdPrezzo = document.createElement('td');
 
-    //tdData.textContent   = r.data;
-    tdData.textContent   = formatDateIT(r.data);
-    tdImport.textContent = euro(r.importo);
-    tdPrezzo.textContent = r.prezzo != null ? String(r.prezzo) : '';
+          //tdData.textContent   = r.data;
+          tdData.textContent = formatDateIT(r.data);
+          tdImport.textContent = euro(r.importo);
+          tdPrezzo.textContent = r.prezzo != null ? String(r.prezzo) : '';
 
-    tdImport.className = 'right';
-    tdPrezzo.className = 'right';
+          tdImport.className = 'right';
+          tdPrezzo.className = 'right';
 
-    tr.appendChild(tdData);
-    tr.appendChild(tdImport);
-    tr.appendChild(tdPrezzo);
-    tbody.appendChild(tr);
-  }
+          tr.appendChild(tdData);
+          tr.appendChild(tdImport);
+          tr.appendChild(tdPrezzo);
+          tbody.appendChild(tr);
+        }
 
-  status.textContent = '';
-  tbl.style.display = 'table';
+        status.textContent = '';
+        tbl.style.display = 'table';
 
-  const totMov = (typeof json.totale_movimenti === 'number') ? json.totale_movimenti : rows.length;
-  let spesaTot = (typeof json.spesa_totale === 'number')
-    ? json.spesa_totale
-    : rows.reduce((s,r)=>s+Number(r.importo||0),0);
+        const totMov =
+          typeof json.totale_movimenti === 'number' ? json.totale_movimenti : rows.length;
+        let spesaTot =
+          typeof json.spesa_totale === 'number'
+            ? json.spesa_totale
+            : rows.reduce((s, r) => s + Number(r.importo || 0), 0);
 
-  summary.textContent = `Totale movimenti: ${totMov} • Spesa totale: € ${euro(spesaTot)}`;
-  summary.style.display = 'block';
-}
+        summary.textContent = `Totale movimenti: ${totMov} • Spesa totale: € ${euro(spesaTot)}`;
+        summary.style.display = 'block';
+      }
 
-/* ====== DATA LOAD ====== */
-async function fetchList({year=null, month=null, auto=null, scheda=null, forInit=false} = {}){
-  const status = document.getElementById('status');
-  status.textContent = 'Carico…';
-  status.className = 'loading';
+      /* ====== DATA LOAD ====== */
+      async function fetchList({
+        year = null,
+        month = null,
+        auto = null,
+        scheda = null,
+        forInit = false,
+      } = {}) {
+        const status = document.getElementById('status');
+        status.textContent = 'Carico…';
+        status.className = 'loading';
 
-  try{
-    const url = new URL(ENDPOINT);
-    url.searchParams.set('action','list');
-    url.searchParams.set('secret', SECRET);
-    if (year)   url.searchParams.set('year', String(year));
-    if (month)  url.searchParams.set('month', String(month));
-    if (auto)   url.searchParams.set('auto', String(auto));
-    if (scheda) url.searchParams.set('scheda', String(scheda));
+        try {
+          const url = new URL(ENDPOINT);
+          url.searchParams.set('action', 'list');
+          url.searchParams.set('secret', SECRET);
+          if (year) url.searchParams.set('year', String(year));
+          if (month) url.searchParams.set('month', String(month));
+          if (auto) url.searchParams.set('auto', String(auto));
+          if (scheda) url.searchParams.set('scheda', String(scheda));
 
-    const res = await fetch(url.toString(), { method:'GET' });
-    const json = await res.json();
-    if (!json.ok) throw new Error(json.error||'Errore');
+          const res = await fetch(url.toString(), { method: 'GET' });
+          const json = await res.json();
+          if (!json.ok) throw new Error(json.error || 'Errore');
 
-    if (forInit) {
-      ALL_ROWS = json.rows || [];
-      populateFiltersFromRows(ALL_ROWS);
-    }
+          if (forInit) {
+            ALL_ROWS = json.rows || [];
+            populateFiltersFromRows(ALL_ROWS);
+          }
 
-    render(json);
-  }catch(err){
-    status.textContent = 'Errore nel caricamento. Sei offline o non autorizzato.';
-    status.className = 'err';
-  }
-}
+          render(json);
+        } catch (err) {
+          status.textContent = 'Errore nel caricamento. Sei offline o non autorizzato.';
+          status.className = 'err';
+        }
+      }
 
-/* ====== FILTRI DA URL ====== */
-function applyInitialFiltersFromUrl(){
-  if (!INIT_FILTERS) return;
+      /* ====== FILTRI DA URL ====== */
+      function applyInitialFiltersFromUrl() {
+        if (!INIT_FILTERS) return;
 
-  const { year, month, auto, scheda } = INIT_FILTERS;
+        const { year, month, auto, scheda } = INIT_FILTERS;
 
-  const yearSel   = document.getElementById('yearFilter');
-  const monthSel  = document.getElementById('monthFilter');
-  const autoSel   = document.getElementById('autoFilter');
-  const schedaSel = document.getElementById('schedaFilter');
+        const yearSel = document.getElementById('yearFilter');
+        const monthSel = document.getElementById('monthFilter');
+        const autoSel = document.getElementById('autoFilter');
+        const schedaSel = document.getElementById('schedaFilter');
 
-  if (year && Array.from(yearSel.options).some(o => o.value === year)){
-    yearSel.value = year;
-  }
-  if (month && Array.from(monthSel.options).some(o => o.value === month)){
-    monthSel.value = month;
-  }
-  if (auto && Array.from(autoSel.options).some(o => o.value === auto)){
-    autoSel.value = auto;
-  }
-  if (scheda && Array.from(schedaSel.options).some(o => o.value === scheda)){
-    schedaSel.value = scheda;
-  }
+        if (year && Array.from(yearSel.options).some(o => o.value === year)) {
+          yearSel.value = year;
+        }
+        if (month && Array.from(monthSel.options).some(o => o.value === month)) {
+          monthSel.value = month;
+        }
+        if (auto && Array.from(autoSel.options).some(o => o.value === auto)) {
+          autoSel.value = auto;
+        }
+        if (scheda && Array.from(schedaSel.options).some(o => o.value === scheda)) {
+          schedaSel.value = scheda;
+        }
 
-  const anyFilter = year || month || auto || scheda;
+        const anyFilter = year || month || auto || scheda;
 
-  if (anyFilter){
-    const f = readFilters();
-    fetchList(f);
-    updateActiveFiltersLabel();
-  }
-}
+        if (anyFilter) {
+          const f = readFilters();
+          fetchList(f);
+          updateActiveFiltersLabel();
+        }
+      }
 
-/* ====== LETTURA FILTRI ====== */
-function readFilters(){
-  const y = document.getElementById('yearFilter').value || null;
-  const m = document.getElementById('monthFilter').value || null;
-  const a = document.getElementById('autoFilter').value || null;
-  const s = document.getElementById('schedaFilter').value || null;
-  return { year: y, month: m, auto: a, scheda: s };
-}
+      /* ====== LETTURA FILTRI ====== */
+      function readFilters() {
+        const y = document.getElementById('yearFilter').value || null;
+        const m = document.getElementById('monthFilter').value || null;
+        const a = document.getElementById('autoFilter').value || null;
+        const s = document.getElementById('schedaFilter').value || null;
+        return { year: y, month: m, auto: a, scheda: s };
+      }
 
-/* ====== DRAWER CONTROL ====== */
-function openFilterDrawer(){
-  const drawer = document.getElementById('filterDrawer');
-  if (!drawer) return;
-  drawer.classList.add('open');
-  drawer.setAttribute('aria-hidden','false');
-  document.body.style.overflow = 'hidden';
-}
-function closeFilterDrawer(){
-  const drawer = document.getElementById('filterDrawer');
-  if (!drawer) return;
-  drawer.classList.remove('open');
-  drawer.setAttribute('aria-hidden','true');
-  document.body.style.overflow = '';
-}
+      /* ====== DRAWER CONTROL ====== */
+      function openFilterDrawer() {
+        const drawer = document.getElementById('filterDrawer');
+        if (!drawer) return;
+        drawer.classList.add('open');
+        drawer.setAttribute('aria-hidden', 'false');
+        document.body.style.overflow = 'hidden';
+      }
+      function closeFilterDrawer() {
+        const drawer = document.getElementById('filterDrawer');
+        if (!drawer) return;
+        drawer.classList.remove('open');
+        drawer.setAttribute('aria-hidden', 'true');
+        document.body.style.overflow = '';
+      }
 
-/* ====== EVENTI UI ====== */
-document.getElementById('applyBtn').addEventListener('click', () => {
-  const f = readFilters();
-  fetchList(f);
-  updateActiveFiltersLabel();
-  closeFilterDrawer();
-});
+      /* ====== EVENTI UI ====== */
+      document.getElementById('applyBtn').addEventListener('click', () => {
+        const f = readFilters();
+        fetchList(f);
+        updateActiveFiltersLabel();
+        closeFilterDrawer();
+      });
 
-document.getElementById('refreshBtn').addEventListener('click', () => {
-  const f = readFilters();
-  fetchList(f);
-  updateActiveFiltersLabel();
-});
+      document.getElementById('refreshBtn').addEventListener('click', () => {
+        const f = readFilters();
+        fetchList(f);
+        updateActiveFiltersLabel();
+      });
 
-// Pulsante back: chiudi overlay se in iframe
-document.getElementById('backBtn').addEventListener('click', (e) => {
-  if (window.top !== window.self) {
-    e.preventDefault();
-    window.top.postMessage('close-lista', '*');
-  }
-});
+      // Pulsante back: chiudi overlay se in iframe
+      document.getElementById('backBtn').addEventListener('click', e => {
+        if (window.top !== window.self) {
+          e.preventDefault();
+          window.top.postMessage('close-lista', '*');
+        }
+      });
 
-// Apertura/chiusura drawer
-document.getElementById('openFilterDrawer').addEventListener('click', openFilterDrawer);
-document.getElementById('closeFilterDrawer').addEventListener('click', closeFilterDrawer);
+      // Apertura/chiusura drawer
+      document.getElementById('openFilterDrawer').addEventListener('click', openFilterDrawer);
+      document.getElementById('closeFilterDrawer').addEventListener('click', closeFilterDrawer);
 
-/* ====== THEME SYNC ====== */
-(function(){
-  function applyTheme(t){ document.documentElement.setAttribute('data-theme', t); }
-  window.addEventListener('storage', (e) => {
-    if (e.key === 'theme' && e.newValue) applyTheme(e.newValue);
-  });
-  window.addEventListener('message', (ev) => {
-    if (typeof ev.data === 'string' && ev.data.startsWith('theme:')) {
-      const t = ev.data.split(':')[1];
-      if (t === 'light' || t === 'dark') applyTheme(t);
-    }
-  });
-})();
+      /* ====== THEME SYNC ====== */
+      (function () {
+        function applyTheme(t) {
+          document.documentElement.setAttribute('data-theme', t);
+        }
+        window.addEventListener('storage', e => {
+          if (e.key === 'theme' && e.newValue) applyTheme(e.newValue);
+        });
+        window.addEventListener('message', ev => {
+          if (typeof ev.data === 'string' && ev.data.startsWith('theme:')) {
+            const t = ev.data.split(':')[1];
+            if (t === 'light' || t === 'dark') applyTheme(t);
+          }
+        });
+      })();
 
-/* ====== BOOT ====== */
-document.addEventListener('DOMContentLoaded', () => {
-  const qs = new URLSearchParams(location.search);
-  INIT_FILTERS = {
-    year:   qs.get('year')   || null,
-    month:  qs.get('month')  || null,
-    auto:   qs.get('auto')   || null,
-    scheda: qs.get('scheda') || null
-  };
+      /* ====== BOOT ====== */
+      document.addEventListener('DOMContentLoaded', () => {
+        const qs = new URLSearchParams(location.search);
+        INIT_FILTERS = {
+          year: qs.get('year') || null,
+          month: qs.get('month') || null,
+          auto: qs.get('auto') || null,
+          scheda: qs.get('scheda') || null,
+        };
 
-  fetchList({ forInit: true }).then(() => {
-    applyInitialFiltersFromUrl();
-  });
-});
-</script>
-
-</body>
+        fetchList({ forInit: true }).then(() => {
+          applyInitialFiltersFromUrl();
+        });
+      });
+    </script>
+  </body>
 </html>
-
-
-

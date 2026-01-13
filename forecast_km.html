@@ -1,827 +1,840 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="it" data-theme="light">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <meta name="apple-mobile-web-app-title" content="Carburante">
-  <title>Forecast Km • Carburante</title>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="Carburante" />
+    <title>Forecast Km • Carburante</title>
 
-  <!-- No-cache -->
-  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-  <meta http-equiv="Pragma" content="no-cache">
-  <meta http-equiv="Expires" content="0">
+    <!-- No-cache -->
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
 
-  <script src="js/menu.js" defer></script>
+    <script src="js/menu.js" defer></script>
 
-  <!-- Imposta il tema PRIMA del paint -->
-  <script>
-    (function(){
-      try{
-        const saved = localStorage.getItem('theme');
-        const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-        document.documentElement.setAttribute('data-theme', saved || (prefersDark ? 'dark' : 'light'));
-      }catch(e){}
-    })();
-  </script>
+    <!-- Imposta il tema PRIMA del paint -->
+    <script>
+      (function () {
+        try {
+          const saved = localStorage.getItem('theme');
+          const prefersDark =
+            window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+          document.documentElement.setAttribute(
+            'data-theme',
+            saved || (prefersDark ? 'dark' : 'light')
+          );
+        } catch (e) {}
+      })();
+    </script>
 
-  <style>
-    :root{
-      --space:14px;
+    <style>
+      :root {
+        --space: 14px;
 
-      /* Tema chiaro (default) identico a lista.html */
-      --bg: #ffffff;
-      --text: #111827;
-      --muted: #666666;
-      --surface: #ffffff;
-      --border: #dddddd;
-      --divider: #eeeeee;
-      --btn-hover: #f7f7f7;
-    }
-    html[data-theme="dark"]{
-      --bg: #0f1115;
-      --text: #e5e7eb;
-      --muted: #9aa0a6;
-      --surface: #151922;
-      --border: #2a2f3a;
-      --divider: #222834;
-      --btn-hover: #1b2130;
-    }
-    body{ color-scheme: light dark; }
+        /* Tema chiaro (default) identico a lista.html */
+        --bg: #ffffff;
+        --text: #111827;
+        --muted: #666666;
+        --surface: #ffffff;
+        --border: #dddddd;
+        --divider: #eeeeee;
+        --btn-hover: #f7f7f7;
+      }
+      html[data-theme='dark'] {
+        --bg: #0f1115;
+        --text: #e5e7eb;
+        --muted: #9aa0a6;
+        --surface: #151922;
+        --border: #2a2f3a;
+        --divider: #222834;
+        --btn-hover: #1b2130;
+      }
+      body {
+        color-scheme: light dark;
+      }
 
-    /* Reset + layout base (come scheda_carburante/lista) */
-    * { box-sizing: border-box; }
-    html, body { width:100%; max-width:100%; overflow-x:hidden; margin:0; }
-    body{
-      min-height:100dvh;
-      display:flex;
-      flex-direction:column;
-      padding: var(--space);
-      font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
-      background: var(--bg);
-      color: var(--text);
-    }
+      /* Reset + layout base (come scheda_carburante/lista) */
+      * {
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        width: 100%;
+        max-width: 100%;
+        overflow-x: hidden;
+        margin: 0;
+      }
+      body {
+        min-height: 100dvh;
+        display: flex;
+        flex-direction: column;
+        padding: var(--space);
+        font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+        background: var(--bg);
+        color: var(--text);
+      }
 
-    .container { width:100%; max-width:640px; margin:0 auto; }
+      .container {
+        width: 100%;
+        max-width: 640px;
+        margin: 0 auto;
+      }
 
-    /* HEADER (stile come scheda_carburante) */
-    .topbar{
-      display:flex;
-      flex-direction:column;
-      align-items:center;
-      gap:16px;
-      margin-bottom:18px;
-    }
-    
-    .title{
-      margin:0;
-      text-align:center;
-      font-size:22px;
-      font-weight:700;
-    }
-    
-        .top-controls{
-      display:flex;
-      flex-direction:column;      /* una riga sopra, una sotto */
-      align-items:stretch;
-      gap:10px;
-      font-size:13px;
-      width:100%;
-    }
+      /* HEADER (stile come scheda_carburante) */
+      .topbar {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 16px;
+        margin-bottom: 18px;
+      }
 
-    .top-row{
-      display:flex;
-      flex-wrap:wrap;
-      justify-content:center;
-      align-items:center;
-      gap:10px;
-    }
+      .title {
+        margin: 0;
+        text-align: center;
+        font-size: 22px;
+        font-weight: 700;
+      }
 
-    .top-row .top-field{
-      flex:1;      /* ciascun campo prende metà spazio */
-      min-width:0;
-    }
+      .top-controls {
+        display: flex;
+        flex-direction: column; /* una riga sopra, una sotto */
+        align-items: stretch;
+        gap: 10px;
+        font-size: 13px;
+        width: 100%;
+      }
 
-    .top-row-50{
-      display:flex;
-      gap:10px;
-      width:100%;
-    }
-    .top-row-50 .top-field{
-      flex:1;          /* 50% ciascuno */
-      min-width:0;
-    }
-    
-    .top-field{
-      display:flex;
-      flex-direction:column;
-      align-items:flex-start;
-      gap:4px;
-    }
-    .top-field-label{
-      color:var(--muted);
-      font-size:13px;
-    }
-    .top-field-value{
-      font-variant-numeric: tabular-nums;
-      font-weight:600;
-    }
-    .top-field input[type="text"]{
-      width:100%;
-      max-width:100%;
-      font-size:16px;
-      padding:8px 10px;
-      border-radius:10px;
-      border:1px solid var(--border);
-      background: var(--surface);
-      color: var(--text);
-      box-shadow:none;
-      line-height:1.4;
-      font-variant-numeric: tabular-nums;
-    }
-    .sel{
-      padding:8px 12px;
-      border:1px solid var(--border);
-      border-radius:10px;
-      background: var(--surface);
-      color: var(--text);
-      font:inherit;
-      line-height:1.2;
-      max-width:100%;
-    }
-    .sel-sm{
-      padding:4px 8px;
-      font-size:13px;
-    }
-    .sel:focus-visible{ outline:2px solid #2684ff; outline-offset:2px; }
+      .top-row {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        align-items: center;
+        gap: 10px;
+      }
 
-    /* Card (come scheda_carburante) */
-    .card-block{
-      border:1px solid var(--border);
-      border-radius:12px;
-      padding:16px;
-      margin-top:12px;
-      background: var(--surface);
-    }
-    .card-label{
-      font-size:14px;
-      color:var(--muted);
-      margin-bottom:4px;
-    }
-    .card-value{
-      font-size:24px;
-      font-weight:700;
-      font-variant-numeric: tabular-nums;
-    }
+      .top-row .top-field {
+        flex: 1; /* ciascun campo prende metà spazio */
+        min-width: 0;
+      }
 
-    .muted {
-      color: var(--muted);
-      font-size: 12px;
-    }
+      .top-row-50 {
+        display: flex;
+        gap: 10px;
+        width: 100%;
+      }
+      .top-row-50 .top-field {
+        flex: 1; /* 50% ciascuno */
+        min-width: 0;
+      }
 
-    /* Bottoni (come scheda_carburante) */
-    .btn{
-      display:inline-flex; align-items:center; gap:6px;
-      padding:10px 14px;
-      border:1px solid var(--border); border-radius:12px; background: var(--surface);
-      text-decoration:none; color:inherit; cursor:pointer;
-      font: inherit; line-height:1;
-      appearance:none; -webkit-appearance:none;
-    }
-    .btn-block{
-      width:100%;
-      justify-content:center; /* centra il testo/icona dentro il bottone */
-    }
-    .btn:hover{ background: var(--btn-hover); }
-    .btn:active{ transform:translateY(1px); }
-    .btn:focus-visible{ outline:2px solid #2684ff; outline-offset:2px; }
+      .top-field {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 4px;
+      }
+      .top-field-label {
+        color: var(--muted);
+        font-size: 13px;
+      }
+      .top-field-value {
+        font-variant-numeric: tabular-nums;
+        font-weight: 600;
+      }
+      .top-field input[type='text'] {
+        width: 100%;
+        max-width: 100%;
+        font-size: 16px;
+        padding: 8px 10px;
+        border-radius: 10px;
+        border: 1px solid var(--border);
+        background: var(--surface);
+        color: var(--text);
+        box-shadow: none;
+        line-height: 1.4;
+        font-variant-numeric: tabular-nums;
+      }
+      .sel {
+        padding: 8px 12px;
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        background: var(--surface);
+        color: var(--text);
+        font: inherit;
+        line-height: 1.2;
+        max-width: 100%;
+      }
+      .sel-sm {
+        padding: 4px 8px;
+        font-size: 13px;
+      }
+      .sel:focus-visible {
+        outline: 2px solid #2684ff;
+        outline-offset: 2px;
+      }
 
-    /* Input coerenti con lo stile */
-    label.field-label{
-      display:block;
-      margin:16px 0 6px;
-      font-size:14px;
-    }
-        .field-with-icon{
-      position:relative;
-      width:100%;
-    }
-    .field-with-icon input[type="number"]{
-      padding-right:40px; /* spazio per l’icona a destra */
-    }
-    .input-icon-btn{
-      position:absolute;
-      right:8px;
-      top:50%;
-      transform:translateY(-50%);
-      border:none;
-      background:transparent;
-      padding:0;
-      cursor:pointer;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      font-size:18px;
-      line-height:1;
-      color:var(--muted);
-    }
-    .input-icon-btn:focus-visible{
-      outline:2px solid #2684ff;
-      outline-offset:2px;
-      border-radius:999px;
-    }
+      /* Card (come scheda_carburante) */
+      .card-block {
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 16px;
+        margin-top: 12px;
+        background: var(--surface);
+      }
+      .card-label {
+        font-size: 14px;
+        color: var(--muted);
+        margin-bottom: 4px;
+      }
+      .card-value {
+        font-size: 24px;
+        font-weight: 700;
+        font-variant-numeric: tabular-nums;
+      }
 
-    .row-2{
-      display:flex;
-      gap: var(--space);
-      margin-top:16px;
-    }
-    .field-half{
-      flex:1;
-      min-width:0;
-    }
-    .row-2 .field-label{
-      margin-top:0;
-    }
-    .row-2 input[type="text"]{
-      width:100%;
-      max-width:100%;
-      font-size:16px;
-      padding:10px 12px;
-      border-radius:10px;
-      border:1px solid var(--border);
-      background: var(--surface);
-      color: var(--text);
-      box-shadow:none;
-      line-height:1.4;
-    }
+      .muted {
+        color: var(--muted);
+        font-size: 12px;
+      }
 
-    input[type="number"],
-    input[type="date"]{
-      width:100%;
-      max-width:100%;
-      font-size:16px;
-      padding:10px 12px;
-      border-radius:10px;
-      border:1px solid var(--border);
-      background: var(--surface);
-      color: var(--text);
-      box-shadow:none;
-      line-height:1.4;
-    }
-    input[type="date"]{
-      -webkit-appearance:none;
-      appearance:none;
-      min-width:0;
-    }
-    input:focus-visible{
-      outline:2px solid #2684ff;
-      outline-offset:2px;
-    }
+      /* Bottoni (come scheda_carburante) */
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 10px 14px;
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        background: var(--surface);
+        text-decoration: none;
+        color: inherit;
+        cursor: pointer;
+        font: inherit;
+        line-height: 1;
+        appearance: none;
+        -webkit-appearance: none;
+      }
+      .btn-block {
+        width: 100%;
+        justify-content: center; /* centra il testo/icona dentro il bottone */
+      }
+      .btn:hover {
+        background: var(--btn-hover);
+      }
+      .btn:active {
+        transform: translateY(1px);
+      }
+      .btn:focus-visible {
+        outline: 2px solid #2684ff;
+        outline-offset: 2px;
+      }
 
-    /* Footer azioni + versione (come scheda_carburante.html) */
-    .actions-footer{
-      display:flex; gap:10px; justify-content:center;
-      margin-top:auto;
-      padding-top:12px;
-    }
-    .version-footer{
-      text-align:center;
-      padding: 10px 0 calc(10px + env(safe-area-inset-bottom));
-      width:100%;
-      color: var(--muted);
-    }
-    .badge {
-      display: inline-block;
-      font-size: 12px;
-      padding: 2px 8px;
-      border-radius: 999px;
-      border: 1px solid var(--border);
-      margin-left: 8px;
-      font-variant-numeric: tabular-nums;
-      background: var(--surface);
-    }
+      /* Input coerenti con lo stile */
+      label.field-label {
+        display: block;
+        margin: 16px 0 6px;
+        font-size: 14px;
+      }
+      .field-with-icon {
+        position: relative;
+        width: 100%;
+      }
+      .field-with-icon input[type='number'] {
+        padding-right: 40px; /* spazio per l’icona a destra */
+      }
+      .input-icon-btn {
+        position: absolute;
+        right: 8px;
+        top: 50%;
+        transform: translateY(-50%);
+        border: none;
+        background: transparent;
+        padding: 0;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 18px;
+        line-height: 1;
+        color: var(--muted);
+      }
+      .input-icon-btn:focus-visible {
+        outline: 2px solid #2684ff;
+        outline-offset: 2px;
+        border-radius: 999px;
+      }
 
-    #status {
-      text-align: center;
-      margin-top: 8px;
-    }
+      .row-2 {
+        display: flex;
+        gap: var(--space);
+        margin-top: 16px;
+      }
+      .field-half {
+        flex: 1;
+        min-width: 0;
+      }
+      .row-2 .field-label {
+        margin-top: 0;
+      }
+      .row-2 input[type='text'] {
+        width: 100%;
+        max-width: 100%;
+        font-size: 16px;
+        padding: 10px 12px;
+        border-radius: 10px;
+        border: 1px solid var(--border);
+        background: var(--surface);
+        color: var(--text);
+        box-shadow: none;
+        line-height: 1.4;
+      }
 
-    /* Delta evidenziato */
-    .delta-value{
-      font-size:32px;
-    }
-    .delta-positive{
-      color:#22c55e;
-    }
-    .delta-negative{
-      color:#ef4444;
-    }
-  </style>
-</head>
-<body>
+      input[type='number'],
+      input[type='date'] {
+        width: 100%;
+        max-width: 100%;
+        font-size: 16px;
+        padding: 10px 12px;
+        border-radius: 10px;
+        border: 1px solid var(--border);
+        background: var(--surface);
+        color: var(--text);
+        box-shadow: none;
+        line-height: 1.4;
+      }
+      input[type='date'] {
+        -webkit-appearance: none;
+        appearance: none;
+        min-width: 0;
+      }
+      input:focus-visible {
+        outline: 2px solid #2684ff;
+        outline-offset: 2px;
+      }
 
-  <!-- HEADER -->
+      /* Footer azioni + versione (come scheda_carburante.html) */
+      .actions-footer {
+        display: flex;
+        gap: 10px;
+        justify-content: center;
+        margin-top: auto;
+        padding-top: 12px;
+      }
+      .version-footer {
+        text-align: center;
+        padding: 10px 0 calc(10px + env(safe-area-inset-bottom));
+        width: 100%;
+        color: var(--muted);
+      }
+      .badge {
+        display: inline-block;
+        font-size: 12px;
+        padding: 2px 8px;
+        border-radius: 999px;
+        border: 1px solid var(--border);
+        margin-left: 8px;
+        font-variant-numeric: tabular-nums;
+        background: var(--surface);
+      }
+
+      #status {
+        text-align: center;
+        margin-top: 8px;
+      }
+
+      /* Delta evidenziato */
+      .delta-value {
+        font-size: 32px;
+      }
+      .delta-positive {
+        color: #22c55e;
+      }
+      .delta-negative {
+        color: #ef4444;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- HEADER -->
     <header class="topbar container">
-    <h1 class="title">Forecast Km</h1>
-    <div class="top-controls">
+      <h1 class="title">Forecast Km</h1>
+      <div class="top-controls">
+        <!-- Riga 1: data + forecast -->
+        <div class="top-row">
+          <label class="top-field">
+            <span class="top-field-label">Data attuale</span>
+            <input id="currentDate" type="date" class="sel sel-sm" aria-label="Data attuale" />
+          </label>
+          <div class="top-field">
+            <span class="top-field-label">Forecast (km)</span>
+            <input id="forecastValue" type="text" readonly />
+          </div>
+        </div>
 
-      <!-- Riga 1: data + forecast -->
-      <div class="top-row">
-        <label class="top-field">
-          <span class="top-field-label">Data attuale</span>
-          <input id="currentDate" type="date" class="sel sel-sm" aria-label="Data attuale">
-        </label>
-        <div class="top-field">
-          <span class="top-field-label">Forecast (km)</span>
-          <input
-            id="forecastValue"
-            type="text"
-            readonly
-          >
+        <!-- Riga 2: 50% + 50% -->
+        <div class="top-row-50">
+          <div class="top-field">
+            <span class="top-field-label">Num. Giorni</span>
+            <input id="numGiorniValue" type="text" readonly />
+          </div>
+          <div class="top-field">
+            <span class="top-field-label">Giorni restanti</span>
+            <input id="giorniRestantiValue" type="text" readonly />
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <main class="container" role="main">
+      <div class="row-2">
+        <div class="field-half">
+          <label for="percentDays" class="field-label">Giorni passati (%)</label>
+          <input id="percentDays" type="text" readonly />
+        </div>
+
+        <div class="field-half">
+          <label for="percentKm" class="field-label">Km utilizzati (%)</label>
+          <input id="percentKm" type="text" readonly />
         </div>
       </div>
 
-      <!-- Riga 2: 50% + 50% -->
-      <div class="top-row-50">
-        <div class="top-field">
-          <span class="top-field-label">Num. Giorni</span>
-          <input
-            id="numGiorniValue"
-            type="text"
-            readonly
-          >
-        </div>
-        <div class="top-field">
-          <span class="top-field-label">Giorni restanti</span>
-          <input
-            id="giorniRestantiValue"
-            type="text"
-            readonly
-          >
-        </div>
-
+      <label for="kmAttuali" class="field-label">Km attuali</label>
+      <div class="field-with-icon">
+        <input id="kmAttuali" type="number" inputmode="numeric" min="0" step="1" required />
+        <button id="kmCalcIcon" type="button" class="input-icon-btn" aria-label="Calcola delta">
+          &#x21bb;
+          <!-- icona "ricarica"/calcola -->
+        </button>
       </div>
 
-    </div>
-  </header>
+      <section class="card-block" style="margin-top: 20px">
+        <div class="card-label">Delta (forecast - attuali)</div>
+        <div class="card-value delta-value" id="deltaValue">—</div>
+      </section>
 
-
-  <main class="container" role="main">
-
-    <div class="row-2">
-      <div class="field-half">
-        <label for="percentDays" class="field-label">Giorni passati (%)</label>
-        <input
-          id="percentDays"
-          type="text"
-          readonly
-        >
+      <!-- Nuovo bottone REGISTRA -->
+      <div style="margin-top: 12px">
+        <button id="saveBtn" class="btn btn-block" type="button">Registra</button>
       </div>
 
-      <div class="field-half">
-        <label for="percentKm" class="field-label">Km utilizzati (%)</label>
-        <input
-          id="percentKm"
-          type="text"
-          readonly
-        >
-      </div>
-    </div>
-    
-    <label for="kmAttuali" class="field-label">Km attuali</label>
-    <div class="field-with-icon">
-      <input id="kmAttuali" type="number" inputmode="numeric" min="0" step="1" required>
-      <button
-        id="kmCalcIcon"
-        type="button"
-        class="input-icon-btn"
-        aria-label="Calcola delta"
+      <div id="status" class="muted"></div>
+    </main>
+
+    <!-- AZIONI -->
+    <div class="actions-footer container">
+      <a
+        class="btn"
+        id="backBtn"
+        href="add_rifornimento.html"
+        target="_self"
+        aria-label="Torna all'inserimento"
+        >← Nuovo rifornimento</a
       >
-        &#x21bb; <!-- icona "ricarica"/calcola -->
-      </button>
+
+      <!-- Nuovo bottone: Elenco check Km reali -->
+      <a
+        class="btn"
+        id="checkKmListBtn"
+        href="check_km_reali.html"
+        target="_self"
+        aria-label="Elenco check Km reali"
+      >
+        Elenco check Km reali
+      </a>
     </div>
 
-    <section class="card-block" style="margin-top:20px;">
-      <div class="card-label">Delta (forecast - attuali)</div>
-      <div class="card-value delta-value" id="deltaValue">—</div>
-    </section>
+    <!-- Versione -->
+    <div class="version-footer muted">Versione:<span id="appVersion" class="badge"></span></div>
 
-    <!-- Nuovo bottone REGISTRA -->
-    <div style="margin-top:12px;">
-      <button id="saveBtn" class="btn btn-block" type="button">Registra</button>
-    </div>
+    <script>
+      /* ====== CONFIG ====== */
+      const ENDPOINT =
+        'https://script.google.com/macros/s/AKfycbwPS8wxz9H8AKh0w81hEgl9UbAP_aChCvdRwaiJB-BrhSYKxNnh4dF9bGW_v3-sPdHl/exec';
+      const SECRET = 'aX4P-92kLq-55T8b-7Hc0Z';
 
-    <div id="status" class="muted"></div>
-  </main>
+      /* Data fine per il calcolo dei giorni restanti: 27/06/2027 */
+      const END_DATE = new Date(2027, 5, 27); // Mese 0-based: 5 = Giugno
+      /* Data inizio per il periodo: 28/06/2023 */
+      const START_DATE = new Date(2023, 5, 28); // 28 Giugno 2023 (mese 0-based)
 
-  <!-- AZIONI -->
-  <div class="actions-footer container">
-    <a class="btn" id="backBtn" href="add_rifornimento.html" target="_self" aria-label="Torna all'inserimento">← Nuovo rifornimento</a>
+      /* Km totali disponibili nel periodo */
+      const TOTAL_KM = 90000;
 
-    <!-- Nuovo bottone: Elenco check Km reali -->
-    <a class="btn" id="checkKmListBtn" href="check_km_reali.html" target="_self" aria-label="Elenco check Km reali">
-      Elenco check Km reali
-    </a>
-  </div>
-
-  <!-- Versione -->
-  <div class="version-footer muted">
-    Versione:<span id="appVersion" class="badge"></span>
-  </div>
-
-<script>
-/* ====== CONFIG ====== */
-const ENDPOINT = 'https://script.google.com/macros/s/AKfycbwPS8wxz9H8AKh0w81hEgl9UbAP_aChCvdRwaiJB-BrhSYKxNnh4dF9bGW_v3-sPdHl/exec';
-const SECRET   = 'aX4P-92kLq-55T8b-7Hc0Z';
-
-/* Data fine per il calcolo dei giorni restanti: 27/06/2027 */
-const END_DATE = new Date(2027, 5, 27); // Mese 0-based: 5 = Giugno
-/* Data inizio per il periodo: 28/06/2023 */
-const START_DATE = new Date(2023, 5, 28); // 28 Giugno 2023 (mese 0-based)
-
-/* Km totali disponibili nel periodo */
-const TOTAL_KM = 90000;
-
-/* ====== VERSIONE (come scheda_carburante/lista) ====== */
-function formatVersionFromDate(d){
-  const p=n=>String(n).padStart(2,'0');
-  return `${d.getFullYear()}.${p(d.getMonth()+1)}.${p(d.getDate())}-${p(d.getHours())}:${p(d.getMinutes())}`;
-}
-function computeAppVersion(){
-  const qs = new URLSearchParams(location.search);
-  const v = qs.get('v');
-  if (v) return v;
-  const d = new Date(document.lastModified);
-  return isNaN(d)?'dev':formatVersionFromDate(d);
-}
-document.getElementById('appVersion').textContent = computeAppVersion();
-
-/* ====== STATE ====== */
-let currentForecastKm = null;
-
-/* ====== UTILS ====== */
-function todayISO(){
-  const d = new Date();
-  const p = n => String(n).padStart(2,'0');
-  return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}`;
-}
-
-function calcDaysRemaining(dateISO) {
-  if (!dateISO) return null;
-  const d = new Date(dateISO);
-  if (!(d instanceof Date) || isNaN(d)) return null;
-
-  const start = new Date(d.getFullYear(), d.getMonth(), d.getDate());
-  const end   = new Date(END_DATE.getFullYear(), END_DATE.getMonth(), END_DATE.getDate());
-
-  const diffMs   = end.getTime() - start.getTime();
-  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-  return diffDays;
-}
-
-function calcPercentDays(dateISO) {
-  if (!dateISO) return null;
-  const d = new Date(dateISO);
-  if (!(d instanceof Date) || isNaN(d)) return null;
-
-  // Normalizzo a mezzanotte
-  const start = new Date(START_DATE.getFullYear(), START_DATE.getMonth(), START_DATE.getDate());
-  const end   = new Date(END_DATE.getFullYear(),   END_DATE.getMonth(),   END_DATE.getDate());
-  const curr  = new Date(d.getFullYear(),          d.getMonth(),          d.getDate());
-
-  const totalMs   = end.getTime() - start.getTime();
-  const elapsedMs = curr.getTime() - start.getTime();
-  if (totalMs <= 0) return null;
-
-  let perc = (elapsedMs / totalMs) * 100;
-  if (!isFinite(perc)) return null;
-
-  if (perc < 0)   perc = 0;
-  if (perc > 100) perc = 100;
-
-  return perc;
-}
-
-/* ====== DELTA ====== */
-function renderDelta(delta){
-  const el = document.getElementById('deltaValue');
-  el.classList.remove('delta-positive','delta-negative');
-  if (delta === null || !isFinite(delta)){
-    el.textContent = '—';
-    return;
-  }
-  el.textContent = delta.toLocaleString('it-IT');
-  if (delta > 0) el.classList.add('delta-positive');
-  else if (delta < 0) el.classList.add('delta-negative');
-}
-
-/**
- * Calcola e mostra il delta.
- * - se silent=true non mostra messaggi di errore in status
- */
-function computeAndRenderDelta({ silent = false } = {}) {
-  const status        = document.getElementById('status');
-  const kmInput       = document.getElementById('kmAttuali');
-  const percentKmInput = document.getElementById('percentKm');
-  const kmVal         = kmInput.value.trim();
-
-  if (!silent) status.textContent = '';
-  renderDelta(null);
-  if (percentKmInput) percentKmInput.value = '';
-
-  if (currentForecastKm === null) {
-    if (!silent) status.textContent = 'Forecast non disponibile. Controlla la data attuale.';
-    return false;
-  }
-  if (!kmVal) {
-    if (!silent) status.textContent = 'Inserisci i Km attuali.';
-    return false;
-  }
-
-  const kmNum = Number(kmVal);
-  if (!isFinite(kmNum) || kmNum < 0){
-    if (!silent) status.textContent = 'Valore di Km attuali non valido.';
-    return false;
-  }
-
-  // Delta forecast - attuali
-  const delta = currentForecastKm - kmNum;
-  renderDelta(delta);
-
-  // Percentuale di Km utilizzati su TOTAL_KM
-  if (percentKmInput && TOTAL_KM > 0) {
-    let percKm = (kmNum / TOTAL_KM) * 100;
-    if (!isFinite(percKm)) {
-      percentKmInput.value = '';
-    } else {
-      if (percKm < 0)   percKm = 0;
-      if (percKm > 100) percKm = 100;
-
-      const formatted = percKm.toLocaleString('it-IT', {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2
-      });
-      percentKmInput.value = formatted + '%'; // es: 12,34%
-    }
-  }
-
-  if (!silent) status.textContent = 'Calcolo completato.';
-  return true;
-}
-
-/* ====== API: carica forecast per data ====== */
-async function loadForecastForDate(){
-  const dateInput           = document.getElementById('currentDate');
-  const forecastSpan        = document.getElementById('forecastValue');
-  const numGiorniSpan       = document.getElementById('numGiorniValue');
-  const giorniRestantiSpan  = document.getElementById('giorniRestantiValue');
-  const kmInput             = document.getElementById('kmAttuali');
-  const percentDaysInput    = document.getElementById('percentDays');
-  const percentKmInput      = document.getElementById('percentKm');
-  const status              = document.getElementById('status');
-
-  let dateVal = dateInput.value;
-  if (!dateVal){
-    dateVal = todayISO();
-    dateInput.value = dateVal;
-  }
-
-  status.textContent = 'Carico forecast…';
-  currentForecastKm = null;
-  forecastSpan.value       = '—';
-  numGiorniSpan.value      = '—';
-  giorniRestantiSpan.value = '—';
-  kmInput.value                  = '';
-  if (percentDaysInput) percentDaysInput.value = '';
-  if (percentKmInput)   percentKmInput.value   = '';
-  renderDelta(null);
-
-  try{
-    const url = new URL(ENDPOINT);
-    url.searchParams.set('action','km_forecast');
-    url.searchParams.set('secret', SECRET);
-    url.searchParams.set('date', dateVal);
-
-    const res  = await fetch(url.toString(), { method:'GET' });
-    const json = await res.json();
-
-    // Giorni restanti: li calcolo sempre
-    const gr = calcDaysRemaining(dateVal);
-    if (gr !== null && isFinite(gr)) {
-      giorniRestantiSpan.value = gr.toLocaleString('it-IT');
-    } else {
-      giorniRestantiSpan.value = '—';
-    }
-
-    // Percentuale di giorni passati: 28/06/2023 → END_DATE
-    const pd = calcPercentDays(dateVal);
-    if (pd !== null && isFinite(pd)) {
-      if (percentDaysInput) {
-        const formatted = pd.toLocaleString('it-IT', {
-          minimumFractionDigits: 2,
-          maximumFractionDigits: 2
-        });
-        percentDaysInput.value = formatted + '%'; // es: 56,78%
+      /* ====== VERSIONE (come scheda_carburante/lista) ====== */
+      function formatVersionFromDate(d) {
+        const p = n => String(n).padStart(2, '0');
+        return `${d.getFullYear()}.${p(d.getMonth() + 1)}.${p(d.getDate())}-${p(d.getHours())}:${p(
+          d.getMinutes()
+        )}`;
       }
-    } else {
-      if (percentDaysInput) percentDaysInput.value = '';
-    }
+      function computeAppVersion() {
+        const qs = new URLSearchParams(location.search);
+        const v = qs.get('v');
+        if (v) return v;
+        const d = new Date(document.lastModified);
+        return isNaN(d) ? 'dev' : formatVersionFromDate(d);
+      }
+      document.getElementById('appVersion').textContent = computeAppVersion();
 
-    if (!json.ok){
-      status.textContent = json.error || 'Forecast non disponibile per questa data.';
-      return;
-    }
+      /* ====== STATE ====== */
+      let currentForecastKm = null;
 
-    // km forecast
-    currentForecastKm = Number(json.km_forecast);
-    if (!isFinite(currentForecastKm)) currentForecastKm = null;
+      /* ====== UTILS ====== */
+      function todayISO() {
+        const d = new Date();
+        const p = n => String(n).padStart(2, '0');
+        return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`;
+      }
 
-    if (currentForecastKm !== null) {
-      forecastSpan.value = currentForecastKm.toLocaleString('it-IT');
-    } else {
-      forecastSpan.value = '—';
-    }
+      function calcDaysRemaining(dateISO) {
+        if (!dateISO) return null;
+        const d = new Date(dateISO);
+        if (!(d instanceof Date) || isNaN(d)) return null;
 
-    // Num. Giorni
-    if ('num_giorni' in json && json.num_giorni !== null && json.num_giorni !== '') {
-      const n = Number(json.num_giorni);
-      if (isFinite(n)) {
-        numGiorniSpan.value = n.toLocaleString('it-IT');
-      } else {
+        const start = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+        const end = new Date(END_DATE.getFullYear(), END_DATE.getMonth(), END_DATE.getDate());
+
+        const diffMs = end.getTime() - start.getTime();
+        const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+        return diffDays;
+      }
+
+      function calcPercentDays(dateISO) {
+        if (!dateISO) return null;
+        const d = new Date(dateISO);
+        if (!(d instanceof Date) || isNaN(d)) return null;
+
+        // Normalizzo a mezzanotte
+        const start = new Date(
+          START_DATE.getFullYear(),
+          START_DATE.getMonth(),
+          START_DATE.getDate()
+        );
+        const end = new Date(END_DATE.getFullYear(), END_DATE.getMonth(), END_DATE.getDate());
+        const curr = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+
+        const totalMs = end.getTime() - start.getTime();
+        const elapsedMs = curr.getTime() - start.getTime();
+        if (totalMs <= 0) return null;
+
+        let perc = (elapsedMs / totalMs) * 100;
+        if (!isFinite(perc)) return null;
+
+        if (perc < 0) perc = 0;
+        if (perc > 100) perc = 100;
+
+        return perc;
+      }
+
+      /* ====== DELTA ====== */
+      function renderDelta(delta) {
+        const el = document.getElementById('deltaValue');
+        el.classList.remove('delta-positive', 'delta-negative');
+        if (delta === null || !isFinite(delta)) {
+          el.textContent = '—';
+          return;
+        }
+        el.textContent = delta.toLocaleString('it-IT');
+        if (delta > 0) el.classList.add('delta-positive');
+        else if (delta < 0) el.classList.add('delta-negative');
+      }
+
+      /**
+       * Calcola e mostra il delta.
+       * - se silent=true non mostra messaggi di errore in status
+       */
+      function computeAndRenderDelta({ silent = false } = {}) {
+        const status = document.getElementById('status');
+        const kmInput = document.getElementById('kmAttuali');
+        const percentKmInput = document.getElementById('percentKm');
+        const kmVal = kmInput.value.trim();
+
+        if (!silent) status.textContent = '';
+        renderDelta(null);
+        if (percentKmInput) percentKmInput.value = '';
+
+        if (currentForecastKm === null) {
+          if (!silent) status.textContent = 'Forecast non disponibile. Controlla la data attuale.';
+          return false;
+        }
+        if (!kmVal) {
+          if (!silent) status.textContent = 'Inserisci i Km attuali.';
+          return false;
+        }
+
+        const kmNum = Number(kmVal);
+        if (!isFinite(kmNum) || kmNum < 0) {
+          if (!silent) status.textContent = 'Valore di Km attuali non valido.';
+          return false;
+        }
+
+        // Delta forecast - attuali
+        const delta = currentForecastKm - kmNum;
+        renderDelta(delta);
+
+        // Percentuale di Km utilizzati su TOTAL_KM
+        if (percentKmInput && TOTAL_KM > 0) {
+          let percKm = (kmNum / TOTAL_KM) * 100;
+          if (!isFinite(percKm)) {
+            percentKmInput.value = '';
+          } else {
+            if (percKm < 0) percKm = 0;
+            if (percKm > 100) percKm = 100;
+
+            const formatted = percKm.toLocaleString('it-IT', {
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2,
+            });
+            percentKmInput.value = formatted + '%'; // es: 12,34%
+          }
+        }
+
+        if (!silent) status.textContent = 'Calcolo completato.';
+        return true;
+      }
+
+      /* ====== API: carica forecast per data ====== */
+      async function loadForecastForDate() {
+        const dateInput = document.getElementById('currentDate');
+        const forecastSpan = document.getElementById('forecastValue');
+        const numGiorniSpan = document.getElementById('numGiorniValue');
+        const giorniRestantiSpan = document.getElementById('giorniRestantiValue');
+        const kmInput = document.getElementById('kmAttuali');
+        const percentDaysInput = document.getElementById('percentDays');
+        const percentKmInput = document.getElementById('percentKm');
+        const status = document.getElementById('status');
+
+        let dateVal = dateInput.value;
+        if (!dateVal) {
+          dateVal = todayISO();
+          dateInput.value = dateVal;
+        }
+
+        status.textContent = 'Carico forecast…';
+        currentForecastKm = null;
+        forecastSpan.value = '—';
         numGiorniSpan.value = '—';
+        giorniRestantiSpan.value = '—';
+        kmInput.value = '';
+        if (percentDaysInput) percentDaysInput.value = '';
+        if (percentKmInput) percentKmInput.value = '';
+        renderDelta(null);
+
+        try {
+          const url = new URL(ENDPOINT);
+          url.searchParams.set('action', 'km_forecast');
+          url.searchParams.set('secret', SECRET);
+          url.searchParams.set('date', dateVal);
+
+          const res = await fetch(url.toString(), { method: 'GET' });
+          const json = await res.json();
+
+          // Giorni restanti: li calcolo sempre
+          const gr = calcDaysRemaining(dateVal);
+          if (gr !== null && isFinite(gr)) {
+            giorniRestantiSpan.value = gr.toLocaleString('it-IT');
+          } else {
+            giorniRestantiSpan.value = '—';
+          }
+
+          // Percentuale di giorni passati: 28/06/2023 → END_DATE
+          const pd = calcPercentDays(dateVal);
+          if (pd !== null && isFinite(pd)) {
+            if (percentDaysInput) {
+              const formatted = pd.toLocaleString('it-IT', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+              });
+              percentDaysInput.value = formatted + '%'; // es: 56,78%
+            }
+          } else {
+            if (percentDaysInput) percentDaysInput.value = '';
+          }
+
+          if (!json.ok) {
+            status.textContent = json.error || 'Forecast non disponibile per questa data.';
+            return;
+          }
+
+          // km forecast
+          currentForecastKm = Number(json.km_forecast);
+          if (!isFinite(currentForecastKm)) currentForecastKm = null;
+
+          if (currentForecastKm !== null) {
+            forecastSpan.value = currentForecastKm.toLocaleString('it-IT');
+          } else {
+            forecastSpan.value = '—';
+          }
+
+          // Num. Giorni
+          if ('num_giorni' in json && json.num_giorni !== null && json.num_giorni !== '') {
+            const n = Number(json.num_giorni);
+            if (isFinite(n)) {
+              numGiorniSpan.value = n.toLocaleString('it-IT');
+            } else {
+              numGiorniSpan.value = '—';
+            }
+          } else {
+            numGiorniSpan.value = '—';
+          }
+
+          // Km reali -> Km attuali
+          let kmReali = null;
+          if ('km_reali' in json && json.km_reali !== null && json.km_reali !== '') {
+            const v = Number(json.km_reali);
+            if (isFinite(v)) kmReali = v;
+          }
+
+          if (kmReali !== null) {
+            kmInput.value = kmReali;
+          } else {
+            kmInput.value = '';
+          }
+
+          // Calcolo automatico del delta se possibile
+          computeAndRenderDelta({ silent: true });
+
+          status.textContent = `Forecast caricato per il ${dateVal}.`;
+        } catch (err) {
+          status.textContent = 'Errore nel caricamento. Sei offline o non autorizzato.';
+        }
       }
-    } else {
-      numGiorniSpan.value = '—';
-    }
 
-    // Km reali -> Km attuali
-    let kmReali = null;
-    if ('km_reali' in json && json.km_reali !== null && json.km_reali !== '') {
-      const v = Number(json.km_reali);
-      if (isFinite(v)) kmReali = v;
-    }
-
-    if (kmReali !== null) {
-      kmInput.value = kmReali;
-    } else {
-      kmInput.value = '';
-    }
-
-    // Calcolo automatico del delta se possibile
-    computeAndRenderDelta({ silent: true });
-
-    status.textContent = `Forecast caricato per il ${dateVal}.`;
-  }catch(err){
-    status.textContent = 'Errore nel caricamento. Sei offline o non autorizzato.';
-  }
-}
-
-/* ====== BOTTONE CALCOLA ====== */
-function onCalcClick(){
-  computeAndRenderDelta({ silent: false });
-}
-
-/* ====== BOTTONE REGISTRA ====== */
-async function onRegisterClick(){
-  const status     = document.getElementById('status');
-  const kmInput    = document.getElementById('kmAttuali');
-  const dateInput  = document.getElementById('currentDate');
-
-  let dateVal = dateInput.value;
-  if (!dateVal){
-    dateVal = todayISO();
-    dateInput.value = dateVal;
-  }
-
-  const kmVal = kmInput.value.trim();
-  status.textContent = '';
-
-  // 1) Prima calcolo/aggiorno il delta
-  const okDelta = computeAndRenderDelta({ silent: false });
-  if (!okDelta) {
-    // Se il delta non è stato calcolato (errori su forecast / km), non proseguo
-    return;
-  }
-
-  // 2) Poi chiedo conferma
-  const msg = `Attenzione, si stanno registrando ${kmVal} km attuali.`;
-  const ok = window.confirm(msg);
-  if (!ok) {
-    status.textContent = 'Registrazione annullata.';
-    return;
-  }
-
-  // 3) Se confermato, salvo
-  status.textContent = 'Registrazione in corso…';
-
-  const body = new URLSearchParams();
-  body.set('action', 'km_register');
-  body.set('secret', SECRET);
-  body.set('date', dateVal);
-  body.set('km', kmVal);
-
-  try{
-    const res  = await fetch(ENDPOINT, {
-      method:'POST',
-      body
-    });
-    const json = await res.json();
-
-    if (!json.ok) {
-      status.textContent = json.error || 'Errore nella registrazione dei Km.';
-      return;
-    }
-
-    status.textContent = 'Km attuali registrati.';
-    // Ricalcolo silenzioso del delta (già aggiornato, ma per sicurezza)
-    computeAndRenderDelta({ silent: true });
-  }catch(err){
-    status.textContent = 'Errore di rete nella registrazione.';
-  }
-}
-
-/* ====== EVENTI UI ====== */
-document.getElementById('currentDate').addEventListener('change', () => {
-  loadForecastForDate();
-});
-
-const kmInputEl   = document.getElementById('kmAttuali');
-const kmIconBtnEl = document.getElementById('kmCalcIcon');
-
-// Calcolo al blur (solo se c'è un valore)
-kmInputEl.addEventListener('blur', () => {
-  if (kmInputEl.value.trim() === '') return;
-  computeAndRenderDelta({ silent: false });
-});
-
-// Calcolo al tap sull’icona
-kmIconBtnEl.addEventListener('click', () => {
-  if (kmInputEl.value.trim() === '') {
-    kmInputEl.focus();
-    return;
-  }
-  computeAndRenderDelta({ silent: false });
-});
-
-document.getElementById('saveBtn').addEventListener('click', onRegisterClick);
-
-// Pulsante back: chiudi overlay se in iframe
-document.getElementById('backBtn').addEventListener('click', (e) => {
-  if (window.top !== window.self) {
-    e.preventDefault();
-    window.top.postMessage('close-lista', '*');
-  }
-});
-
-/* ====== THEME SYNC (come scheda/lista) ====== */
-(function(){
-  function applyTheme(t){ document.documentElement.setAttribute('data-theme', t); }
-  window.addEventListener('storage', (e) => {
-    if (e.key === 'theme' && e.newValue) applyTheme(e.newValue);
-  });
-  window.addEventListener('message', (ev) => {
-    if (typeof ev.data === 'string' && ev.data.startsWith('theme:')) {
-      const t = ev.data.split(':')[1];
-      if (t === 'light' || t === 'dark') applyTheme(t);
-    }
-  });
-})();
-
-/* ====== BOOT ====== */
-document.addEventListener('DOMContentLoaded', () => {
-  const dateInput = document.getElementById('currentDate');
-  dateInput.value = todayISO();
-  loadForecastForDate();
-});
-</script>
-
-<script>
-  // sincronizza il tema dal genitore (come lista.html)
-  window.addEventListener('message', (ev) => {
-    if (typeof ev.data === 'string' && ev.data.startsWith('theme:')) {
-      const t = ev.data.split(':')[1];
-      if (t === 'light' || t === 'dark') {
-        document.documentElement.setAttribute('data-theme', t);
+      /* ====== BOTTONE CALCOLA ====== */
+      function onCalcClick() {
+        computeAndRenderDelta({ silent: false });
       }
-    }
-  });
-</script>
 
-</body>
+      /* ====== BOTTONE REGISTRA ====== */
+      async function onRegisterClick() {
+        const status = document.getElementById('status');
+        const kmInput = document.getElementById('kmAttuali');
+        const dateInput = document.getElementById('currentDate');
+
+        let dateVal = dateInput.value;
+        if (!dateVal) {
+          dateVal = todayISO();
+          dateInput.value = dateVal;
+        }
+
+        const kmVal = kmInput.value.trim();
+        status.textContent = '';
+
+        // 1) Prima calcolo/aggiorno il delta
+        const okDelta = computeAndRenderDelta({ silent: false });
+        if (!okDelta) {
+          // Se il delta non è stato calcolato (errori su forecast / km), non proseguo
+          return;
+        }
+
+        // 2) Poi chiedo conferma
+        const msg = `Attenzione, si stanno registrando ${kmVal} km attuali.`;
+        const ok = window.confirm(msg);
+        if (!ok) {
+          status.textContent = 'Registrazione annullata.';
+          return;
+        }
+
+        // 3) Se confermato, salvo
+        status.textContent = 'Registrazione in corso…';
+
+        const body = new URLSearchParams();
+        body.set('action', 'km_register');
+        body.set('secret', SECRET);
+        body.set('date', dateVal);
+        body.set('km', kmVal);
+
+        try {
+          const res = await fetch(ENDPOINT, {
+            method: 'POST',
+            body,
+          });
+          const json = await res.json();
+
+          if (!json.ok) {
+            status.textContent = json.error || 'Errore nella registrazione dei Km.';
+            return;
+          }
+
+          status.textContent = 'Km attuali registrati.';
+          // Ricalcolo silenzioso del delta (già aggiornato, ma per sicurezza)
+          computeAndRenderDelta({ silent: true });
+        } catch (err) {
+          status.textContent = 'Errore di rete nella registrazione.';
+        }
+      }
+
+      /* ====== EVENTI UI ====== */
+      document.getElementById('currentDate').addEventListener('change', () => {
+        loadForecastForDate();
+      });
+
+      const kmInputEl = document.getElementById('kmAttuali');
+      const kmIconBtnEl = document.getElementById('kmCalcIcon');
+
+      // Calcolo al blur (solo se c'è un valore)
+      kmInputEl.addEventListener('blur', () => {
+        if (kmInputEl.value.trim() === '') return;
+        computeAndRenderDelta({ silent: false });
+      });
+
+      // Calcolo al tap sull’icona
+      kmIconBtnEl.addEventListener('click', () => {
+        if (kmInputEl.value.trim() === '') {
+          kmInputEl.focus();
+          return;
+        }
+        computeAndRenderDelta({ silent: false });
+      });
+
+      document.getElementById('saveBtn').addEventListener('click', onRegisterClick);
+
+      // Pulsante back: chiudi overlay se in iframe
+      document.getElementById('backBtn').addEventListener('click', e => {
+        if (window.top !== window.self) {
+          e.preventDefault();
+          window.top.postMessage('close-lista', '*');
+        }
+      });
+
+      /* ====== THEME SYNC (come scheda/lista) ====== */
+      (function () {
+        function applyTheme(t) {
+          document.documentElement.setAttribute('data-theme', t);
+        }
+        window.addEventListener('storage', e => {
+          if (e.key === 'theme' && e.newValue) applyTheme(e.newValue);
+        });
+        window.addEventListener('message', ev => {
+          if (typeof ev.data === 'string' && ev.data.startsWith('theme:')) {
+            const t = ev.data.split(':')[1];
+            if (t === 'light' || t === 'dark') applyTheme(t);
+          }
+        });
+      })();
+
+      /* ====== BOOT ====== */
+      document.addEventListener('DOMContentLoaded', () => {
+        const dateInput = document.getElementById('currentDate');
+        dateInput.value = todayISO();
+        loadForecastForDate();
+      });
+    </script>
+
+    <script>
+      // sincronizza il tema dal genitore (come lista.html)
+      window.addEventListener('message', ev => {
+        if (typeof ev.data === 'string' && ev.data.startsWith('theme:')) {
+          const t = ev.data.split(':')[1];
+          if (t === 'light' || t === 'dark') {
+            document.documentElement.setAttribute('data-theme', t);
+          }
+        }
+      });
+    </script>
+  </body>
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
-
-

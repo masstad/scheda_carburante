@@ -1,336 +1,370 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="it" data-theme="light">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <meta name="apple-mobile-web-app-title" content="Carburante">
-  <title>Check Km reali • Carburante</title>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="Carburante" />
+    <title>Check Km reali • Carburante</title>
 
-  <!-- No-cache -->
-  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-  <meta http-equiv="Pragma" content="no-cache">
-  <meta http-equiv="Expires" content="0">
+    <!-- No-cache -->
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
 
-  <script src="js/menu.js" defer></script>
+    <script src="js/menu.js" defer></script>
 
-  <!-- Imposta il tema PRIMA del paint -->
-  <script>
-    (function(){
-      try{
-        const saved = localStorage.getItem('theme');
-        const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-        document.documentElement.setAttribute('data-theme', saved || (prefersDark ? 'dark' : 'light'));
-      }catch(e){}
-    })();
-  </script>
+    <!-- Imposta il tema PRIMA del paint -->
+    <script>
+      (function () {
+        try {
+          const saved = localStorage.getItem('theme');
+          const prefersDark =
+            window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+          document.documentElement.setAttribute(
+            'data-theme',
+            saved || (prefersDark ? 'dark' : 'light')
+          );
+        } catch (e) {}
+      })();
+    </script>
 
-  <style>
-    :root{
-      --space:14px;
+    <style>
+      :root {
+        --space: 14px;
 
-      /* Tema chiaro (default) identico a forecast_km */
-      --bg: #ffffff;
-      --text: #111827;
-      --muted: #666666;
-      --surface: #ffffff;
-      --border: #dddddd;
-      --divider: #eeeeee;
-      --btn-hover: #f7f7f7;
-    }
-    html[data-theme="dark"]{
-      --bg: #0f1115;
-      --text: #e5e7eb;
-      --muted: #9aa0a6;
-      --surface: #151922;
-      --border: #2a2f3a;
-      --divider: #222834;
-      --btn-hover: #1b2130;
-    }
-    body{ color-scheme: light dark; }
-
-    /* Reset + layout base */
-    * { box-sizing: border-box; }
-    html, body { width:100%; max-width:100%; overflow-x:hidden; margin:0; }
-    body{
-      min-height:100dvh;
-      display:flex;
-      flex-direction:column;
-      padding: var(--space);
-      font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
-      background: var(--bg);
-      color: var(--text);
-    }
-
-    .container { width:100%; max-width:640px; margin:0 auto; }
-
-    /* HEADER (come forecast_km) */
-    .topbar{
-      display:flex;
-      flex-direction:column;
-      align-items:center;
-      gap:8px;
-      margin-bottom:18px;
-    }
-
-    .title{
-      margin:0;
-      text-align:center;
-      font-size:22px;
-      font-weight:700;
-    }
-
-    .subtitle{
-      margin:0;
-      text-align:center;
-      font-size:13px;
-      color:var(--muted);
-    }
-
-    /* Card */
-    .card-block{
-      border:1px solid var(--border);
-      border-radius:12px;
-      padding:16px;
-      margin-top:12px;
-      background: var(--surface);
-    }
-    .card-label{
-      font-size:14px;
-      color:var(--muted);
-      margin-bottom:8px;
-    }
-
-    .muted {
-      color: var(--muted);
-      font-size: 12px;
-    }
-
-    /* Tabella */
-    .table-wrapper{
-      width:100%;
-      overflow-x:auto;
-      margin-top:8px;
-    }
-
-    table.table{
-      width:100%;
-      border-collapse:collapse;
-      font-size:14px;
-      min-width:320px;
-    }
-    table.table thead{
-      background: var(--divider);
-    }
-    table.table th,
-    table.table td{
-      padding:8px 6px;
-      text-align:left;
-      border-bottom:1px solid var(--divider);
-      font-variant-numeric: tabular-nums;
-    }
-    table.table th{
-      font-size:12px;
-      text-transform:uppercase;
-      letter-spacing:.02em;
-      color:var(--muted);
-    }
-    table.table tbody tr:hover{
-      background: var(--btn-hover);
-    }
-
-    table.table th.num,
-    table.table td.num{
-      text-align: right;
-    }
-
-
-    .delta-cell{
-      font-weight:600;
-      white-space:nowrap;
-    }
-    .delta-positive{
-      color:#22c55e;
-    }
-    .delta-negative{
-      color:#ef4444;
-    }
-
-    /* Bottoni */
-    .btn{
-      display:inline-flex; align-items:center; gap:6px;
-      padding:10px 14px;
-      border:1px solid var(--border); border-radius:12px; background: var(--surface);
-      text-decoration:none; color:inherit; cursor:pointer;
-      font: inherit; line-height:1;
-      appearance:none; -webkit-appearance:none;
-    }
-    .btn-block{
-      width:100%;
-      justify-content:center;
-    }
-    .btn:hover{ background: var(--btn-hover); }
-    .btn:active{ transform:translateY(1px); }
-    .btn:focus-visible{ outline:2px solid #2684ff; outline-offset:2px; }
-
-    /* Footer azioni + versione */
-    .actions-footer{
-      display:flex; gap:10px; justify-content:center;
-      margin-top:auto;
-      padding-top:12px;
-    }
-    .version-footer{
-      text-align:center;
-      padding: 10px 0 calc(10px + env(safe-area-inset-bottom));
-      width:100%;
-      color: var(--muted);
-    }
-    .badge {
-      display: inline-block;
-      font-size: 12px;
-      padding: 2px 8px;
-      border-radius: 999px;
-      border: 1px solid var(--border);
-      margin-left: 8px;
-      font-variant-numeric: tabular-nums;
-      background: var(--surface);
-    }
-
-    #status {
-      text-align: center;
-      margin-top: 8px;
-    }
-
-    /* Mobile: etichette leggibili su schermi stretti */
-    @media (max-width:480px){
-      table.table th, table.table td{
-        padding:6px 4px;
+        /* Tema chiaro (default) identico a forecast_km */
+        --bg: #ffffff;
+        --text: #111827;
+        --muted: #666666;
+        --surface: #ffffff;
+        --border: #dddddd;
+        --divider: #eeeeee;
+        --btn-hover: #f7f7f7;
       }
-    }
-  </style>
-</head>
-<body>
+      html[data-theme='dark'] {
+        --bg: #0f1115;
+        --text: #e5e7eb;
+        --muted: #9aa0a6;
+        --surface: #151922;
+        --border: #2a2f3a;
+        --divider: #222834;
+        --btn-hover: #1b2130;
+      }
+      body {
+        color-scheme: light dark;
+      }
 
-  <!-- HEADER -->
-  <header class="topbar container">
-    <h1 class="title">Check Km reali</h1>
-    <p class="subtitle">Elenco dei Km reali registrati sul foglio "Previsionale".</p>
-  </header>
+      /* Reset + layout base */
+      * {
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        width: 100%;
+        max-width: 100%;
+        overflow-x: hidden;
+        margin: 0;
+      }
+      body {
+        min-height: 100dvh;
+        display: flex;
+        flex-direction: column;
+        padding: var(--space);
+        font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+        background: var(--bg);
+        color: var(--text);
+      }
 
-  <main class="container" role="main">
-    <section class="card-block">
-      <div class="card-label">Elenco check Km reali</div>
+      .container {
+        width: 100%;
+        max-width: 640px;
+        margin: 0 auto;
+      }
 
-      <div class="table-wrapper">
-        <table class="table" aria-describedby="status">
-          <thead>
-            <tr>
-              <th>Data</th>
-              <th class="num">Km forecast</th>
-              <th class="num">Km reali</th>
-              <th class="num">Delta</th>
-            </tr>
-          </thead>
+      /* HEADER (come forecast_km) */
+      .topbar {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 18px;
+      }
 
-          <tbody id="kmTableBody">
-            <tr>
-              <td colspan="4" class="muted">Caricamento in corso…</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </section>
+      .title {
+        margin: 0;
+        text-align: center;
+        font-size: 22px;
+        font-weight: 700;
+      }
 
-    <div id="status" class="muted"></div>
-  </main>
+      .subtitle {
+        margin: 0;
+        text-align: center;
+        font-size: 13px;
+        color: var(--muted);
+      }
 
-  <!-- AZIONI -->
-  <div class="actions-footer container">
-    <a class="btn" href="forecast_km.html" target="_self" aria-label="Torna al forecast">
-      ← Torna al forecast Km
-    </a>
-  </div>
+      /* Card */
+      .card-block {
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 16px;
+        margin-top: 12px;
+        background: var(--surface);
+      }
+      .card-label {
+        font-size: 14px;
+        color: var(--muted);
+        margin-bottom: 8px;
+      }
 
-  <!-- Versione -->
-  <div class="version-footer muted">
-    Versione:<span id="appVersion" class="badge"></span>
-  </div>
+      .muted {
+        color: var(--muted);
+        font-size: 12px;
+      }
 
-<script>
-/* ====== CONFIG ====== */
-const ENDPOINT = 'https://script.google.com/macros/s/AKfycbwPS8wxz9H8AKh0w81hEgl9UbAP_aChCvdRwaiJB-BrhSYKxNnh4dF9bGW_v3-sPdHl/exec';
-const SECRET   = 'aX4P-92kLq-55T8b-7Hc0Z';
+      /* Tabella */
+      .table-wrapper {
+        width: 100%;
+        overflow-x: auto;
+        margin-top: 8px;
+      }
 
-/* ====== VERSIONE (come forecast_km) ====== */
-function formatVersionFromDate(d){
-  const p=n=>String(n).padStart(2,'0');
-  return `${d.getFullYear()}.${p(d.getMonth()+1)}.${p(d.getDate())}-${p(d.getHours())}:${p(d.getMinutes())}`;
-}
-function computeAppVersion(){
-  const qs = new URLSearchParams(location.search);
-  const v = qs.get('v');
-  if (v) return v;
-  const d = new Date(document.lastModified);
-  return isNaN(d)?'dev':formatVersionFromDate(d);
-}
-document.getElementById('appVersion').textContent = computeAppVersion();
+      table.table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 14px;
+        min-width: 320px;
+      }
+      table.table thead {
+        background: var(--divider);
+      }
+      table.table th,
+      table.table td {
+        padding: 8px 6px;
+        text-align: left;
+        border-bottom: 1px solid var(--divider);
+        font-variant-numeric: tabular-nums;
+      }
+      table.table th {
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.02em;
+        color: var(--muted);
+      }
+      table.table tbody tr:hover {
+        background: var(--btn-hover);
+      }
 
-/* ====== UTILS ====== */
-function escapeHtml(str){
-  return String(str || '')
-    .replace(/&/g,'&amp;')
-    .replace(/</g,'&lt;')
-    .replace(/>/g,'&gt;')
-    .replace(/"/g,'&quot;')
-    .replace(/'/g,'&#39;');
-}
-function formatNumber(v){
-  if (v === null || v === undefined || v === '' || !isFinite(Number(v))) return '—';
-  return Number(v).toLocaleString('it-IT');
-}
+      table.table th.num,
+      table.table td.num {
+        text-align: right;
+      }
 
-/* ====== CARICAMENTO TABELLA ====== */
-async function loadKmCheckList(){
-  const status = document.getElementById('status');
-  const tbody  = document.getElementById('kmTableBody');
+      .delta-cell {
+        font-weight: 600;
+        white-space: nowrap;
+      }
+      .delta-positive {
+        color: #22c55e;
+      }
+      .delta-negative {
+        color: #ef4444;
+      }
 
-  status.textContent = 'Carico dati…';
-  tbody.innerHTML = '<tr><td colspan="4" class="muted">Caricamento in corso…</td></tr>';
+      /* Bottoni */
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 10px 14px;
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        background: var(--surface);
+        text-decoration: none;
+        color: inherit;
+        cursor: pointer;
+        font: inherit;
+        line-height: 1;
+        appearance: none;
+        -webkit-appearance: none;
+      }
+      .btn-block {
+        width: 100%;
+        justify-content: center;
+      }
+      .btn:hover {
+        background: var(--btn-hover);
+      }
+      .btn:active {
+        transform: translateY(1px);
+      }
+      .btn:focus-visible {
+        outline: 2px solid #2684ff;
+        outline-offset: 2px;
+      }
 
-  try{
-    const url = new URL(ENDPOINT);
-    url.searchParams.set('action','km_check_list');
-    url.searchParams.set('secret',SECRET);
+      /* Footer azioni + versione */
+      .actions-footer {
+        display: flex;
+        gap: 10px;
+        justify-content: center;
+        margin-top: auto;
+        padding-top: 12px;
+      }
+      .version-footer {
+        text-align: center;
+        padding: 10px 0 calc(10px + env(safe-area-inset-bottom));
+        width: 100%;
+        color: var(--muted);
+      }
+      .badge {
+        display: inline-block;
+        font-size: 12px;
+        padding: 2px 8px;
+        border-radius: 999px;
+        border: 1px solid var(--border);
+        margin-left: 8px;
+        font-variant-numeric: tabular-nums;
+        background: var(--surface);
+      }
 
-    const res  = await fetch(url.toString(), { method:'GET' });
-    const json = await res.json();
+      #status {
+        text-align: center;
+        margin-top: 8px;
+      }
 
-    if (!json.ok){
-      status.textContent = json.error || 'Errore nel caricamento dei dati.';
-      tbody.innerHTML = '<tr><td colspan="4" class="muted">Errore nel caricamento.</td></tr>';
-      return;
-    }
+      /* Mobile: etichette leggibili su schermi stretti */
+      @media (max-width: 480px) {
+        table.table th,
+        table.table td {
+          padding: 6px 4px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- HEADER -->
+    <header class="topbar container">
+      <h1 class="title">Check Km reali</h1>
+      <p class="subtitle">Elenco dei Km reali registrati sul foglio "Previsionale".</p>
+    </header>
 
-    const rows = Array.isArray(json.rows) ? json.rows : [];
+    <main class="container" role="main">
+      <section class="card-block">
+        <div class="card-label">Elenco check Km reali</div>
 
-    if (!rows.length){
-      status.textContent = 'Nessun Km reale registrato.';
-      tbody.innerHTML = '<tr><td colspan="4" class="muted">Nessun Km reale registrato.</td></tr>';
-      return;
-    }
+        <div class="table-wrapper">
+          <table class="table" aria-describedby="status">
+            <thead>
+              <tr>
+                <th>Data</th>
+                <th class="num">Km forecast</th>
+                <th class="num">Km reali</th>
+                <th class="num">Delta</th>
+              </tr>
+            </thead>
 
-    tbody.innerHTML = '';
+            <tbody id="kmTableBody">
+              <tr>
+                <td colspan="4" class="muted">Caricamento in corso…</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
 
-    rows.forEach(r => {
-      const tr = document.createElement('tr');
+      <div id="status" class="muted"></div>
+    </main>
 
-      const delta = (typeof r.delta === 'number' && isFinite(r.delta)) ? r.delta : null;
-      const deltaClass =
-        delta > 0 ? 'delta-positive' :
-        delta < 0 ? 'delta-negative' : '';
+    <!-- AZIONI -->
+    <div class="actions-footer container">
+      <a class="btn" href="forecast_km.html" target="_self" aria-label="Torna al forecast">
+        ← Torna al forecast Km
+      </a>
+    </div>
 
-      tr.innerHTML = `
+    <!-- Versione -->
+    <div class="version-footer muted">Versione:<span id="appVersion" class="badge"></span></div>
+
+    <script>
+      /* ====== CONFIG ====== */
+      const ENDPOINT =
+        'https://script.google.com/macros/s/AKfycbwPS8wxz9H8AKh0w81hEgl9UbAP_aChCvdRwaiJB-BrhSYKxNnh4dF9bGW_v3-sPdHl/exec';
+      const SECRET = 'aX4P-92kLq-55T8b-7Hc0Z';
+
+      /* ====== VERSIONE (come forecast_km) ====== */
+      function formatVersionFromDate(d) {
+        const p = n => String(n).padStart(2, '0');
+        return `${d.getFullYear()}.${p(d.getMonth() + 1)}.${p(d.getDate())}-${p(d.getHours())}:${p(
+          d.getMinutes()
+        )}`;
+      }
+      function computeAppVersion() {
+        const qs = new URLSearchParams(location.search);
+        const v = qs.get('v');
+        if (v) return v;
+        const d = new Date(document.lastModified);
+        return isNaN(d) ? 'dev' : formatVersionFromDate(d);
+      }
+      document.getElementById('appVersion').textContent = computeAppVersion();
+
+      /* ====== UTILS ====== */
+      function escapeHtml(str) {
+        return String(str || '')
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;')
+          .replace(/'/g, '&#39;');
+      }
+      function formatNumber(v) {
+        if (v === null || v === undefined || v === '' || !isFinite(Number(v))) return '—';
+        return Number(v).toLocaleString('it-IT');
+      }
+
+      /* ====== CARICAMENTO TABELLA ====== */
+      async function loadKmCheckList() {
+        const status = document.getElementById('status');
+        const tbody = document.getElementById('kmTableBody');
+
+        status.textContent = 'Carico dati…';
+        tbody.innerHTML = '<tr><td colspan="4" class="muted">Caricamento in corso…</td></tr>';
+
+        try {
+          const url = new URL(ENDPOINT);
+          url.searchParams.set('action', 'km_check_list');
+          url.searchParams.set('secret', SECRET);
+
+          const res = await fetch(url.toString(), { method: 'GET' });
+          const json = await res.json();
+
+          if (!json.ok) {
+            status.textContent = json.error || 'Errore nel caricamento dei dati.';
+            tbody.innerHTML = '<tr><td colspan="4" class="muted">Errore nel caricamento.</td></tr>';
+            return;
+          }
+
+          const rows = Array.isArray(json.rows) ? json.rows : [];
+
+          if (!rows.length) {
+            status.textContent = 'Nessun Km reale registrato.';
+            tbody.innerHTML =
+              '<tr><td colspan="4" class="muted">Nessun Km reale registrato.</td></tr>';
+            return;
+          }
+
+          tbody.innerHTML = '';
+
+          rows.forEach(r => {
+            const tr = document.createElement('tr');
+
+            const delta = typeof r.delta === 'number' && isFinite(r.delta) ? r.delta : null;
+            const deltaClass = delta > 0 ? 'delta-positive' : delta < 0 ? 'delta-negative' : '';
+
+            tr.innerHTML = `
         <td>${escapeHtml(r.date || '')}</td>
         <td class="num">${formatNumber(r.km_forecast)}</td>
         <td class="num">${formatNumber(r.km_reali)}</td>
@@ -341,50 +375,48 @@ async function loadKmCheckList(){
         </td>
       `;
 
-      tbody.appendChild(tr);
-    });
+            tbody.appendChild(tr);
+          });
 
-    status.textContent = `Totale righe: ${rows.length}.`;
-  }catch(err){
-    status.textContent = 'Errore di rete nel caricamento.';
-    tbody.innerHTML = '<tr><td colspan="4" class="muted">Errore di rete.</td></tr>';
-  }
-}
-
-/* ====== THEME SYNC (come le altre pagine) ====== */
-(function(){
-  function applyTheme(t){ document.documentElement.setAttribute('data-theme', t); }
-  window.addEventListener('storage', (e) => {
-    if (e.key === 'theme' && e.newValue) applyTheme(e.newValue);
-  });
-  window.addEventListener('message', (ev) => {
-    if (typeof ev.data === 'string' && ev.data.startsWith('theme:')) {
-      const t = ev.data.split(':')[1];
-      if (t === 'light' || t === 'dark') applyTheme(t);
-    }
-  });
-})();
-
-/* ====== BOOT ====== */
-document.addEventListener('DOMContentLoaded', () => {
-  loadKmCheckList();
-});
-</script>
-
-<script>
-  // sincronizza il tema dal genitore (come lista/forecast)
-  window.addEventListener('message', (ev) => {
-    if (typeof ev.data === 'string' && ev.data.startsWith('theme:')) {
-      const t = ev.data.split(':')[1];
-      if (t === 'light' || t === 'dark') {
-        document.documentElement.setAttribute('data-theme', t);
+          status.textContent = `Totale righe: ${rows.length}.`;
+        } catch (err) {
+          status.textContent = 'Errore di rete nel caricamento.';
+          tbody.innerHTML = '<tr><td colspan="4" class="muted">Errore di rete.</td></tr>';
+        }
       }
-    }
-  });
-</script>
 
-</body>
+      /* ====== THEME SYNC (come le altre pagine) ====== */
+      (function () {
+        function applyTheme(t) {
+          document.documentElement.setAttribute('data-theme', t);
+        }
+        window.addEventListener('storage', e => {
+          if (e.key === 'theme' && e.newValue) applyTheme(e.newValue);
+        });
+        window.addEventListener('message', ev => {
+          if (typeof ev.data === 'string' && ev.data.startsWith('theme:')) {
+            const t = ev.data.split(':')[1];
+            if (t === 'light' || t === 'dark') applyTheme(t);
+          }
+        });
+      })();
+
+      /* ====== BOOT ====== */
+      document.addEventListener('DOMContentLoaded', () => {
+        loadKmCheckList();
+      });
+    </script>
+
+    <script>
+      // sincronizza il tema dal genitore (come lista/forecast)
+      window.addEventListener('message', ev => {
+        if (typeof ev.data === 'string' && ev.data.startsWith('theme:')) {
+          const t = ev.data.split(':')[1];
+          if (t === 'light' || t === 'dark') {
+            document.documentElement.setAttribute('data-theme', t);
+          }
+        }
+      });
+    </script>
+  </body>
 </html>
-
-
-

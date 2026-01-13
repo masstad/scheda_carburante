@@ -1,892 +1,980 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="it" data-theme="light">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <meta name="apple-mobile-web-app-title" content="Carburante">
-  <title>Impianti vicini • Carburante</title>
-
-  <!-- No-cache -->
-  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-  <meta http-equiv="Pragma" content="no-cache">
-  <meta http-equiv="Expires" content="0">
-
-  <script src="js/menu.js" defer></script>
-
-  <!-- Tema prima del paint (come scheda_carburante.html) -->
-  <script>
-    (function(){
-      try{
-        const saved = localStorage.getItem('theme');
-        const prefersDark = window.matchMedia &&
-          window.matchMedia('(prefers-color-scheme: dark)').matches;
-        document.documentElement.setAttribute(
-          'data-theme',
-          saved || (prefersDark ? 'dark' : 'light')
-        );
-      }catch(e){}
-    })();
-  </script>
-
-  <style>
-    :root{
-      --space:14px;
-
-      /* Tema chiaro */
-      --bg: #ffffff;
-      --text: #111827;
-      --muted: #666666;
-      --surface: #ffffff;
-      --border: #dddddd;
-      --divider: #eeeeee;
-      --btn-hover: #f7f7f7;
-    }
-    html[data-theme="dark"]{
-      --bg: #0f1115;
-      --text: #e5e7eb;
-      --muted: #9aa0a6;
-      --surface: #151922;
-      --border: #2a2f3a;
-      --divider: #222834;
-      --btn-hover: #1b2130;
-    }
-    body{ color-scheme: light dark; }
-
-    * { box-sizing: border-box; }
-    html, body { width:100%; max-width:100%; overflow-x:hidden; margin:0; }
-    body{
-      min-height:100dvh;
-      display:flex;
-      flex-direction:column;
-      padding: var(--space);
-      font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
-      background: var(--bg);
-      color: var(--text);
-    }
-
-    .container { width:100%; max-width:640px; margin:0 auto; }
-
-    /* HEADER */
-    .topbar{
-      display:flex;
-      flex-direction:column;
-      align-items:center;
-      gap:8px;
-      margin-bottom:18px;
-      text-align:center;
-    }
-
-    .title{
-      margin:0;
-      font-size:22px;
-      font-weight:700;
-    }
-
-    .coords{
-      font-size:13px;
-      color:var(--muted);
-    }
-
-    .coords span{
-      font-variant-numeric: tabular-nums;
-    }
-
-    /* Lista impianti: card come scheda_carburante */
-    .card-block{
-      border:1px solid var(--border);
-      border-radius:12px;
-      padding:12px 14px;
-      margin-top:10px;
-      background: var(--surface);
-    }
-
-    .card-header{
-      display:flex;
-      justify-content:space-between;
-      align-items:center;
-      margin-bottom:4px;
-      gap:8px;
-    }
-
-    .card-gestore{
-      font-weight:600;
-      font-size:14px;
-    }
-
-    .badge-self{
-      font-size:11px;
-      padding:2px 6px;
-      border-radius:999px;
-      border:1px solid var(--border);
-    }
-
-    .card-indirizzo{
-      font-size:13px;
-      margin-bottom:4px;
-    }
-
-    .card-meta{
-      display:flex;
-      flex-wrap:wrap;
-      gap:8px;
-      font-size:12px;
-      color:var(--muted);
-      margin-top:4px;
-    }
-
-    .card-prezzo{
-      font-size:18px;
-      font-weight:700;
-      font-variant-numeric: tabular-nums;
-      margin-top:2px;
-    }
-
-    .muted {
-      color: var(--muted);
-      font-size: 12px;
-    }
-
-    #status{
-      margin-top:4px;
-      margin-bottom:8px;
-      text-align:center;
-    }
-
-    #results{
-      margin-top:4px;
-    }
-
-    /* Footer azioni + versione (come scheda_carburante) */
-    .actions-footer{
-      display:flex; gap:10px; justify-content:center;
-      margin-top:auto;
-      padding-top:12px;
-    }
-    .version-footer{
-      text-align:center;
-      padding: 10px 0 calc(10px + env(safe-area-inset-bottom));
-      width:100%;
-      color: var(--muted);
-    }
-    .badge {
-      display: inline-block;
-      font-size: 12px;
-      padding: 2px 8px;
-      border-radius: 999px;
-      border: 1px solid var(--border);
-      margin-left: 8px;
-      font-variant-numeric: tabular-nums;
-      background: var(--surface);
-    }
-
-    .btn{
-      display:inline-flex; align-items:center; gap:6px;
-      padding:10px 14px;
-      border:1px solid var(--border); border-radius:12px; background: var(--surface);
-      text-decoration:none; color:inherit; cursor:pointer;
-      font: inherit; line-height:1;
-      appearance:none; -webkit-appearance:none;
-    }
-    .btn:hover{ background: var(--btn-hover); }
-    .btn:active{ transform:translateY(1px); }
-    .btn:focus-visible{ outline:2px solid #2684ff; outline-offset:2px; }
-
-
-  .km-actions{
-  display:flex;
-  flex-direction:column;
-  align-items:flex-end;
-  gap:6px;
-}
-
-/* TOP GRID: 2 righe x 2 colonne */
-.card-topgrid{
-  display:grid;
-  grid-template-columns: 1fr auto;
-  grid-template-rows: auto auto;
-  gap: 6px 10px;
-  align-items:start;
-}
-
-.card-top-name{
-  grid-column: 1;
-  grid-row: 1;
-  font-weight:600;
-  font-size:14px;
-}
-
-.card-top-badge{
-  grid-column: 2;
-  grid-row: 1;
-  justify-self:end;
-  align-self:start;
-}
-
-.card-top-leftinfo{
-  grid-column: 1;
-  grid-row: 2;
-  min-width: 0;
-}
-
-.card-top-map{
-  grid-column: 2;
-  grid-row: 2;
-  justify-self:end;
-  align-self:start;
-}
-
-/* bottone icona maps */
-.map-icon-btn{
-  width:36px;
-  height:36px;
-  display:inline-flex;
-  align-items:center;
-  justify-content:center;
-  border:1px solid var(--border);
-  border-radius:12px;
-  background: var(--surface);
-  cursor:pointer;
-  user-select:none;
-  line-height:1;
-}
-.map-icon-btn:hover{ background: var(--btn-hover); }
-.map-icon-btn:active{ transform:translateY(1px); }
-.map-icon-btn:focus-visible{ outline:2px solid #2684ff; outline-offset:2px; }
-
-.map-icon-btn img{
-  width:24px;
-  height:24px;
-  display:block;
-}
-    
-  </style>
-</head>
-<body>
-
-  <!-- HEADER -->
-  <header class="topbar container">
-    <h1 class="title">⛽️ Impianti vicini</h1>
-    <div class="coords">
-      Latitudine: <span id="lat">—</span> • Longitudine: <span id="lon">—</span>
-    </div>
-  </header>
-
-  <!-- CONTENUTO -->
-  <main class="container" role="main">
-
-    <!-- FILTRO BRAND -->
-    <div id="filters" style="display:flex; gap:10px; justify-content:center; align-items:center; flex-wrap:wrap; margin: 6px 0 10px;">
-      <label for="brandFilter" class="muted" style="display:flex; align-items:center; gap:8px;">
-        Brand
-        <select id="brandFilter" class="btn" style="padding:10px 12px;">
-          <option value="__ALL__">Tutti i brand</option>
-        </select>
-      </label>
-
-      <button id="clearBrand" class="btn" type="button" style="display:none;">✕ Reset</button>
-    </div>
-
-    <div id="status" class="muted">In attesa della posizione GPS…</div>
-    <div id="results"></div>
-  </main>
-
-  <!-- AZIONI -->
-  <div class="actions-footer container">
-    <a class="btn" id="backBtn" href="index.html" target="_self" aria-label="Torna indietro">← Indietro</a>
-  </div>
-
-  <!-- Versione -->
-  <div class="version-footer muted">
-    Versione:<span id="appVersion" class="badge"></span>
-  </div>
-
-<script>
-/* ====== CONFIG BACKEND (STESSO DI scheda_carburante.html) ====== */
-const ENDPOINT = 'https://script.google.com/macros/s/AKfycbzbqrHJempNcv0F9yY7FQ9wu5mZWLx1P1oSqvvTa-ztvBF167CGsQLfFokmx-yD4M3O/exec';
-const SECRET   = 'aX4P-92kLq-55T8b-7Hc0Z';
-
-/* ====== BRAND LOGOS CACHE (via backend per evitare CORS) ====== */
-const LS_LOGOS_KEY = 'mise_brand_logos_v1';
-const LS_LOGOS_EXP = 'mise_brand_logos_v1_exp';
-const LOGOS_TTL_MS = 7 * 24 * 60 * 60 * 1000; // 7 giorni
-
-
-function normBrand(s){
-  return String(s || '').trim().toUpperCase().replace(/\s+/g,' ');
-}
-function getAny(obj, keys){
-  if (!obj) return undefined;
-  for (const k of keys){
-    if (Object.prototype.hasOwnProperty.call(obj, k)) return obj[k];
-    const foundKey = Object.keys(obj).find(x => x.toLowerCase() === String(k).toLowerCase());
-    if (foundKey) return obj[foundKey];
-  }
-  return undefined;
-}
-function mimeFromExt(ext){
-  switch (String(ext || '').trim().toLowerCase()) {
-    case 'svg': return 'image/svg+xml';
-    case 'png': return 'image/png';
-    case 'jpg':
-    case 'jpeg': return 'image/jpeg';
-    case 'webp': return 'image/webp';
-    default: return 'application/octet-stream';
-  }
-}
-function pickBestMarker(list){
-  if (!Array.isArray(list) || !list.length) return null;
-  const typeOf = (m) => String(getAny(m, ['tipoFile','tipo File','tipo_file','tipo']) || '').trim().toLowerCase();
-  const order = ['logo','th5','th4','th3','th2','th1'];
-  for (const t of order){
-    const found = list.find(m => typeOf(m) === t);
-    if (found) return found;
-  }
-  return list[0];
-}
-
-// Converte la risposta enorme di alllogos in una mappa compatta: { __v:1, map:{ BRAND:{ext, mime, content} } }
-function buildCompactBrandLogoMap(payload){
-  const list = Array.isArray(payload) ? payload :
-               Array.isArray(payload?.loghi) ? payload.loghi :
-               Array.isArray(payload?.Loghi) ? payload.Loghi : null;
-  if (!Array.isArray(list)) return null;
-
-  const map = {};
-  for (const entry of list){
-    const brand = normBrand(getAny(entry, ['bandiera','brand','marchio','nomeBrand']));
-    if (!brand) continue;
-
-    const markers = getAny(entry, ['logoMarkerList','logo Marker List','logo_markers','markers','logoMarkers']);
-    const marker = pickBestMarker(markers);
-    if (!marker) continue;
-
-    const ext = getAny(marker, ['estensione','extension','ext']);
-    const content = getAny(marker, ['content','contenuto','data','base64']);
-    if (!content) continue;
-
-    map[brand] = { ext: String(ext || ''), mime: mimeFromExt(ext), content: String(content) };
-  }
-  return { __v: 1, map };
-}
-
-function getCachedBrandLogos(){
-  try{
-    const exp = Number(localStorage.getItem(LS_LOGOS_EXP) || 0);
-    if (!exp || Date.now() > exp) return null;
-    const raw = localStorage.getItem(LS_LOGOS_KEY);
-    if (!raw) return null;
-    return JSON.parse(raw);
-  }catch(e){
-    return null;
-  }
-}
-
-function setCachedBrandLogos(payload){
-  try{
-    // salva in forma compatta per evitare QuotaExceededError del localStorage
-    const compact = buildCompactBrandLogoMap(payload) || payload;
-    localStorage.setItem(LS_LOGOS_KEY, JSON.stringify(compact));
-    localStorage.setItem(LS_LOGOS_EXP, String(Date.now() + LOGOS_TTL_MS));
-  }catch(e){
-    console.warn('[Logos] localStorage write failed:', e);
-  }
-}
-
-async function warmBrandLogosCache(){
-  // se già valida, non fare nulla
-  if (getCachedBrandLogos()) return;
-
-  try{
-    const url = new URL(ENDPOINT);
-    url.searchParams.set('action', 'all_logos');
-    url.searchParams.set('secret', SECRET);
-
-    const res = await fetch(url.toString(), { method:'GET' });
-    const data = await res.json();
-
-    // se il backend risponde {ok:false,...} gestisci
-    if (data && data.ok === false) {
-      console.warn('[Logos] backend error:', data.error || data);
-      return;
-    }
-
-    // l'API MISE di solito restituisce { loghi: [...] }
-    setCachedBrandLogos(data);
-    console.log('[Logos] cache warm ok');
-  }catch(err){
-    console.warn('[Logos] warm cache failed:', err);
-  }
-}
-
-
-/* ====== FILTRO BRAND (UI-only) ====== */
-const LS_BRAND = 'impiantiVicini_brand';
-let ALL_IMPIANTI = [];
-let CURRENT_BRAND = localStorage.getItem(LS_BRAND) || '__ALL__';
-
-/* ====== VERSIONE (come scheda_carburante.html) ====== */
-function formatVersionFromDate(d){
-  const p=n=>String(n).padStart(2,'0');
-  return `${d.getFullYear()}.${p(d.getMonth()+1)}.${p(d.getDate())}-${p(d.getHours())}:${p(d.getMinutes())}`;
-}
-function computeAppVersion(){
-  const qs = new URLSearchParams(location.search);
-  const v = qs.get('v');
-  if (v) return v;
-  const d = new Date(document.lastModified);
-  return isNaN(d)?'dev':formatVersionFromDate(d);
-}
-document.getElementById('appVersion').textContent = computeAppVersion();
-
-/* ====== UTILS ====== */
-function formatCoord(value){
-  if (typeof value !== 'number' || !isFinite(value)) return '—';
-  return value.toFixed(6);
-}
-function formatKm(km){
-  if (typeof km !== 'number' || !isFinite(km)) return '';
-  return km.toFixed(3).replace('.', ',') + ' km';
-}
-function formatIsoToLocal(iso){
-  if (!iso) return '';
-  const d = new Date(iso);
-  if (isNaN(d)) return String(iso);
-  return d.toLocaleString('it-IT', { year:'numeric', month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit' });
-}
-function eur3(n){
-  if (typeof n !== 'number' || !isFinite(n)) return '—';
-  return n.toFixed(3).replace('.', ',');
-}
-
-/* ====== FILTRO: helpers ====== */
-function normalizeBrand(b){
-  return String(b || '').trim();
-}
-
-function populateBrandFilter(list){
-  const sel = document.getElementById('brandFilter');
-  const clearBtn = document.getElementById('clearBrand');
-
-  const brands = Array.from(new Set(
-    (list || []).map(x => normalizeBrand(x.brand)).filter(Boolean)
-  )).sort((a,b)=>a.localeCompare(b,'it',{sensitivity:'base'}));
-
-  sel.innerHTML =
-    `<option value="__ALL__">Tutti i brand</option>` +
-    brands.map(b => `<option value="${b.replaceAll('"','&quot;')}">${b}</option>`).join('');
-
-  if (CURRENT_BRAND && (CURRENT_BRAND === '__ALL__' || brands.includes(CURRENT_BRAND))) {
-    sel.value = CURRENT_BRAND;
-  } else {
-    CURRENT_BRAND = '__ALL__';
-    sel.value = '__ALL__';
-    localStorage.setItem(LS_BRAND, CURRENT_BRAND);
-  }
-
-  clearBtn.style.display = (sel.value !== '__ALL__') ? 'inline-flex' : 'none';
-
-  sel.onchange = () => {
-    CURRENT_BRAND = sel.value;
-    localStorage.setItem(LS_BRAND, CURRENT_BRAND);
-    clearBtn.style.display = (CURRENT_BRAND !== '__ALL__') ? 'inline-flex' : 'none';
-    renderImpiantiFiltered();
-  };
-
-  clearBtn.onclick = () => {
-    CURRENT_BRAND = '__ALL__';
-    localStorage.setItem(LS_BRAND, CURRENT_BRAND);
-    sel.value = '__ALL__';
-    clearBtn.style.display = 'none';
-    renderImpiantiFiltered();
-  };
-}
-
-function getFilteredList(){
-  if (CURRENT_BRAND === '__ALL__') return ALL_IMPIANTI;
-  return ALL_IMPIANTI.filter(x => normalizeBrand(x.brand) === CURRENT_BRAND);
-}
-
-function renderImpiantiFiltered(){
-  const status  = document.getElementById('status');
-  const results = document.getElementById('results');
-
-  const filtered = getFilteredList();
-  const brandTxt = (CURRENT_BRAND !== '__ALL__') ? ` • filtro: ${CURRENT_BRAND}` : '';
-  status.textContent = `Trovati ${filtered.length} impianti nel raggio di 4 km (gasolio)${brandTxt}.`;
-
-  results.innerHTML = '';
-  renderImpianti(filtered);
-}
-
-/* ====== RENDER CARD IMPIANTO (click -> dettaglio) ====== */
-function renderImpianti(list){
-  const results = document.getElementById('results');
-
-  (list || []).forEach((imp, index) => {
-    const card = document.createElement('section');
-    card.className = 'card-block';
-    card.style.cursor = 'pointer';
-
-    card.addEventListener('click', (ev) => {
-      // evita che il click su bottoni apra il dettaglio
-      if (ev.target && ev.target.closest && ev.target.closest('button')) return;
-
-      try{
-        sessionStorage.setItem('impianto_dettaglio', JSON.stringify(imp));
-      }catch(e){}
-
-      const qs = new URLSearchParams(location.search);
-      const v = qs.get('v');
-      const url = v ? `dettaglio_impianto.html?v=${encodeURIComponent(v)}` : 'dettaglio_impianto.html';
-      window.location.href = url;
-    });
-
-    // ===== TOP GRID (2 righe x 2 colonne) =====
-    const topGrid = document.createElement('div');
-    topGrid.className = 'card-topgrid';
-
-    // riga 1 col 1: nome impianto
-    const nameEl = document.createElement('div');
-    nameEl.className = 'card-top-name';
-    const rankVal = (imp.ranking ?? (index + 1));
-    const brandTxt = imp.brand ? ` · ${imp.brand}` : '';
-    nameEl.textContent = `#${rankVal} · ${imp.nomeImpianto || imp.name || 'Impianto'}${brandTxt}`;
-
-    // riga 1 col 2: badge km
-    const kmEl = document.createElement('div');
-    kmEl.className = 'badge-self card-top-badge';
-    kmEl.textContent = formatKm(imp.distanceKm) || '—';
-
-    // riga 2 col 1: indirizzo + meta
-    const leftInfo = document.createElement('div');
-    leftInfo.className = 'card-top-leftinfo';
-
-    const addressEl = document.createElement('div');
-    addressEl.className = 'card-indirizzo';
-    addressEl.textContent = imp.address || '';
-    leftInfo.appendChild(addressEl);
-
-    const metaEl = document.createElement('div');
-    metaEl.className = 'card-meta';
-
-    if (imp.company){
-      const s = document.createElement('span');
-      s.textContent = `Società: ${imp.company}`;
-      metaEl.appendChild(s);
-    }
-    if (imp.phoneNumber){
-      const s = document.createElement('span');
-      s.textContent = `Tel: ${imp.phoneNumber}`;
-      metaEl.appendChild(s);
-    }
-    if (imp.email){
-      const s = document.createElement('span');
-      s.textContent = `Email: ${imp.email}`;
-      metaEl.appendChild(s);
-    }
-    if (imp.website){
-      const s = document.createElement('span');
-      s.textContent = `Web: ${imp.website}`;
-      metaEl.appendChild(s);
-    }
-    if (imp.location && imp.location.lat && imp.location.lng){
-      const s = document.createElement('span');
-      s.textContent = `${formatCoord(imp.location.lat)}, ${formatCoord(imp.location.lng)}`;
-      metaEl.appendChild(s);
-    }
-
-    leftInfo.appendChild(metaEl);
-
-    // riga 2 col 2: icona maps
-    const mapCell = document.createElement('div');
-    mapCell.className = 'card-top-map';
-
-    const latVal = imp?.location?.lat;
-    const lngVal = imp?.location?.lng;
-
-    if (Number.isFinite(latVal) && Number.isFinite(lngVal)) {
-      const mapsBtn = document.createElement('button');
-      mapsBtn.type = 'button';
-      mapsBtn.className = 'map-icon-btn';
-      mapsBtn.setAttribute('aria-label', 'Apri in Google Maps');
-      mapsBtn.title = 'Apri in Google Maps';
-
-      const iconImg = document.createElement('img');
-      iconImg.src = 'img/navigation.svg';   // path relativo alla pagina impianti_vicini.html
-      iconImg.alt = '';                     // decorativa (l'aria-label è sul bottone)
-      iconImg.loading = 'lazy';
-      mapsBtn.appendChild(iconImg);
-
-      mapsBtn.addEventListener('click', (e) => {
-        e.stopPropagation(); // NON aprire dettaglio
-        const q = `${latVal},${lngVal}`;
-        const url = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(q)}`;
-        window.open(url, '_blank', 'noopener');
-      });
-
-      mapCell.appendChild(mapsBtn);
-    }
-
-    topGrid.appendChild(nameEl);
-    topGrid.appendChild(kmEl);
-    topGrid.appendChild(leftInfo);
-    topGrid.appendChild(mapCell);
-
-    card.appendChild(topGrid);
-
-    // servizi (se presenti)
-    const services = Array.isArray(imp.services) ? imp.services : [];
-    if (services.length){
-      const servicesRow = document.createElement('div');
-      servicesRow.className = 'card-meta';
-      services.slice(0, 8).forEach(sv => {
-        const chip = document.createElement('span');
-        chip.className = 'badge-self';
-        chip.textContent = sv.description || sv.id || 'Servizio';
-        servicesRow.appendChild(chip);
-      });
-      card.appendChild(servicesRow);
-    }
-
-    // ===== carburanti: Gasolio Self visibile, altri espandibili =====
-    const fuels = Array.isArray(imp.fuels) ? imp.fuels : [];
-    fuels.sort((a,b)=>{
-      const na = String(a.name||'').localeCompare(String(b.name||''), 'it', {sensitivity:'base'});
-      if (na !== 0) return na;
-      return (a.isSelf === b.isSelf) ? 0 : (a.isSelf ? -1 : 1);
-    });
-
-    const fuelsWrap = document.createElement('div');
-    fuelsWrap.style.marginTop = '10px';
-
-    if (!fuels.length){
-      const empty = document.createElement('div');
-      empty.className = 'muted';
-      empty.textContent = 'Nessun prezzo disponibile.';
-      fuelsWrap.appendChild(empty);
-    } else {
-      const primaryFuel = fuels.find(f =>
-        String(f.name || '').toLowerCase() === 'gasolio' && f.isSelf === true
-      );
-      const otherFuels = fuels.filter(f => f !== primaryFuel);
-
-      function renderFuelRow(f){
-        const row = document.createElement('div');
-        row.style.display = 'flex';
-        row.style.justifyContent = 'space-between';
-        row.style.gap = '10px';
-        row.style.padding = '6px 0';
-        row.style.borderTop = '1px solid var(--divider)';
-
-        const leftCol = document.createElement('div');
-        leftCol.style.display = 'flex';
-        leftCol.style.flexDirection = 'column';
-
-        const title = document.createElement('div');
-        title.style.fontWeight = '600';
-        title.style.fontSize = '13px';
-        title.textContent = `${f.name || 'Carburante'} · ${f.isSelf ? 'Self' : 'Servito'}`;
-
-        const dates = document.createElement('div');
-        dates.className = 'muted';
-        dates.textContent =
-          (f.insertDate ? `Agg.: ${formatIsoToLocal(f.insertDate)}` : '') +
-          (f.validityDate ? ` · Val.: ${formatIsoToLocal(f.validityDate)}` : '');
-
-        leftCol.appendChild(title);
-        leftCol.appendChild(dates);
-
-        const price = document.createElement('div');
-        price.className = 'card-prezzo';
-        price.style.marginTop = '0';
-        price.style.fontSize = '16px';
-        price.textContent = '€ ' + eur3(Number(f.price));
-
-        row.appendChild(leftCol);
-        row.appendChild(price);
-        return row;
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="Carburante" />
+    <title>Impianti vicini • Carburante</title>
+
+    <!-- No-cache -->
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
+
+    <script src="js/menu.js" defer></script>
+
+    <!-- Tema prima del paint (come scheda_carburante.html) -->
+    <script>
+      (function () {
+        try {
+          const saved = localStorage.getItem('theme');
+          const prefersDark =
+            window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+          document.documentElement.setAttribute(
+            'data-theme',
+            saved || (prefersDark ? 'dark' : 'light')
+          );
+        } catch (e) {}
+      })();
+    </script>
+
+    <style>
+      :root {
+        --space: 14px;
+
+        /* Tema chiaro */
+        --bg: #ffffff;
+        --text: #111827;
+        --muted: #666666;
+        --surface: #ffffff;
+        --border: #dddddd;
+        --divider: #eeeeee;
+        --btn-hover: #f7f7f7;
+      }
+      html[data-theme='dark'] {
+        --bg: #0f1115;
+        --text: #e5e7eb;
+        --muted: #9aa0a6;
+        --surface: #151922;
+        --border: #2a2f3a;
+        --divider: #222834;
+        --btn-hover: #1b2130;
+      }
+      body {
+        color-scheme: light dark;
       }
 
-      fuelsWrap.appendChild(renderFuelRow(primaryFuel || fuels[0]));
+      * {
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        width: 100%;
+        max-width: 100%;
+        overflow-x: hidden;
+        margin: 0;
+      }
+      body {
+        min-height: 100dvh;
+        display: flex;
+        flex-direction: column;
+        padding: var(--space);
+        font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+        background: var(--bg);
+        color: var(--text);
+      }
 
-      if (otherFuels.length){
-        const toggleBtn = document.createElement('button');
-        toggleBtn.className = 'btn';
-        toggleBtn.style.marginTop = '8px';
-        toggleBtn.style.fontSize = '12px';
-        toggleBtn.textContent = 'Mostra altri carburanti';
+      .container {
+        width: 100%;
+        max-width: 640px;
+        margin: 0 auto;
+      }
 
-        const hiddenBox = document.createElement('div');
-        hiddenBox.style.display = 'none';
-        otherFuels.forEach(f => hiddenBox.appendChild(renderFuelRow(f)));
+      /* HEADER */
+      .topbar {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 18px;
+        text-align: center;
+      }
 
-        toggleBtn.addEventListener('click', (e) => {
-          e.stopPropagation();
-          const open = hiddenBox.style.display === 'block';
-          hiddenBox.style.display = open ? 'none' : 'block';
-          toggleBtn.textContent = open ? 'Mostra altri carburanti' : 'Nascondi carburanti';
+      .title {
+        margin: 0;
+        font-size: 22px;
+        font-weight: 700;
+      }
+
+      .coords {
+        font-size: 13px;
+        color: var(--muted);
+      }
+
+      .coords span {
+        font-variant-numeric: tabular-nums;
+      }
+
+      /* Lista impianti: card come scheda_carburante */
+      .card-block {
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 12px 14px;
+        margin-top: 10px;
+        background: var(--surface);
+      }
+
+      .card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 4px;
+        gap: 8px;
+      }
+
+      .card-gestore {
+        font-weight: 600;
+        font-size: 14px;
+      }
+
+      .badge-self {
+        font-size: 11px;
+        padding: 2px 6px;
+        border-radius: 999px;
+        border: 1px solid var(--border);
+      }
+
+      .card-indirizzo {
+        font-size: 13px;
+        margin-bottom: 4px;
+      }
+
+      .card-meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        font-size: 12px;
+        color: var(--muted);
+        margin-top: 4px;
+      }
+
+      .card-prezzo {
+        font-size: 18px;
+        font-weight: 700;
+        font-variant-numeric: tabular-nums;
+        margin-top: 2px;
+      }
+
+      .muted {
+        color: var(--muted);
+        font-size: 12px;
+      }
+
+      #status {
+        margin-top: 4px;
+        margin-bottom: 8px;
+        text-align: center;
+      }
+
+      #results {
+        margin-top: 4px;
+      }
+
+      /* Footer azioni + versione (come scheda_carburante) */
+      .actions-footer {
+        display: flex;
+        gap: 10px;
+        justify-content: center;
+        margin-top: auto;
+        padding-top: 12px;
+      }
+      .version-footer {
+        text-align: center;
+        padding: 10px 0 calc(10px + env(safe-area-inset-bottom));
+        width: 100%;
+        color: var(--muted);
+      }
+      .badge {
+        display: inline-block;
+        font-size: 12px;
+        padding: 2px 8px;
+        border-radius: 999px;
+        border: 1px solid var(--border);
+        margin-left: 8px;
+        font-variant-numeric: tabular-nums;
+        background: var(--surface);
+      }
+
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 10px 14px;
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        background: var(--surface);
+        text-decoration: none;
+        color: inherit;
+        cursor: pointer;
+        font: inherit;
+        line-height: 1;
+        appearance: none;
+        -webkit-appearance: none;
+      }
+      .btn:hover {
+        background: var(--btn-hover);
+      }
+      .btn:active {
+        transform: translateY(1px);
+      }
+      .btn:focus-visible {
+        outline: 2px solid #2684ff;
+        outline-offset: 2px;
+      }
+
+      .km-actions {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        gap: 6px;
+      }
+
+      /* TOP GRID: 2 righe x 2 colonne */
+      .card-topgrid {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        grid-template-rows: auto auto;
+        gap: 6px 10px;
+        align-items: start;
+      }
+
+      .card-top-name {
+        grid-column: 1;
+        grid-row: 1;
+        font-weight: 600;
+        font-size: 14px;
+      }
+
+      .card-top-badge {
+        grid-column: 2;
+        grid-row: 1;
+        justify-self: end;
+        align-self: start;
+      }
+
+      .card-top-leftinfo {
+        grid-column: 1;
+        grid-row: 2;
+        min-width: 0;
+      }
+
+      .card-top-map {
+        grid-column: 2;
+        grid-row: 2;
+        justify-self: end;
+        align-self: start;
+      }
+
+      /* bottone icona maps */
+      .map-icon-btn {
+        width: 36px;
+        height: 36px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        background: var(--surface);
+        cursor: pointer;
+        user-select: none;
+        line-height: 1;
+      }
+      .map-icon-btn:hover {
+        background: var(--btn-hover);
+      }
+      .map-icon-btn:active {
+        transform: translateY(1px);
+      }
+      .map-icon-btn:focus-visible {
+        outline: 2px solid #2684ff;
+        outline-offset: 2px;
+      }
+
+      .map-icon-btn img {
+        width: 24px;
+        height: 24px;
+        display: block;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- HEADER -->
+    <header class="topbar container">
+      <h1 class="title">⛽️ Impianti vicini</h1>
+      <div class="coords">
+        Latitudine: <span id="lat">—</span> • Longitudine: <span id="lon">—</span>
+      </div>
+    </header>
+
+    <!-- CONTENUTO -->
+    <main class="container" role="main">
+      <!-- FILTRO BRAND -->
+      <div
+        id="filters"
+        style="
+          display: flex;
+          gap: 10px;
+          justify-content: center;
+          align-items: center;
+          flex-wrap: wrap;
+          margin: 6px 0 10px;
+        "
+      >
+        <label for="brandFilter" class="muted" style="display: flex; align-items: center; gap: 8px">
+          Brand
+          <select id="brandFilter" class="btn" style="padding: 10px 12px">
+            <option value="__ALL__">Tutti i brand</option>
+          </select>
+        </label>
+
+        <button id="clearBrand" class="btn" type="button" style="display: none">✕ Reset</button>
+      </div>
+
+      <div id="status" class="muted">In attesa della posizione GPS…</div>
+      <div id="results"></div>
+    </main>
+
+    <!-- AZIONI -->
+    <div class="actions-footer container">
+      <a class="btn" id="backBtn" href="index.html" target="_self" aria-label="Torna indietro"
+        >← Indietro</a
+      >
+    </div>
+
+    <!-- Versione -->
+    <div class="version-footer muted">Versione:<span id="appVersion" class="badge"></span></div>
+
+    <script>
+      /* ====== CONFIG BACKEND (STESSO DI scheda_carburante.html) ====== */
+      const ENDPOINT =
+        'https://script.google.com/macros/s/AKfycbzbqrHJempNcv0F9yY7FQ9wu5mZWLx1P1oSqvvTa-ztvBF167CGsQLfFokmx-yD4M3O/exec';
+      const SECRET = 'aX4P-92kLq-55T8b-7Hc0Z';
+
+      /* ====== BRAND LOGOS CACHE (via backend per evitare CORS) ====== */
+      const LS_LOGOS_KEY = 'mise_brand_logos_v1';
+      const LS_LOGOS_EXP = 'mise_brand_logos_v1_exp';
+      const LOGOS_TTL_MS = 7 * 24 * 60 * 60 * 1000; // 7 giorni
+
+      function normBrand(s) {
+        return String(s || '')
+          .trim()
+          .toUpperCase()
+          .replace(/\s+/g, ' ');
+      }
+      function getAny(obj, keys) {
+        if (!obj) return undefined;
+        for (const k of keys) {
+          if (Object.prototype.hasOwnProperty.call(obj, k)) return obj[k];
+          const foundKey = Object.keys(obj).find(x => x.toLowerCase() === String(k).toLowerCase());
+          if (foundKey) return obj[foundKey];
+        }
+        return undefined;
+      }
+      function mimeFromExt(ext) {
+        switch (
+          String(ext || '')
+            .trim()
+            .toLowerCase()
+        ) {
+          case 'svg':
+            return 'image/svg+xml';
+          case 'png':
+            return 'image/png';
+          case 'jpg':
+          case 'jpeg':
+            return 'image/jpeg';
+          case 'webp':
+            return 'image/webp';
+          default:
+            return 'application/octet-stream';
+        }
+      }
+      function pickBestMarker(list) {
+        if (!Array.isArray(list) || !list.length) return null;
+        const typeOf = m =>
+          String(getAny(m, ['tipoFile', 'tipo File', 'tipo_file', 'tipo']) || '')
+            .trim()
+            .toLowerCase();
+        const order = ['logo', 'th5', 'th4', 'th3', 'th2', 'th1'];
+        for (const t of order) {
+          const found = list.find(m => typeOf(m) === t);
+          if (found) return found;
+        }
+        return list[0];
+      }
+
+      // Converte la risposta enorme di alllogos in una mappa compatta: { __v:1, map:{ BRAND:{ext, mime, content} } }
+      function buildCompactBrandLogoMap(payload) {
+        const list = Array.isArray(payload)
+          ? payload
+          : Array.isArray(payload?.loghi)
+          ? payload.loghi
+          : Array.isArray(payload?.Loghi)
+          ? payload.Loghi
+          : null;
+        if (!Array.isArray(list)) return null;
+
+        const map = {};
+        for (const entry of list) {
+          const brand = normBrand(getAny(entry, ['bandiera', 'brand', 'marchio', 'nomeBrand']));
+          if (!brand) continue;
+
+          const markers = getAny(entry, [
+            'logoMarkerList',
+            'logo Marker List',
+            'logo_markers',
+            'markers',
+            'logoMarkers',
+          ]);
+          const marker = pickBestMarker(markers);
+          if (!marker) continue;
+
+          const ext = getAny(marker, ['estensione', 'extension', 'ext']);
+          const content = getAny(marker, ['content', 'contenuto', 'data', 'base64']);
+          if (!content) continue;
+
+          map[brand] = { ext: String(ext || ''), mime: mimeFromExt(ext), content: String(content) };
+        }
+        return { __v: 1, map };
+      }
+
+      function getCachedBrandLogos() {
+        try {
+          const exp = Number(localStorage.getItem(LS_LOGOS_EXP) || 0);
+          if (!exp || Date.now() > exp) return null;
+          const raw = localStorage.getItem(LS_LOGOS_KEY);
+          if (!raw) return null;
+          return JSON.parse(raw);
+        } catch (e) {
+          return null;
+        }
+      }
+
+      function setCachedBrandLogos(payload) {
+        try {
+          // salva in forma compatta per evitare QuotaExceededError del localStorage
+          const compact = buildCompactBrandLogoMap(payload) || payload;
+          localStorage.setItem(LS_LOGOS_KEY, JSON.stringify(compact));
+          localStorage.setItem(LS_LOGOS_EXP, String(Date.now() + LOGOS_TTL_MS));
+        } catch (e) {
+          console.warn('[Logos] localStorage write failed:', e);
+        }
+      }
+
+      async function warmBrandLogosCache() {
+        // se già valida, non fare nulla
+        if (getCachedBrandLogos()) return;
+
+        try {
+          const url = new URL(ENDPOINT);
+          url.searchParams.set('action', 'all_logos');
+          url.searchParams.set('secret', SECRET);
+
+          const res = await fetch(url.toString(), { method: 'GET' });
+          const data = await res.json();
+
+          // se il backend risponde {ok:false,...} gestisci
+          if (data && data.ok === false) {
+            console.warn('[Logos] backend error:', data.error || data);
+            return;
+          }
+
+          // l'API MISE di solito restituisce { loghi: [...] }
+          setCachedBrandLogos(data);
+          console.log('[Logos] cache warm ok');
+        } catch (err) {
+          console.warn('[Logos] warm cache failed:', err);
+        }
+      }
+
+      /* ====== FILTRO BRAND (UI-only) ====== */
+      const LS_BRAND = 'impiantiVicini_brand';
+      let ALL_IMPIANTI = [];
+      let CURRENT_BRAND = localStorage.getItem(LS_BRAND) || '__ALL__';
+
+      /* ====== VERSIONE (come scheda_carburante.html) ====== */
+      function formatVersionFromDate(d) {
+        const p = n => String(n).padStart(2, '0');
+        return `${d.getFullYear()}.${p(d.getMonth() + 1)}.${p(d.getDate())}-${p(d.getHours())}:${p(
+          d.getMinutes()
+        )}`;
+      }
+      function computeAppVersion() {
+        const qs = new URLSearchParams(location.search);
+        const v = qs.get('v');
+        if (v) return v;
+        const d = new Date(document.lastModified);
+        return isNaN(d) ? 'dev' : formatVersionFromDate(d);
+      }
+      document.getElementById('appVersion').textContent = computeAppVersion();
+
+      /* ====== UTILS ====== */
+      function formatCoord(value) {
+        if (typeof value !== 'number' || !isFinite(value)) return '—';
+        return value.toFixed(6);
+      }
+      function formatKm(km) {
+        if (typeof km !== 'number' || !isFinite(km)) return '';
+        return km.toFixed(3).replace('.', ',') + ' km';
+      }
+      function formatIsoToLocal(iso) {
+        if (!iso) return '';
+        const d = new Date(iso);
+        if (isNaN(d)) return String(iso);
+        return d.toLocaleString('it-IT', {
+          year: 'numeric',
+          month: '2-digit',
+          day: '2-digit',
+          hour: '2-digit',
+          minute: '2-digit',
         });
-
-        fuelsWrap.appendChild(toggleBtn);
-        fuelsWrap.appendChild(hiddenBox);
       }
-    }
-
-    card.appendChild(fuelsWrap);
-    results.appendChild(card);
-  });
-}
-
-
-/* ====== CARICAMENTO IMPIANTI (via Apps Script -> proxy prezzi-carburante) ====== */
-async function loadImpianti(lat, lon){
-  const status  = document.getElementById('status');
-  const results = document.getElementById('results');
-
-  status.textContent = 'Cerco gli impianti vicini (4 km)…';
-  results.innerHTML = '';
-
-  try{
-    const url = new URL(ENDPOINT);
-    url.searchParams.set('action',   'impianti_vicini');
-    url.searchParams.set('secret',   SECRET);
-    url.searchParams.set('latitude', String(lat));
-    url.searchParams.set('longitude',String(lon));
-    url.searchParams.set('radius','4');
-    url.searchParams.set('distance','4');
-    url.searchParams.set('fuel','gasolio');
-    url.searchParams.set('results','100');
-
-    const res  = await fetch(url.toString(), { method:'GET' });
-    const data = await res.json();
-
-    console.log('[Impianti vicini] risposta endpoint:', data);
-
-    if (data && data.ok === false){
-      status.textContent = data.error || 'Errore dal server.';
-      return;
-    }
-
-    if (data && data.ok === true && data.msg === 'Scheda_carburante API up'){
-      status.textContent = 'Errore di configurazione backend (action=impianti_vicini non riconosciuta).';
-      return;
-    }
-
-    const list = Array.isArray(data) ? data : [];
-
-    if (list.length === 0){
-      status.textContent = 'Nessun impianto trovato nel raggio di 4 km.';
-      return;
-    }
-
-    ALL_IMPIANTI = list;
-    populateBrandFilter(ALL_IMPIANTI);
-    renderImpiantiFiltered();
-
-  }catch(err){
-    console.error(err);
-    status.textContent = 'Errore nel caricamento degli impianti. Sei offline o il servizio non risponde.';
-  }
-}
-
-/* ====== GEOLOCALIZZAZIONE ====== */
-function initGeolocation(){
-  const latEl = document.getElementById('lat');
-  const lonEl = document.getElementById('lon');
-  const status = document.getElementById('status');
-
-  const LS_LAT = 'impiantiVicini_lastLat';
-  const LS_LON = 'impiantiVicini_lastLon';
-  const LS_ACC = 'impiantiVicini_lastAcc';
-
-  const cachedLat = Number(localStorage.getItem(LS_LAT));
-  const cachedLon = Number(localStorage.getItem(LS_LON));
-  const cachedAcc = Number(localStorage.getItem(LS_ACC));
-  const hasCached = Number.isFinite(cachedLat) && Number.isFinite(cachedLon);
-
-  if (hasCached) {
-    latEl.textContent = formatCoord(cachedLat);
-    lonEl.textContent = formatCoord(cachedLon);
-    status.textContent = `Uso ultima posizione nota (±${Math.round(cachedAcc || 0)} m). Aggiorno la posizione…`;
-    loadImpianti(cachedLat, cachedLon);
-  } else {
-    status.textContent = 'Richiedo la posizione…';
-  }
-
-  if (!navigator.geolocation){
-    status.textContent = hasCached
-      ? (status.textContent + ' (Geolocalizzazione non disponibile: continuo con ultima posizione.)')
-      : 'Geolocalizzazione non supportata dal dispositivo.';
-    return;
-  }
-
-  navigator.geolocation.getCurrentPosition(
-    (pos) => {
-      const lat = pos.coords.latitude;
-      const lon = pos.coords.longitude;
-      const acc = pos.coords.accuracy;
-
-      latEl.textContent = formatCoord(lat);
-      lonEl.textContent = formatCoord(lon);
-
-      const isGood = Number.isFinite(acc) ? acc <= 2000 : true;
-      if (!isGood && hasCached) {
-        status.textContent = `Posizione stimata troppo imprecisa (±${Math.round(acc)} m). Mantengo l'ultima posizione valida.`;
-        return;
+      function eur3(n) {
+        if (typeof n !== 'number' || !isFinite(n)) return '—';
+        return n.toFixed(3).replace('.', ',');
       }
 
-      localStorage.setItem(LS_LAT, String(lat));
-      localStorage.setItem(LS_LON, String(lon));
-      if (Number.isFinite(acc)) localStorage.setItem(LS_ACC, String(acc));
-
-      status.textContent = `Posizione rilevata (±${Math.round(acc)} m).`;
-      loadImpianti(lat, lon);
-    },
-    (err) => {
-      console.warn('[Impianti vicini] errore geoloc:', err);
-      if (hasCached) {
-        status.textContent = `Geolocalizzazione non disponibile (${err.message}). Continuo con ultima posizione nota.`;
-        return;
+      /* ====== FILTRO: helpers ====== */
+      function normalizeBrand(b) {
+        return String(b || '').trim();
       }
-      status.textContent = 'Errore nella geolocalizzazione.';
-    },
-    {
-      enableHighAccuracy: true,
-      timeout: 15000,
-      maximumAge: 600000
-    }
-  );
-}
 
-/* ====== BACK BTN: chiudi iframe in index.html se presente ====== */
-document.getElementById('backBtn').addEventListener('click', (e) => {
-  if (window.top !== window.self) {
-    e.preventDefault();
-    window.top.postMessage('close-lista', '*');
-  }
-});
+      function populateBrandFilter(list) {
+        const sel = document.getElementById('brandFilter');
+        const clearBtn = document.getElementById('clearBrand');
 
-/* ====== THEME SYNC (da index.html via postMessage) ====== */
-(function(){
-  function applyTheme(t){
-    document.documentElement.setAttribute('data-theme', t);
-  }
-  window.addEventListener('message', (ev) => {
-    if (typeof ev.data === 'string' && ev.data.startsWith('theme:')) {
-      const t = ev.data.split(':')[1];
-      if (t === 'light' || t === 'dark') applyTheme(t);
-    }
-  });
-})();
+        const brands = Array.from(
+          new Set((list || []).map(x => normalizeBrand(x.brand)).filter(Boolean))
+        ).sort((a, b) => a.localeCompare(b, 'it', { sensitivity: 'base' }));
 
-/* ====== BOOT ====== */
-document.addEventListener('DOMContentLoaded', () => {
-  warmBrandLogosCache();
-  initGeolocation();
-});
-</script>
+        sel.innerHTML =
+          `<option value="__ALL__">Tutti i brand</option>` +
+          brands.map(b => `<option value="${b.replaceAll('"', '&quot;')}">${b}</option>`).join('');
 
-</body>
+        if (CURRENT_BRAND && (CURRENT_BRAND === '__ALL__' || brands.includes(CURRENT_BRAND))) {
+          sel.value = CURRENT_BRAND;
+        } else {
+          CURRENT_BRAND = '__ALL__';
+          sel.value = '__ALL__';
+          localStorage.setItem(LS_BRAND, CURRENT_BRAND);
+        }
+
+        clearBtn.style.display = sel.value !== '__ALL__' ? 'inline-flex' : 'none';
+
+        sel.onchange = () => {
+          CURRENT_BRAND = sel.value;
+          localStorage.setItem(LS_BRAND, CURRENT_BRAND);
+          clearBtn.style.display = CURRENT_BRAND !== '__ALL__' ? 'inline-flex' : 'none';
+          renderImpiantiFiltered();
+        };
+
+        clearBtn.onclick = () => {
+          CURRENT_BRAND = '__ALL__';
+          localStorage.setItem(LS_BRAND, CURRENT_BRAND);
+          sel.value = '__ALL__';
+          clearBtn.style.display = 'none';
+          renderImpiantiFiltered();
+        };
+      }
+
+      function getFilteredList() {
+        if (CURRENT_BRAND === '__ALL__') return ALL_IMPIANTI;
+        return ALL_IMPIANTI.filter(x => normalizeBrand(x.brand) === CURRENT_BRAND);
+      }
+
+      function renderImpiantiFiltered() {
+        const status = document.getElementById('status');
+        const results = document.getElementById('results');
+
+        const filtered = getFilteredList();
+        const brandTxt = CURRENT_BRAND !== '__ALL__' ? ` • filtro: ${CURRENT_BRAND}` : '';
+        status.textContent = `Trovati ${filtered.length} impianti nel raggio di 4 km (gasolio)${brandTxt}.`;
+
+        results.innerHTML = '';
+        renderImpianti(filtered);
+      }
+
+      /* ====== RENDER CARD IMPIANTO (click -> dettaglio) ====== */
+      function renderImpianti(list) {
+        const results = document.getElementById('results');
+
+        (list || []).forEach((imp, index) => {
+          const card = document.createElement('section');
+          card.className = 'card-block';
+          card.style.cursor = 'pointer';
+
+          card.addEventListener('click', ev => {
+            // evita che il click su bottoni apra il dettaglio
+            if (ev.target && ev.target.closest && ev.target.closest('button')) return;
+
+            try {
+              sessionStorage.setItem('impianto_dettaglio', JSON.stringify(imp));
+            } catch (e) {}
+
+            const qs = new URLSearchParams(location.search);
+            const v = qs.get('v');
+            const url = v
+              ? `dettaglio_impianto.html?v=${encodeURIComponent(v)}`
+              : 'dettaglio_impianto.html';
+            window.location.href = url;
+          });
+
+          // ===== TOP GRID (2 righe x 2 colonne) =====
+          const topGrid = document.createElement('div');
+          topGrid.className = 'card-topgrid';
+
+          // riga 1 col 1: nome impianto
+          const nameEl = document.createElement('div');
+          nameEl.className = 'card-top-name';
+          const rankVal = imp.ranking ?? index + 1;
+          const brandTxt = imp.brand ? ` · ${imp.brand}` : '';
+          nameEl.textContent = `#${rankVal} · ${
+            imp.nomeImpianto || imp.name || 'Impianto'
+          }${brandTxt}`;
+
+          // riga 1 col 2: badge km
+          const kmEl = document.createElement('div');
+          kmEl.className = 'badge-self card-top-badge';
+          kmEl.textContent = formatKm(imp.distanceKm) || '—';
+
+          // riga 2 col 1: indirizzo + meta
+          const leftInfo = document.createElement('div');
+          leftInfo.className = 'card-top-leftinfo';
+
+          const addressEl = document.createElement('div');
+          addressEl.className = 'card-indirizzo';
+          addressEl.textContent = imp.address || '';
+          leftInfo.appendChild(addressEl);
+
+          const metaEl = document.createElement('div');
+          metaEl.className = 'card-meta';
+
+          if (imp.company) {
+            const s = document.createElement('span');
+            s.textContent = `Società: ${imp.company}`;
+            metaEl.appendChild(s);
+          }
+          if (imp.phoneNumber) {
+            const s = document.createElement('span');
+            s.textContent = `Tel: ${imp.phoneNumber}`;
+            metaEl.appendChild(s);
+          }
+          if (imp.email) {
+            const s = document.createElement('span');
+            s.textContent = `Email: ${imp.email}`;
+            metaEl.appendChild(s);
+          }
+          if (imp.website) {
+            const s = document.createElement('span');
+            s.textContent = `Web: ${imp.website}`;
+            metaEl.appendChild(s);
+          }
+          if (imp.location && imp.location.lat && imp.location.lng) {
+            const s = document.createElement('span');
+            s.textContent = `${formatCoord(imp.location.lat)}, ${formatCoord(imp.location.lng)}`;
+            metaEl.appendChild(s);
+          }
+
+          leftInfo.appendChild(metaEl);
+
+          // riga 2 col 2: icona maps
+          const mapCell = document.createElement('div');
+          mapCell.className = 'card-top-map';
+
+          const latVal = imp?.location?.lat;
+          const lngVal = imp?.location?.lng;
+
+          if (Number.isFinite(latVal) && Number.isFinite(lngVal)) {
+            const mapsBtn = document.createElement('button');
+            mapsBtn.type = 'button';
+            mapsBtn.className = 'map-icon-btn';
+            mapsBtn.setAttribute('aria-label', 'Apri in Google Maps');
+            mapsBtn.title = 'Apri in Google Maps';
+
+            const iconImg = document.createElement('img');
+            iconImg.src = 'img/navigation.svg'; // path relativo alla pagina impianti_vicini.html
+            iconImg.alt = ''; // decorativa (l'aria-label è sul bottone)
+            iconImg.loading = 'lazy';
+            mapsBtn.appendChild(iconImg);
+
+            mapsBtn.addEventListener('click', e => {
+              e.stopPropagation(); // NON aprire dettaglio
+              const q = `${latVal},${lngVal}`;
+              const url = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+                q
+              )}`;
+              window.open(url, '_blank', 'noopener');
+            });
+
+            mapCell.appendChild(mapsBtn);
+          }
+
+          topGrid.appendChild(nameEl);
+          topGrid.appendChild(kmEl);
+          topGrid.appendChild(leftInfo);
+          topGrid.appendChild(mapCell);
+
+          card.appendChild(topGrid);
+
+          // servizi (se presenti)
+          const services = Array.isArray(imp.services) ? imp.services : [];
+          if (services.length) {
+            const servicesRow = document.createElement('div');
+            servicesRow.className = 'card-meta';
+            services.slice(0, 8).forEach(sv => {
+              const chip = document.createElement('span');
+              chip.className = 'badge-self';
+              chip.textContent = sv.description || sv.id || 'Servizio';
+              servicesRow.appendChild(chip);
+            });
+            card.appendChild(servicesRow);
+          }
+
+          // ===== carburanti: Gasolio Self visibile, altri espandibili =====
+          const fuels = Array.isArray(imp.fuels) ? imp.fuels : [];
+          fuels.sort((a, b) => {
+            const na = String(a.name || '').localeCompare(String(b.name || ''), 'it', {
+              sensitivity: 'base',
+            });
+            if (na !== 0) return na;
+            return a.isSelf === b.isSelf ? 0 : a.isSelf ? -1 : 1;
+          });
+
+          const fuelsWrap = document.createElement('div');
+          fuelsWrap.style.marginTop = '10px';
+
+          if (!fuels.length) {
+            const empty = document.createElement('div');
+            empty.className = 'muted';
+            empty.textContent = 'Nessun prezzo disponibile.';
+            fuelsWrap.appendChild(empty);
+          } else {
+            const primaryFuel = fuels.find(
+              f => String(f.name || '').toLowerCase() === 'gasolio' && f.isSelf === true
+            );
+            const otherFuels = fuels.filter(f => f !== primaryFuel);
+
+            function renderFuelRow(f) {
+              const row = document.createElement('div');
+              row.style.display = 'flex';
+              row.style.justifyContent = 'space-between';
+              row.style.gap = '10px';
+              row.style.padding = '6px 0';
+              row.style.borderTop = '1px solid var(--divider)';
+
+              const leftCol = document.createElement('div');
+              leftCol.style.display = 'flex';
+              leftCol.style.flexDirection = 'column';
+
+              const title = document.createElement('div');
+              title.style.fontWeight = '600';
+              title.style.fontSize = '13px';
+              title.textContent = `${f.name || 'Carburante'} · ${f.isSelf ? 'Self' : 'Servito'}`;
+
+              const dates = document.createElement('div');
+              dates.className = 'muted';
+              dates.textContent =
+                (f.insertDate ? `Agg.: ${formatIsoToLocal(f.insertDate)}` : '') +
+                (f.validityDate ? ` · Val.: ${formatIsoToLocal(f.validityDate)}` : '');
+
+              leftCol.appendChild(title);
+              leftCol.appendChild(dates);
+
+              const price = document.createElement('div');
+              price.className = 'card-prezzo';
+              price.style.marginTop = '0';
+              price.style.fontSize = '16px';
+              price.textContent = '€ ' + eur3(Number(f.price));
+
+              row.appendChild(leftCol);
+              row.appendChild(price);
+              return row;
+            }
+
+            fuelsWrap.appendChild(renderFuelRow(primaryFuel || fuels[0]));
+
+            if (otherFuels.length) {
+              const toggleBtn = document.createElement('button');
+              toggleBtn.className = 'btn';
+              toggleBtn.style.marginTop = '8px';
+              toggleBtn.style.fontSize = '12px';
+              toggleBtn.textContent = 'Mostra altri carburanti';
+
+              const hiddenBox = document.createElement('div');
+              hiddenBox.style.display = 'none';
+              otherFuels.forEach(f => hiddenBox.appendChild(renderFuelRow(f)));
+
+              toggleBtn.addEventListener('click', e => {
+                e.stopPropagation();
+                const open = hiddenBox.style.display === 'block';
+                hiddenBox.style.display = open ? 'none' : 'block';
+                toggleBtn.textContent = open ? 'Mostra altri carburanti' : 'Nascondi carburanti';
+              });
+
+              fuelsWrap.appendChild(toggleBtn);
+              fuelsWrap.appendChild(hiddenBox);
+            }
+          }
+
+          card.appendChild(fuelsWrap);
+          results.appendChild(card);
+        });
+      }
+
+      /* ====== CARICAMENTO IMPIANTI (via Apps Script -> proxy prezzi-carburante) ====== */
+      async function loadImpianti(lat, lon) {
+        const status = document.getElementById('status');
+        const results = document.getElementById('results');
+
+        status.textContent = 'Cerco gli impianti vicini (4 km)…';
+        results.innerHTML = '';
+
+        try {
+          const url = new URL(ENDPOINT);
+          url.searchParams.set('action', 'impianti_vicini');
+          url.searchParams.set('secret', SECRET);
+          url.searchParams.set('latitude', String(lat));
+          url.searchParams.set('longitude', String(lon));
+          url.searchParams.set('radius', '4');
+          url.searchParams.set('distance', '4');
+          url.searchParams.set('fuel', 'gasolio');
+          url.searchParams.set('results', '100');
+
+          const res = await fetch(url.toString(), { method: 'GET' });
+          const data = await res.json();
+
+          console.log('[Impianti vicini] risposta endpoint:', data);
+
+          if (data && data.ok === false) {
+            status.textContent = data.error || 'Errore dal server.';
+            return;
+          }
+
+          if (data && data.ok === true && data.msg === 'Scheda_carburante API up') {
+            status.textContent =
+              'Errore di configurazione backend (action=impianti_vicini non riconosciuta).';
+            return;
+          }
+
+          const list = Array.isArray(data) ? data : [];
+
+          if (list.length === 0) {
+            status.textContent = 'Nessun impianto trovato nel raggio di 4 km.';
+            return;
+          }
+
+          ALL_IMPIANTI = list;
+          populateBrandFilter(ALL_IMPIANTI);
+          renderImpiantiFiltered();
+        } catch (err) {
+          console.error(err);
+          status.textContent =
+            'Errore nel caricamento degli impianti. Sei offline o il servizio non risponde.';
+        }
+      }
+
+      /* ====== GEOLOCALIZZAZIONE ====== */
+      function initGeolocation() {
+        const latEl = document.getElementById('lat');
+        const lonEl = document.getElementById('lon');
+        const status = document.getElementById('status');
+
+        const LS_LAT = 'impiantiVicini_lastLat';
+        const LS_LON = 'impiantiVicini_lastLon';
+        const LS_ACC = 'impiantiVicini_lastAcc';
+
+        const cachedLat = Number(localStorage.getItem(LS_LAT));
+        const cachedLon = Number(localStorage.getItem(LS_LON));
+        const cachedAcc = Number(localStorage.getItem(LS_ACC));
+        const hasCached = Number.isFinite(cachedLat) && Number.isFinite(cachedLon);
+
+        if (hasCached) {
+          latEl.textContent = formatCoord(cachedLat);
+          lonEl.textContent = formatCoord(cachedLon);
+          status.textContent = `Uso ultima posizione nota (±${Math.round(
+            cachedAcc || 0
+          )} m). Aggiorno la posizione…`;
+          loadImpianti(cachedLat, cachedLon);
+        } else {
+          status.textContent = 'Richiedo la posizione…';
+        }
+
+        if (!navigator.geolocation) {
+          status.textContent = hasCached
+            ? status.textContent +
+              ' (Geolocalizzazione non disponibile: continuo con ultima posizione.)'
+            : 'Geolocalizzazione non supportata dal dispositivo.';
+          return;
+        }
+
+        navigator.geolocation.getCurrentPosition(
+          pos => {
+            const lat = pos.coords.latitude;
+            const lon = pos.coords.longitude;
+            const acc = pos.coords.accuracy;
+
+            latEl.textContent = formatCoord(lat);
+            lonEl.textContent = formatCoord(lon);
+
+            const isGood = Number.isFinite(acc) ? acc <= 2000 : true;
+            if (!isGood && hasCached) {
+              status.textContent = `Posizione stimata troppo imprecisa (±${Math.round(
+                acc
+              )} m). Mantengo l'ultima posizione valida.`;
+              return;
+            }
+
+            localStorage.setItem(LS_LAT, String(lat));
+            localStorage.setItem(LS_LON, String(lon));
+            if (Number.isFinite(acc)) localStorage.setItem(LS_ACC, String(acc));
+
+            status.textContent = `Posizione rilevata (±${Math.round(acc)} m).`;
+            loadImpianti(lat, lon);
+          },
+          err => {
+            console.warn('[Impianti vicini] errore geoloc:', err);
+            if (hasCached) {
+              status.textContent = `Geolocalizzazione non disponibile (${err.message}). Continuo con ultima posizione nota.`;
+              return;
+            }
+            status.textContent = 'Errore nella geolocalizzazione.';
+          },
+          {
+            enableHighAccuracy: true,
+            timeout: 15000,
+            maximumAge: 600000,
+          }
+        );
+      }
+
+      /* ====== BACK BTN: chiudi iframe in index.html se presente ====== */
+      document.getElementById('backBtn').addEventListener('click', e => {
+        if (window.top !== window.self) {
+          e.preventDefault();
+          window.top.postMessage('close-lista', '*');
+        }
+      });
+
+      /* ====== THEME SYNC (da index.html via postMessage) ====== */
+      (function () {
+        function applyTheme(t) {
+          document.documentElement.setAttribute('data-theme', t);
+        }
+        window.addEventListener('message', ev => {
+          if (typeof ev.data === 'string' && ev.data.startsWith('theme:')) {
+            const t = ev.data.split(':')[1];
+            if (t === 'light' || t === 'dark') applyTheme(t);
+          }
+        });
+      })();
+
+      /* ====== BOOT ====== */
+      document.addEventListener('DOMContentLoaded', () => {
+        warmBrandLogosCache();
+        initGeolocation();
+      });
+    </script>
+  </body>
 </html>

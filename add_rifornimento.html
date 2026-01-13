@@ -1,768 +1,923 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="it" data-theme="light">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Carburante</title>
-  <meta name="apple-mobile-web-app-capable" content="yes">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Carburante</title>
+    <meta name="apple-mobile-web-app-capable" content="yes" />
 
-  <!-- No-cache -->
-  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-  <meta http-equiv="Pragma" content="no-cache">
-  <meta http-equiv="Expires" content="0">
+    <!-- No-cache -->
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
 
-  <script src="js/menu.js" defer></script>
+    <script src="js/menu.js" defer></script>
 
-  <!-- Imposta il tema prima del paint (identico a Pellet) -->
-  <script>
-    (function(){   
-      try{
-        const saved = localStorage.getItem('theme');
-        const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-        const theme = saved || (prefersDark ? 'dark' : 'light');
-        document.documentElement.setAttribute('data-theme', theme);
-      }catch(e){}
-    })();
-  </script>
+    <!-- Imposta il tema prima del paint (identico a Pellet) -->
+    <script>
+      (function () {
+        try {
+          const saved = localStorage.getItem('theme');
+          const prefersDark =
+            window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+          const theme = saved || (prefersDark ? 'dark' : 'light');
+          document.documentElement.setAttribute('data-theme', theme);
+        } catch (e) {}
+      })();
+    </script>
 
-  <style>
-  :root{
-    --space:14px;
+    <style>
+      :root {
+        --space: 14px;
 
-    /* Tema chiaro (identico a Pellet) */
-    --bg: #ffffff;
-    --text: #111827;
-    --muted: #666666;
-    --surface: #ffffff;
-    --border: #dddddd;
-    --divider: #eeeeee;
-    --shadow: 0 2px 10px rgba(0,0,0,.08);
-    --btn-hover: #f7f7f7;
-    --spinner-track: rgba(0,0,0,0.2);
-    --spinner-head:  rgba(0,0,0,0.7);
-  }
-  html[data-theme="dark"]{
-    --bg: #0f1115;
-    --text: #e5e7eb;
-    --muted: #9aa0a6;
-    --surface: #151922;
-    --border: #2a2f3a;
-    --divider: #222834;
-    --shadow: 0 2px 16px rgba(0,0,0,.35);
-    --btn-hover: #1b2130;
-    --spinner-track: rgba(255,255,255,0.2);
-    --spinner-head:  rgba(255,255,255,0.8);
-  }
-  body{ color-scheme: light dark; }
+        /* Tema chiaro (identico a Pellet) */
+        --bg: #ffffff;
+        --text: #111827;
+        --muted: #666666;
+        --surface: #ffffff;
+        --border: #dddddd;
+        --divider: #eeeeee;
+        --shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+        --btn-hover: #f7f7f7;
+        --spinner-track: rgba(0, 0, 0, 0.2);
+        --spinner-head: rgba(0, 0, 0, 0.7);
+      }
+      html[data-theme='dark'] {
+        --bg: #0f1115;
+        --text: #e5e7eb;
+        --muted: #9aa0a6;
+        --surface: #151922;
+        --border: #2a2f3a;
+        --divider: #222834;
+        --shadow: 0 2px 16px rgba(0, 0, 0, 0.35);
+        --btn-hover: #1b2130;
+        --spinner-track: rgba(255, 255, 255, 0.2);
+        --spinner-head: rgba(255, 255, 255, 0.8);
+      }
+      body {
+        color-scheme: light dark;
+      }
 
-  /* === Reset + layout pagina (identico a Pellet) ======================= */
-  * { box-sizing: border-box; }
-  html, body { width:100%; max-width:100%; overflow-x:hidden; margin:0; }
-  body.app{
-    min-height:100dvh;
-    display:flex;
-    flex-direction:column;
-    padding: var(--space);
-    font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
-    background: var(--bg);
-    color: var(--text);
-  }
+      /* === Reset + layout pagina (identico a Pellet) ======================= */
+      * {
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        width: 100%;
+        max-width: 100%;
+        overflow-x: hidden;
+        margin: 0;
+      }
+      body.app {
+        min-height: 100dvh;
+        display: flex;
+        flex-direction: column;
+        padding: var(--space);
+        font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+        background: var(--bg);
+        color: var(--text);
+      }
 
-  h2 { margin: 0 0 10px; }
-  label { display: block; margin: 12px 0 6px; font-size: 14px; }
+      h2 {
+        margin: 0 0 10px;
+      }
+      label {
+        display: block;
+        margin: 12px 0 6px;
+        font-size: 14px;
+      }
 
-  /* Controlli come in Pellet: nessun raggio, bordo + ombra uguali */
-  input, select, button {
-    width: 100%;
-    max-width: 100%;
-    font-size: 16px;
-    padding: 10px;
-    color: var(--text);
-    background: var(--surface);
-    border: 1px solid var(--border);
-    box-shadow: var(--shadow);
-    border-radius: 0;        /* niente arrotondamenti */
-    height: 44px;            /* ✅ altezza uniforme come Pellet */
-    line-height: 1.4;
-  }
-  input::placeholder{ color: var(--muted); }
+      /* Controlli come in Pellet: nessun raggio, bordo + ombra uguali */
+      input,
+      select,
+      button {
+        width: 100%;
+        max-width: 100%;
+        font-size: 16px;
+        padding: 10px;
+        color: var(--text);
+        background: var(--surface);
+        border: 1px solid var(--border);
+        box-shadow: var(--shadow);
+        border-radius: 0; /* niente arrotondamenti */
+        height: 44px; /* ✅ altezza uniforme come Pellet */
+        line-height: 1.4;
+      }
+      input::placeholder {
+        color: var(--muted);
+      }
 
-  /* iOS/Safari: normalizza i campi particolari */
-  input[type="date"]{
-    -webkit-appearance: none;
-    appearance: none;
-    min-width: 0;
-  }
+      /* iOS/Safari: normalizza i campi particolari */
+      input[type='date'] {
+        -webkit-appearance: none;
+        appearance: none;
+        min-width: 0;
+      }
 
-  /* Select allineato: niente stile nativo e colore placeholder finché vuoto */
-  select{
-    -webkit-appearance: none;
-    appearance: none;
-    padding-right: 34px;          /* spazio freccia sistema */
-  }
-  /* colore “placeholder” quando value="" e required → invalid */
-  select:required:invalid { color: var(--muted); }
-  option[value=""] { color: var(--muted); }  /* voce placeholder nel menu */
-  option { color: var(--text); }
+      /* Select allineato: niente stile nativo e colore placeholder finché vuoto */
+      select {
+        -webkit-appearance: none;
+        appearance: none;
+        padding-right: 34px; /* spazio freccia sistema */
+      }
+      /* colore “placeholder” quando value="" e required → invalid */
+      select:required:invalid {
+        color: var(--muted);
+      }
+      option[value=''] {
+        color: var(--muted);
+      } /* voce placeholder nel menu */
+      option {
+        color: var(--text);
+      }
 
-  button {
-    margin-top: 16px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    cursor: pointer;
-    background: var(--surface);
-  }
-  button:hover{ background: var(--btn-hover); }
+      button {
+        margin-top: 16px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        cursor: pointer;
+        background: var(--surface);
+      }
+      button:hover {
+        background: var(--btn-hover);
+      }
 
-  .ok { color: #22c55e; margin-top: 8px; }
-  .err { color: #ef4444; margin-top: 8px; }
+      .ok {
+        color: #22c55e;
+        margin-top: 8px;
+      }
+      .err {
+        color: #ef4444;
+        margin-top: 8px;
+      }
 
-  /* Footer versione: centrato in fondo (come Pellet) */
-  .muted {
-    color: var(--muted); font-size: 12px;
-    text-align:center;
-    margin-top:auto;
-    width:100%;
-    padding: 10px 0 calc(10px + env(safe-area-inset-bottom));
-  }
-  .badge {
-    display: inline-block; font-size: 12px; padding: 2px 8px;
-    border-radius: 999px; border: 1px solid var(--border); margin-left: 8px;
-    font-variant-numeric: tabular-nums;
-    background: var(--surface);
-  }
+      /* Footer versione: centrato in fondo (come Pellet) */
+      .muted {
+        color: var(--muted);
+        font-size: 12px;
+        text-align: center;
+        margin-top: auto;
+        width: 100%;
+        padding: 10px 0 calc(10px + env(safe-area-inset-bottom));
+      }
+      .badge {
+        display: inline-block;
+        font-size: 12px;
+        padding: 2px 8px;
+        border-radius: 999px;
+        border: 1px solid var(--border);
+        margin-left: 8px;
+        font-variant-numeric: tabular-nums;
+        background: var(--surface);
+      }
 
-  /* Loader overlay (come Pellet) */
-  .loading-overlay {
-    position: fixed; inset: 0;
-    background: rgba(0,0,0,0.15);
-    display: none; align-items: center; justify-content: center;
-    z-index: 9999; backdrop-filter: blur(2px);
-  }
-  .loading-overlay[aria-hidden="false"] { display: flex; }
-  .spinner {
-    width: 38px; height: 38px;
-    border: 3px solid var(--spinner-track);
-    border-top-color: var(--spinner-head);
-    border-radius: 50%;
-    animation: spin 0.9s linear infinite;
-  }
-  @keyframes spin { to { transform: rotate(360deg); } }
-  .btn-spinner {
-    width: 16px; height: 16px;
-    border: 2px solid var(--spinner-track);
-    border-top-color: var(--spinner-head);
-    border-radius: 50%;
-    animation: spin 0.8s linear infinite;
-  }
-  button[disabled] { opacity: 0.7; cursor: not-allowed; box-shadow: none; }
+      /* Loader overlay (come Pellet) */
+      .loading-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.15);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        z-index: 9999;
+        backdrop-filter: blur(2px);
+      }
+      .loading-overlay[aria-hidden='false'] {
+        display: flex;
+      }
+      .spinner {
+        width: 38px;
+        height: 38px;
+        border: 3px solid var(--spinner-track);
+        border-top-color: var(--spinner-head);
+        border-radius: 50%;
+        animation: spin 0.9s linear infinite;
+      }
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+      .btn-spinner {
+        width: 16px;
+        height: 16px;
+        border: 2px solid var(--spinner-track);
+        border-top-color: var(--spinner-head);
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+      }
+      button[disabled] {
+        opacity: 0.7;
+        cursor: not-allowed;
+        box-shadow: none;
+      }
 
-  /* Topbar 3 colonne (come Pellet) */
-  .topbar{
-    display:grid;
-    grid-template-columns: 48px 1fr 48px;
-    align-items:center;
-    height:48px;
-    margin-bottom:14px;
-  }
-  .menu-btn{
-    grid-column:1;
-    justify-self:start;
-    background:none;
-    border:none;
-    font-size:22px;
-    line-height:1;
-    padding:8px 12px;
-    cursor:pointer;
-    color: var(--text);
-  }
-  .title{
-    grid-column:2;
-    margin:0;
-    text-align:center;
-    font-size:22px;
-  }
-  .right-slot{ grid-column:3; }
+      /* Topbar 3 colonne (come Pellet) */
+      .topbar {
+        display: grid;
+        grid-template-columns: 48px 1fr 48px;
+        align-items: center;
+        height: 48px;
+        margin-bottom: 14px;
+      }
+      .menu-btn {
+        grid-column: 1;
+        justify-self: start;
+        background: none;
+        border: none;
+        font-size: 22px;
+        line-height: 1;
+        padding: 8px 12px;
+        cursor: pointer;
+        color: var(--text);
+      }
+      .title {
+        grid-column: 2;
+        margin: 0;
+        text-align: center;
+        font-size: 22px;
+      }
+      .right-slot {
+        grid-column: 3;
+      }
 
-  /* Backdrop */
-  #backdrop{ position:fixed; inset:0; background:rgba(0,0,0,.15); display:none; z-index:9997; }
+      /* Backdrop */
+      #backdrop {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.15);
+        display: none;
+        z-index: 9997;
+      }
 
-  /* FAB hamburger in basso (identico a Pellet) */
-  .fab-menu{
-    position: fixed;
-    left: 12px;
-    bottom: calc(12px + env(safe-area-inset-bottom));
-    width: 48px; height: 48px;
-    display: inline-flex; align-items: center; justify-content: center;
-    border: 1px solid var(--border); border-radius: 999px; background: var(--surface);
-    color: var(--text);
-    font-size: 22px; line-height: 1; cursor: pointer;
-    box-shadow: var(--shadow);
-    z-index: 10000;
-    transition: opacity .15s ease, transform .15s ease;
-  }
-  .fab-menu:active{ transform: translateY(1px); }
-  .fab-menu:focus-visible{ outline: 2px solid #2684ff; outline-offset: 2px; }
-  body.drawer-open .fab-menu, body.frame-open .fab-menu{
-    opacity: 0; pointer-events: none; transform: translateY(8px);
-  }
+      /* FAB hamburger in basso (identico a Pellet) */
+      .fab-menu {
+        position: fixed;
+        left: 12px;
+        bottom: calc(12px + env(safe-area-inset-bottom));
+        width: 48px;
+        height: 48px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid var(--border);
+        border-radius: 999px;
+        background: var(--surface);
+        color: var(--text);
+        font-size: 22px;
+        line-height: 1;
+        cursor: pointer;
+        box-shadow: var(--shadow);
+        z-index: 10000;
+        transition: opacity 0.15s ease, transform 0.15s ease;
+      }
+      .fab-menu:active {
+        transform: translateY(1px);
+      }
+      .fab-menu:focus-visible {
+        outline: 2px solid #2684ff;
+        outline-offset: 2px;
+      }
+      body.drawer-open .fab-menu,
+      body.frame-open .fab-menu {
+        opacity: 0;
+        pointer-events: none;
+        transform: translateY(8px);
+      }
 
-  /* Riga 50/50 per Importo + toggle "Scheda carburante" */
-.form-row-5050{
-  display: grid;
-  grid-template-columns: 60% 40%;
-  gap: var(--space);
-  align-items: end;                  /* allinea il toggle al fondo */
-}
+      /* Riga 50/50 per Importo + toggle "Scheda carburante" */
+      .form-row-5050 {
+        display: grid;
+        grid-template-columns: 60% 40%;
+        gap: var(--space);
+        align-items: end; /* allinea il toggle al fondo */
+      }
 
-/* Colonna destra: etichetta sopra e toggle sotto */
-.toggle-col{
-  display: flex;
-  flex-direction: column;
-}
+      /* Colonna destra: etichetta sopra e toggle sotto */
+      .toggle-col {
+        display: flex;
+        flex-direction: column;
+      }
 
-/* Toggle switch accessibile */
-.switch{
-  position: relative;
-  width: 52px; height: 30px;
-  display: inline-block;
-}
-.switch input{
-  position: absolute;
-  inset: 0;
-  width: 100%; height: 100%;
-  opacity: 0;                        /* nascondo il checkbox, resta focusabile */
-  cursor: pointer;
-}
-.switch .track{
-  position: absolute;
-  inset: 0;
-  border: 1px solid var(--border);
-  border-radius: 999px;
-  background: var(--surface);
-  box-shadow: var(--shadow);
-  transition: background .15s ease, border-color .15s ease;
-}
-.switch .thumb{
-  position: absolute;
-  top: 2px; left: 2px;
-  width: 26px; height: 26px;
-  border-radius: 50%;
-  background: var(--text);
-  transition: transform .18s ease;
-}
+      /* Toggle switch accessibile */
+      .switch {
+        position: relative;
+        width: 52px;
+        height: 30px;
+        display: inline-block;
+      }
+      .switch input {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        opacity: 0; /* nascondo il checkbox, resta focusabile */
+        cursor: pointer;
+      }
+      .switch .track {
+        position: absolute;
+        inset: 0;
+        border: 1px solid var(--border);
+        border-radius: 999px;
+        background: var(--surface);
+        box-shadow: var(--shadow);
+        transition: background 0.15s ease, border-color 0.15s ease;
+      }
+      .switch .thumb {
+        position: absolute;
+        top: 2px;
+        left: 2px;
+        width: 26px;
+        height: 26px;
+        border-radius: 50%;
+        background: var(--text);
+        transition: transform 0.18s ease;
+      }
 
-/* Stato ON */
-.switch input:checked + .track{
-  background: rgba(0, 160, 90, .15);
-  border-color: #22c55e;
-}
-.switch input:checked + .track .thumb{
-  transform: translateX(22px);
-}
+      /* Stato ON */
+      .switch input:checked + .track {
+        background: rgba(0, 160, 90, 0.15);
+        border-color: #22c55e;
+      }
+      .switch input:checked + .track .thumb {
+        transform: translateX(22px);
+      }
 
-/* Focus visibile e accessibile */
-.switch input:focus-visible + .track{
-  outline: 2px solid #2684ff;
-  outline-offset: 2px;
-}
+      /* Focus visibile e accessibile */
+      .switch input:focus-visible + .track {
+        outline: 2px solid #2684ff;
+        outline-offset: 2px;
+      }
 
-    /* Stato DISABILITATO */
-.switch input:disabled {
-  cursor: not-allowed;
-}
-.switch input:disabled + .track{
-  opacity: .4;
-  box-shadow: none;
-}
-.switch input:disabled + .track .thumb{
-  background: var(--muted);
-}
-    
-</style>
+      /* Stato DISABILITATO */
+      .switch input:disabled {
+        cursor: not-allowed;
+      }
+      .switch input:disabled + .track {
+        opacity: 0.4;
+        box-shadow: none;
+      }
+      .switch input:disabled + .track .thumb {
+        background: var(--muted);
+      }
+    </style>
+  </head>
 
-</head>
+  <body class="app">
+    <!-- Topbar identica -->
+    <header class="topbar">
+      <button id="menuBtn" class="menu-btn" aria-label="Apri menu">☰</button>
+      <h2 class="title">⛽️ Carburante</h2>
+      <span class="right-slot" aria-hidden="true"></span>
+    </header>
 
-<body class="app">
+    <!-- Drawer identico a Pellet -->
+    <div id="backdrop"></div>
+    <button id="menuBtnBottom" class="fab-menu" aria-label="Apri menu" title="Menu">☰</button>
 
-  <!-- Topbar identica -->
-  <header class="topbar">
-    <button id="menuBtn" class="menu-btn" aria-label="Apri menu">☰</button>
-    <h2 class="title">⛽️ Carburante</h2>
-    <span class="right-slot" aria-hidden="true"></span>
-  </header>
+    <!-- Form (campi a tutta larghezza come Pellet) -->
+    <label>Data</label>
+    <input id="data" type="date" required />
 
-  <!-- Drawer identico a Pellet -->
-  <div id="backdrop"></div>
-  <button id="menuBtnBottom" class="fab-menu" aria-label="Apri menu" title="Menu">☰</button>
-
-  <!-- Form (campi a tutta larghezza come Pellet) -->
-  <label>Data</label>
-  <input id="data" type="date" required>
-
-  <label for="auto">Auto</label>
-  <select id="auto" required>
-    <option value="">Seleziona auto</option>
-    <option value="Volkswagen - T-Roc">Volkswagen - T-Roc</option>
-    <option value="Jeep - Renegade">Jeep - Renegade</option>
-  </select>
-
-
-  <div class="form-row-5050">
-  <!-- 50% sinistra: Importo -->
-  <div>
-    <label for="importo">Importo (€)</label>
-    <select id="importo" required>
-      <option value="">Seleziona importo</option>
-      <!-- Le opzioni verranno comunque popolate via JS come già fai -->
+    <label for="auto">Auto</label>
+    <select id="auto" required>
+      <option value="">Seleziona auto</option>
+      <option value="Volkswagen - T-Roc">Volkswagen - T-Roc</option>
+      <option value="Jeep - Renegade">Jeep - Renegade</option>
     </select>
-  </div>
 
-  <!-- 50% destra: label + toggle -->
-  <div class="toggle-col">
-    <label for="schedaToggle">Scheda carburante</label>
-    <label class="switch" aria-label="Scheda carburante on/off">
-      <input id="schedaToggle" type="checkbox" role="switch" aria-checked="false">
-      <span class="track"><span class="thumb"></span></span>
-    </label>
-  </div>
-</div>
+    <div class="form-row-5050">
+      <!-- 50% sinistra: Importo -->
+      <div>
+        <label for="importo">Importo (€)</label>
+        <select id="importo" required>
+          <option value="">Seleziona importo</option>
+          <!-- Le opzioni verranno comunque popolate via JS come già fai -->
+        </select>
+      </div>
 
+      <!-- 50% destra: label + toggle -->
+      <div class="toggle-col">
+        <label for="schedaToggle">Scheda carburante</label>
+        <label class="switch" aria-label="Scheda carburante on/off">
+          <input id="schedaToggle" type="checkbox" role="switch" aria-checked="false" />
+          <span class="track"><span class="thumb"></span></span>
+        </label>
+      </div>
+    </div>
 
-  <label>Prezzo al litro (€)</label>
-  <input id="prezzo" type="text" inputmode="numeric" placeholder="es. 1,619" required>
+    <label>Prezzo al litro (€)</label>
+    <input id="prezzo" type="text" inputmode="numeric" placeholder="es. 1,619" required />
 
-  <label>Litri</label>
-  <input id="litri" type="text" inputmode="numeric" placeholder="es. 25,75" required>
+    <label>Litri</label>
+    <input id="litri" type="text" inputmode="numeric" placeholder="es. 25,75" required />
 
-  <label>Stazione</label>
-  <select id="stazione" required>
-    <option value="">Seleziona stazione</option>
-  </select>
+    <label>Stazione</label>
+    <select id="stazione" required>
+      <option value="">Seleziona stazione</option>
+    </select>
 
-  <label>Km</label>
-  <input id="km" type="number" inputmode="numeric" placeholder="opzionale">
+    <label>Km</label>
+    <input id="km" type="number" inputmode="numeric" placeholder="opzionale" />
 
-  <button id="saveBtn"><span class="btn-text">Salva</span></button>
-  <div id="msg" role="status" aria-live="polite"></div>
+    <button id="saveBtn"><span class="btn-text">Salva</span></button>
+    <div id="msg" role="status" aria-live="polite"></div>
 
-  <!-- Versione centrata in fondo (identico a Pellet) -->
-  <div class="muted">Versione: <span id="appVersion" class="badge"></span></div>
+    <!-- Versione centrata in fondo (identico a Pellet) -->
+    <div class="muted">Versione: <span id="appVersion" class="badge"></span></div>
 
-  <!-- Overlay globale -->
-  <div id="loaderOverlay" class="loading-overlay" aria-hidden="true" aria-live="polite" aria-busy="false">
-    <div class="spinner" role="progressbar" aria-label="Salvataggio in corso"></div>
-  </div>
+    <!-- Overlay globale -->
+    <div
+      id="loaderOverlay"
+      class="loading-overlay"
+      aria-hidden="true"
+      aria-live="polite"
+      aria-busy="false"
+    >
+      <div class="spinner" role="progressbar" aria-label="Salvataggio in corso"></div>
+    </div>
 
-  <!-- Overlay pagina secondaria -->
-  <iframe id="pageFrame" style="
-    position:fixed; inset:0; width:100vw; height:100vh; border:0;
-    display:none; background:var(--bg); z-index:9999;
-  "></iframe>
+    <!-- Overlay pagina secondaria -->
+    <iframe
+      id="pageFrame"
+      style="
+        position: fixed;
+        inset: 0;
+        width: 100vw;
+        height: 100vh;
+        border: 0;
+        display: none;
+        background: var(--bg);
+        z-index: 9999;
+      "
+    ></iframe>
 
-<script>
-/* ===== Backend ===== */
-const ENDPOINT = 'https://script.google.com/macros/s/AKfycbzbqrHJempNcv0F9yY7FQ9wu5mZWLx1P1oSqvvTa-ztvBF167CGsQLfFokmx-yD4M3O/exec';
-const SECRET   = 'aX4P-92kLq-55T8b-7Hc0Z';
+    <script>
+      /* ===== Backend ===== */
+      const ENDPOINT =
+        'https://script.google.com/macros/s/AKfycbzbqrHJempNcv0F9yY7FQ9wu5mZWLx1P1oSqvvTa-ztvBF167CGsQLfFokmx-yD4M3O/exec';
+      const SECRET = 'aX4P-92kLq-55T8b-7Hc0Z';
 
-/* ===== Versione (identico a Pellet) ===== */
-function pad(n){ return String(n).padStart(2,'0'); }
-function formatVersionFromDate(d){ return `${d.getFullYear()}.${pad(d.getMonth()+1)}.${pad(d.getDate())}-${pad(d.getHours())}:${pad(d.getMinutes())}`; }
-function computeAppVersion(){
-  const qs = new URLSearchParams(location.search);
-  const v = qs.get('v');
-  if (v) return v;
-  const d = new Date(document.lastModified);
-  return isNaN(d)?'dev':formatVersionFromDate(d);
-}
-function showAppVersion(){
-  const el = document.getElementById('appVersion');
-  if (el) el.textContent = computeAppVersion();
-}
+      /* ===== Versione (identico a Pellet) ===== */
+      function pad(n) {
+        return String(n).padStart(2, '0');
+      }
+      function formatVersionFromDate(d) {
+        return `${d.getFullYear()}.${pad(d.getMonth() + 1)}.${pad(d.getDate())}-${pad(
+          d.getHours()
+        )}:${pad(d.getMinutes())}`;
+      }
+      function computeAppVersion() {
+        const qs = new URLSearchParams(location.search);
+        const v = qs.get('v');
+        if (v) return v;
+        const d = new Date(document.lastModified);
+        return isNaN(d) ? 'dev' : formatVersionFromDate(d);
+      }
+      function showAppVersion() {
+        const el = document.getElementById('appVersion');
+        if (el) el.textContent = computeAppVersion();
+      }
 
-/* ===== Drawer + Theme toggle (copiato 1:1 da Pellet) ===== */
-(function(){
-  const btn = document.getElementById('menuBtn');
-  const btnBottom = document.getElementById('menuBtnBottom');
-  const drawer = document.getElementById('drawer');
-  const backdrop = document.getElementById('backdrop');
+      /* ===== Drawer + Theme toggle (copiato 1:1 da Pellet) ===== */
+      (function () {
+        const btn = document.getElementById('menuBtn');
+        const btnBottom = document.getElementById('menuBtnBottom');
+        const drawer = document.getElementById('drawer');
+        const backdrop = document.getElementById('backdrop');
 
-  function updateThemeToggleLabel(){
-    const el = document.getElementById('themeToggle');
-    if(!el) return;
-    const t = document.documentElement.getAttribute('data-theme') || 'light';
-    el.textContent = (t === 'dark') ? '☀️ Tema chiaro' : '🌙 Tema scuro';
-  }
-  function setTheme(t){
-    document.documentElement.setAttribute('data-theme', t);
-    try { localStorage.setItem('theme', t); } catch(e){}
-    updateThemeToggleLabel();
-    // Propaga al frame, se aperto
-    try{ document.getElementById('pageFrame').contentWindow?.postMessage(`theme:${t}`, '*'); }catch{}
-  }
-  updateThemeToggleLabel();
+        function updateThemeToggleLabel() {
+          const el = document.getElementById('themeToggle');
+          if (!el) return;
+          const t = document.documentElement.getAttribute('data-theme') || 'light';
+          el.textContent = t === 'dark' ? '☀️ Tema chiaro' : '🌙 Tema scuro';
+        }
+        function setTheme(t) {
+          document.documentElement.setAttribute('data-theme', t);
+          try {
+            localStorage.setItem('theme', t);
+          } catch (e) {}
+          updateThemeToggleLabel();
+          // Propaga al frame, se aperto
+          try {
+            document.getElementById('pageFrame').contentWindow?.postMessage(`theme:${t}`, '*');
+          } catch {}
+        }
+        updateThemeToggleLabel();
 
-  const open = () => {
-    drawer.style.transform='translateX(0)';
-    backdrop.style.display='block';
-    document.body.classList.add('drawer-open');
-  };
-  const close= () => {
-    drawer.style.transform='translateX(-105%)';
-    backdrop.style.display='none';
-    document.body.classList.remove('drawer-open');
-  };
+        const open = () => {
+          drawer.style.transform = 'translateX(0)';
+          backdrop.style.display = 'block';
+          document.body.classList.add('drawer-open');
+        };
+        const close = () => {
+          drawer.style.transform = 'translateX(-105%)';
+          backdrop.style.display = 'none';
+          document.body.classList.remove('drawer-open');
+        };
 
-  if (btn) btn.addEventListener('click', open);
-  if (btnBottom) btnBottom.addEventListener('click', open);
-  backdrop.addEventListener('click', close);
-  const drawerClose = document.getElementById('drawerClose');
-  if (drawerClose) drawerClose.addEventListener('click', close);
+        if (btn) btn.addEventListener('click', open);
+        if (btnBottom) btnBottom.addEventListener('click', open);
+        backdrop.addEventListener('click', close);
+        const drawerClose = document.getElementById('drawerClose');
+        if (drawerClose) drawerClose.addEventListener('click', close);
 
-  const themeToggle = document.getElementById('themeToggle');
-  if (themeToggle){
-    themeToggle.addEventListener('click', () => {
-      const curr = document.documentElement.getAttribute('data-theme') || 'light';
-      setTheme(curr === 'dark' ? 'light' : 'dark');
-    });
-  }
+        const themeToggle = document.getElementById('themeToggle');
+        if (themeToggle) {
+          themeToggle.addEventListener('click', () => {
+            const curr = document.documentElement.getAttribute('data-theme') || 'light';
+            setTheme(curr === 'dark' ? 'light' : 'dark');
+          });
+        }
 
-  try {
-    const mql = window.matchMedia('(prefers-color-scheme: dark)');
-    mql.addEventListener?.('change', (e) => {
-      const saved = localStorage.getItem('theme');
-      if (!saved) setTheme(e.matches ? 'dark' : 'light');
-    });
-  } catch(e){}
-})();
+        try {
+          const mql = window.matchMedia('(prefers-color-scheme: dark)');
+          mql.addEventListener?.('change', e => {
+            const saved = localStorage.getItem('theme');
+            if (!saved) setTheme(e.matches ? 'dark' : 'light');
+          });
+        } catch (e) {}
+      })();
 
-/* ===== Nav lista.html full-screen (identico a Pellet) ===== */
-document.addEventListener('DOMContentLoaded', () => {
-  const pad2 = n => String(n).padStart(2,'0');
-  const d = new Date(document.lastModified);
-  const vIndex = isNaN(d) ? 'dev'
-    : `${d.getFullYear()}.${pad2(d.getMonth()+1)}.${pad2(d.getDate())}-${pad2(d.getHours())}:${pad2(d.getMinutes())}`;
-  
-  const urlLista = `lista.html?v=${encodeURIComponent(vIndex)}`;
-  const urlScheda = `scheda_carburante.html?v=${encodeURIComponent(vIndex)}`;
-  const urlForecast = `forecast_km.html?v=${encodeURIComponent(vIndex)}`;
-  const urlImpianti = `impianti_vicini.html?v=${encodeURIComponent(vIndex)}`;
-  const urlImpiantiPreferiti = `impianti_preferiti.html?v=${encodeURIComponent(vIndex)}`;
+      /* ===== Nav lista.html full-screen (identico a Pellet) ===== */
+      document.addEventListener('DOMContentLoaded', () => {
+        const pad2 = n => String(n).padStart(2, '0');
+        const d = new Date(document.lastModified);
+        const vIndex = isNaN(d)
+          ? 'dev'
+          : `${d.getFullYear()}.${pad2(d.getMonth() + 1)}.${pad2(d.getDate())}-${pad2(
+              d.getHours()
+            )}:${pad2(d.getMinutes())}`;
 
-  const linkLista  = document.getElementById('goLista');
-  const linkScheda = document.getElementById('goScheda');
-  const linkForecast = document.getElementById('goForecast');
-  const linkImpianti = document.getElementById('goImpianti');
-  const linkImpiantiPreferiti = document.getElementById('goImpiantiPreferiti');
-  const frame      = document.getElementById('pageFrame');
-  const drawer     = document.getElementById('drawer');
-  const backdrop   = document.getElementById('backdrop');
+        const urlLista = `lista.html?v=${encodeURIComponent(vIndex)}`;
+        const urlScheda = `scheda_carburante.html?v=${encodeURIComponent(vIndex)}`;
+        const urlForecast = `forecast_km.html?v=${encodeURIComponent(vIndex)}`;
+        const urlImpianti = `impianti_vicini.html?v=${encodeURIComponent(vIndex)}`;
+        const urlImpiantiPreferiti = `impianti_preferiti.html?v=${encodeURIComponent(vIndex)}`;
 
-  function openFrame(url){
-    if (drawer)  drawer.style.transform = 'translateX(-105%)';
-    if (backdrop) backdrop.style.display = 'none';
-    document.body.classList.remove('drawer-open');
+        const linkLista = document.getElementById('goLista');
+        const linkScheda = document.getElementById('goScheda');
+        const linkForecast = document.getElementById('goForecast');
+        const linkImpianti = document.getElementById('goImpianti');
+        const linkImpiantiPreferiti = document.getElementById('goImpiantiPreferiti');
+        const frame = document.getElementById('pageFrame');
+        const drawer = document.getElementById('drawer');
+        const backdrop = document.getElementById('backdrop');
 
-    frame.src = url;
-    frame.style.display = 'block';
-    document.body.classList.add('frame-open');
+        function openFrame(url) {
+          if (drawer) drawer.style.transform = 'translateX(-105%)';
+          if (backdrop) backdrop.style.display = 'none';
+          document.body.classList.remove('drawer-open');
 
-    history.pushState({page:'lista'}, '', '#lista');
-  }
-  function closeFrame(){
-    frame.style.display = 'none';
-    frame.src = 'about:blank';
-    document.body.classList.remove('frame-open');
-    if (location.hash === '#lista' || location.hash === '#scheda') {
-      history.back();
-    }
-  }
+          frame.src = url;
+          frame.style.display = 'block';
+          document.body.classList.add('frame-open');
 
-  if (linkLista) {
-    linkLista.href = urlLista;
-    linkLista.setAttribute('target','_self');
-    linkLista.addEventListener('click', (e) => {
-      e.preventDefault();
-      openFrame(urlLista);
-    });
-  }
+          history.pushState({ page: 'lista' }, '', '#lista');
+        }
+        function closeFrame() {
+          frame.style.display = 'none';
+          frame.src = 'about:blank';
+          document.body.classList.remove('frame-open');
+          if (location.hash === '#lista' || location.hash === '#scheda') {
+            history.back();
+          }
+        }
 
-  if (linkScheda) {
-    linkScheda.href = urlScheda;
-    linkScheda.setAttribute('target','_self');
-    linkScheda.addEventListener('click', (e) => {
-      e.preventDefault();
-      openFrame(urlScheda, 'scheda');
-    });
-  }
+        if (linkLista) {
+          linkLista.href = urlLista;
+          linkLista.setAttribute('target', '_self');
+          linkLista.addEventListener('click', e => {
+            e.preventDefault();
+            openFrame(urlLista);
+          });
+        }
 
-  if (linkForecast) {
-    linkForecast.href = urlForecast;
-    linkForecast.setAttribute('target','_self');
-    linkForecast.addEventListener('click', (e) => {
-      e.preventDefault();
-      openFrame(urlForecast, 'forecast');
-    });
-  }
-  
-  if (linkImpianti) {
-    linkImpianti.href = urlImpianti;
-    linkImpianti.setAttribute('target','_self');
-    linkImpianti.addEventListener('click', (e) => {
-      e.preventDefault();
-      openFrame(urlImpianti, 'impianti');
-    });
-  }
+        if (linkScheda) {
+          linkScheda.href = urlScheda;
+          linkScheda.setAttribute('target', '_self');
+          linkScheda.addEventListener('click', e => {
+            e.preventDefault();
+            openFrame(urlScheda, 'scheda');
+          });
+        }
 
- if (linkImpiantiPreferiti) {
-    linkImpiantiPreferiti.href = urlImpiantiPreferiti;
-    linkImpiantiPreferiti.setAttribute('target','_self');
-    linkImpiantiPreferiti.addEventListener('click', (e) => {
-      e.preventDefault();
-      openFrame(urlImpiantiPreferiti, 'impianti');
-    });
-  }
+        if (linkForecast) {
+          linkForecast.href = urlForecast;
+          linkForecast.setAttribute('target', '_self');
+          linkForecast.addEventListener('click', e => {
+            e.preventDefault();
+            openFrame(urlForecast, 'forecast');
+          });
+        }
 
-  // Colora il testo del <select> come placeholder quando è vuoto (fallback iOS)
-  document.querySelectorAll('select[required]').forEach(sel => {
-    const syncColor = () => {
-      sel.style.color = sel.value ? 'var(--text)' : 'var(--muted)';
-    };
-    syncColor();
-    sel.addEventListener('change', syncColor);
-  });
+        if (linkImpianti) {
+          linkImpianti.href = urlImpianti;
+          linkImpianti.setAttribute('target', '_self');
+          linkImpianti.addEventListener('click', e => {
+            e.preventDefault();
+            openFrame(urlImpianti, 'impianti');
+          });
+        }
 
-  window.addEventListener('popstate', () => {
-    if (frame.style.display === 'block') {
-      frame.style.display = 'none';
-      frame.src = 'about:blank';
-      document.body.classList.remove('frame-open');
-    }
-  });
+        if (linkImpiantiPreferiti) {
+          linkImpiantiPreferiti.href = urlImpiantiPreferiti;
+          linkImpiantiPreferiti.setAttribute('target', '_self');
+          linkImpiantiPreferiti.addEventListener('click', e => {
+            e.preventDefault();
+            openFrame(urlImpiantiPreferiti, 'impianti');
+          });
+        }
 
-  window.addEventListener('message', (ev) => {
-    if (ev && ev.data === 'close-lista') closeFrame();
-  });
-});
+        // Colora il testo del <select> come placeholder quando è vuoto (fallback iOS)
+        document.querySelectorAll('select[required]').forEach(sel => {
+          const syncColor = () => {
+            sel.style.color = sel.value ? 'var(--text)' : 'var(--muted)';
+          };
+          syncColor();
+          sel.addEventListener('change', syncColor);
+        });
 
-/* ===== POS helpers (prezzo 3 dec, litri 2) ===== */
-function formatPosFromDigits(digits, decimals){
-  if (!digits) return '';
-  digits = digits.replace(/^0+/, '') || '0';
-  if (decimals === 0) return digits;
-  if (digits.length <= decimals) return `0,${digits.padStart(decimals, '0')}`;
-  const intPart = digits.slice(0, -decimals);
-  const decPart = digits.slice(-decimals);
-  return `${intPart},${decPart}`;
-}
-function normalizedFromDigits(digits, decimals){
-  if (!/^\d+$/.test(digits)) return null;
-  const n = Number(digits) / Math.pow(10, decimals);
-  return n.toFixed(decimals);
-}
-function parseMoneySmart(value, maxDec){
-  const raw = String(value||'').trim();
-  if (raw === '') return null;
-  if (/^\d+$/.test(raw)) return normalizedFromDigits(raw, maxDec);
-  const s = raw.replace(',', '.');
-  if (!new RegExp(`^\\d+(\\.\\d{1,${maxDec}})?$`).test(s)) return null;
-  return Number(s).toFixed(maxDec);
-}
-function attachPosMoney(el, decimals){
-  el.addEventListener('input', () => {
-    const digits = (el.value || '').replace(/\D/g, '');
-    const display = formatPosFromDigits(digits, decimals);
-    const active = document.activeElement === el;
-    el.value = display;
-    if (active){
-      try{ el.setSelectionRange(el.value.length, el.value.length); }catch{}
-    }
-  });
-}
+        window.addEventListener('popstate', () => {
+          if (frame.style.display === 'block') {
+            frame.style.display = 'none';
+            frame.src = 'about:blank';
+            document.body.classList.remove('frame-open');
+          }
+        });
 
-/* ===== Popola importi ===== */
-function initImportoOptions(){
-  const select = document.getElementById('importo');
-  for (let i=5; i<=100; i+=5){
-    const v = i.toFixed(2).replace('.', ',');
-    const opt = document.createElement('option');
-    opt.value = v; opt.textContent = v;
-    select.appendChild(opt);
-  }
-}
-/* ===== Data default ===== */
-function initDate(){
-  const d = new Date();
-  const p = n => String(n).padStart(2,'0');
-  document.getElementById('data').value = `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}`;
-}
-/* ===== Stazioni ===== */
-async function initStations(){
-  const sel = document.getElementById('stazione');
-  sel.length = 1;
-  try{
-    const res = await fetch(`${ENDPOINT}?action=stazioni&secret=${encodeURIComponent(SECRET)}`);
-    const data = await res.json();
-    if (data && data.ok && Array.isArray(data.stations)){
-      data.stations.forEach(st => {
-        const opt = document.createElement('option');
-        opt.value = st.label; opt.textContent = st.label; opt.dataset.id = st.id;
-        sel.appendChild(opt);
+        window.addEventListener('message', ev => {
+          if (ev && ev.data === 'close-lista') closeFrame();
+        });
       });
-      return;
-    }
-    addFallbackStations(sel);
-  }catch{ addFallbackStations(sel); }
-}
-function addFallbackStations(sel){
-  [
-    { id:'ALTRO', label:'Q8 - ALTRO' },
-    { id:'ARDEATINA_558_ROMA', label:'Q8 - VIA ARDEATINA 558 ROMA' },
-    { id:'LANUVIO', label:'Q8 - LANUVIO' },
-    { id:'VELLETRI', label:'Q8 - VELLETRI' }
-  ].forEach(st => {
-    const opt = document.createElement('option');
-    opt.value = st.label; opt.textContent = st.label; opt.dataset.id = st.id;
-    sel.appendChild(opt);
-  });
-}
 
-/* ===== Loader ===== */
-const saveBtn = document.getElementById('saveBtn');
-const btnText = saveBtn.querySelector('.btn-text');
-const loaderOverlay = document.getElementById('loaderOverlay');
-function setLoading(isLoading){
-  loaderOverlay.setAttribute('aria-hidden', String(!isLoading));
-  loaderOverlay.setAttribute('aria-busy', String(isLoading));
-  saveBtn.disabled = isLoading;
-  saveBtn.setAttribute('aria-busy', String(isLoading));
-  if (isLoading){
-    if (!saveBtn.querySelector('.btn-spinner')){
-      const s = document.createElement('span');
-      s.className = 'btn-spinner';
-      s.setAttribute('aria-hidden', 'true');
-      saveBtn.prepend(s);
-    }
-    btnText.textContent = 'Salvo…';
-  }else{
-    const s = saveBtn.querySelector('.btn-spinner');
-    if (s) s.remove();
-    btnText.textContent = 'Salva';
-  }
-  document.querySelectorAll('input, select, button').forEach(el => {
-    if (el !== saveBtn) el.disabled = isLoading;
-  });
-}
+      /* ===== POS helpers (prezzo 3 dec, litri 2) ===== */
+      function formatPosFromDigits(digits, decimals) {
+        if (!digits) return '';
+        digits = digits.replace(/^0+/, '') || '0';
+        if (decimals === 0) return digits;
+        if (digits.length <= decimals) return `0,${digits.padStart(decimals, '0')}`;
+        const intPart = digits.slice(0, -decimals);
+        const decPart = digits.slice(-decimals);
+        return `${intPart},${decPart}`;
+      }
+      function normalizedFromDigits(digits, decimals) {
+        if (!/^\d+$/.test(digits)) return null;
+        const n = Number(digits) / Math.pow(10, decimals);
+        return n.toFixed(decimals);
+      }
+      function parseMoneySmart(value, maxDec) {
+        const raw = String(value || '').trim();
+        if (raw === '') return null;
+        if (/^\d+$/.test(raw)) return normalizedFromDigits(raw, maxDec);
+        const s = raw.replace(',', '.');
+        if (!new RegExp(`^\\d+(\\.\\d{1,${maxDec}})?$`).test(s)) return null;
+        return Number(s).toFixed(maxDec);
+      }
+      function attachPosMoney(el, decimals) {
+        el.addEventListener('input', () => {
+          const digits = (el.value || '').replace(/\D/g, '');
+          const display = formatPosFromDigits(digits, decimals);
+          const active = document.activeElement === el;
+          el.value = display;
+          if (active) {
+            try {
+              el.setSelectionRange(el.value.length, el.value.length);
+            } catch {}
+          }
+        });
+      }
 
-/* ===== Invio form ===== */
-async function sendForm(data){
-  const params = new URLSearchParams(data);
-  const res = await fetch(ENDPOINT, {
-    method:'POST',
-    headers:{ 'Content-Type':'application/x-www-form-urlencoded;charset=UTF-8' },
-    body: params.toString(),
-  });
-  return res.json();
-}
-async function onSaveClick(){
-  const msg = document.getElementById('msg');
-  msg.textContent = '';
-  msg.className = '';
+      /* ===== Popola importi ===== */
+      function initImportoOptions() {
+        const select = document.getElementById('importo');
+        for (let i = 5; i <= 100; i += 5) {
+          const v = i.toFixed(2).replace('.', ',');
+          const opt = document.createElement('option');
+          opt.value = v;
+          opt.textContent = v;
+          select.appendChild(opt);
+        }
+      }
+      /* ===== Data default ===== */
+      function initDate() {
+        const d = new Date();
+        const p = n => String(n).padStart(2, '0');
+        document.getElementById('data').value = `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(
+          d.getDate()
+        )}`;
+      }
+      /* ===== Stazioni ===== */
+      async function initStations() {
+        const sel = document.getElementById('stazione');
+        sel.length = 1;
+        try {
+          const res = await fetch(
+            `${ENDPOINT}?action=stazioni&secret=${encodeURIComponent(SECRET)}`
+          );
+          const data = await res.json();
+          if (data && data.ok && Array.isArray(data.stations)) {
+            data.stations.forEach(st => {
+              const opt = document.createElement('option');
+              opt.value = st.label;
+              opt.textContent = st.label;
+              opt.dataset.id = st.id;
+              sel.appendChild(opt);
+            });
+            return;
+          }
+          addFallbackStations(sel);
+        } catch {
+          addFallbackStations(sel);
+        }
+      }
+      function addFallbackStations(sel) {
+        [
+          { id: 'ALTRO', label: 'Q8 - ALTRO' },
+          { id: 'ARDEATINA_558_ROMA', label: 'Q8 - VIA ARDEATINA 558 ROMA' },
+          { id: 'LANUVIO', label: 'Q8 - LANUVIO' },
+          { id: 'VELLETRI', label: 'Q8 - VELLETRI' },
+        ].forEach(st => {
+          const opt = document.createElement('option');
+          opt.value = st.label;
+          opt.textContent = st.label;
+          opt.dataset.id = st.id;
+          sel.appendChild(opt);
+        });
+      }
 
-  const data = document.getElementById('data').value;
-  const auto = document.getElementById('auto').value;
-  const prezzoNorm = parseMoneySmart(document.getElementById('prezzo').value, 3);
-  const litriNorm  = parseMoneySmart(document.getElementById('litri').value, 2);
+      /* ===== Loader ===== */
+      const saveBtn = document.getElementById('saveBtn');
+      const btnText = saveBtn.querySelector('.btn-text');
+      const loaderOverlay = document.getElementById('loaderOverlay');
+      function setLoading(isLoading) {
+        loaderOverlay.setAttribute('aria-hidden', String(!isLoading));
+        loaderOverlay.setAttribute('aria-busy', String(isLoading));
+        saveBtn.disabled = isLoading;
+        saveBtn.setAttribute('aria-busy', String(isLoading));
+        if (isLoading) {
+          if (!saveBtn.querySelector('.btn-spinner')) {
+            const s = document.createElement('span');
+            s.className = 'btn-spinner';
+            s.setAttribute('aria-hidden', 'true');
+            saveBtn.prepend(s);
+          }
+          btnText.textContent = 'Salvo…';
+        } else {
+          const s = saveBtn.querySelector('.btn-spinner');
+          if (s) s.remove();
+          btnText.textContent = 'Salva';
+        }
+        document.querySelectorAll('input, select, button').forEach(el => {
+          if (el !== saveBtn) el.disabled = isLoading;
+        });
+      }
 
-  let importo = String(document.getElementById('importo').value).replace(',', '.');
+      /* ===== Invio form ===== */
+      async function sendForm(data) {
+        const params = new URLSearchParams(data);
+        const res = await fetch(ENDPOINT, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8' },
+          body: params.toString(),
+        });
+        return res.json();
+      }
+      async function onSaveClick() {
+        const msg = document.getElementById('msg');
+        msg.textContent = '';
+        msg.className = '';
 
-  const stSel = document.getElementById('stazione');
-  const stazione   = stSel.value;
-  const stazioneId = stSel.options[stSel.selectedIndex]?.dataset?.id || '';
-  const km = document.getElementById('km').value;
-  // campo: toggle "Scheda carburante"
-  const schedaToggleEl   = document.getElementById('schedaToggle');
-  const schedaCarburante = schedaToggleEl.checked ? '1' : '0'; // oppure 'true'/'false'
+        const data = document.getElementById('data').value;
+        const auto = document.getElementById('auto').value;
+        const prezzoNorm = parseMoneySmart(document.getElementById('prezzo').value, 3);
+        const litriNorm = parseMoneySmart(document.getElementById('litri').value, 2);
 
-  if (!data){ msg.textContent='Inserisci la data.'; msg.className='err'; return; }
-  if (!auto){ msg.textContent='Seleziona un\'auto.'; msg.className='err'; return; }
-  if (!importo || Number(importo) <= 0){ msg.textContent='Seleziona un importo.'; msg.className='err'; return; }
-  if (prezzoNorm === null || Number(prezzoNorm) <= 0){ msg.textContent='Prezzo non valido.'; msg.className='err'; return; }
-  if (litriNorm === null  || Number(litriNorm)  <= 0){ msg.textContent='Litri non validi.'; msg.className='err'; return; }
-  if (!stazione){ msg.textContent='Seleziona una stazione.'; msg.className='err'; return; }
+        let importo = String(document.getElementById('importo').value).replace(',', '.');
 
-  const payload = { secret: SECRET, data, auto, schedaCarburante, importo, prezzo:prezzoNorm, litri:litriNorm, stazione, stazioneId, km };
+        const stSel = document.getElementById('stazione');
+        const stazione = stSel.value;
+        const stazioneId = stSel.options[stSel.selectedIndex]?.dataset?.id || '';
+        const km = document.getElementById('km').value;
+        // campo: toggle "Scheda carburante"
+        const schedaToggleEl = document.getElementById('schedaToggle');
+        const schedaCarburante = schedaToggleEl.checked ? '1' : '0'; // oppure 'true'/'false'
 
-  try{
-    setLoading(true);
-    const out = await sendForm(payload);
-    if (out.ok){
-      msg.textContent = 'Salvato ✅';
-      msg.className = 'ok';
-      document.getElementById('prezzo').value=''; 
-      document.getElementById('litri').value='';
-      document.getElementById('importo').selectedIndex = 0; 
-      document.getElementById('stazione').selectedIndex = 0;
-      schedaToggleEl.checked = false;
-      schedaToggleEl.setAttribute('aria-checked', 'false');
-    }else{
-      msg.textContent='Errore di rete o autorizzazione.'; msg.className='err';
-    }
-  }catch{
-    msg.textContent='Sei offline. Dato non inviato.'; msg.className='err';
-  }finally{ setLoading(false); }
-}
+        if (!data) {
+          msg.textContent = 'Inserisci la data.';
+          msg.className = 'err';
+          return;
+        }
+        if (!auto) {
+          msg.textContent = "Seleziona un'auto.";
+          msg.className = 'err';
+          return;
+        }
+        if (!importo || Number(importo) <= 0) {
+          msg.textContent = 'Seleziona un importo.';
+          msg.className = 'err';
+          return;
+        }
+        if (prezzoNorm === null || Number(prezzoNorm) <= 0) {
+          msg.textContent = 'Prezzo non valido.';
+          msg.className = 'err';
+          return;
+        }
+        if (litriNorm === null || Number(litriNorm) <= 0) {
+          msg.textContent = 'Litri non validi.';
+          msg.className = 'err';
+          return;
+        }
+        if (!stazione) {
+          msg.textContent = 'Seleziona una stazione.';
+          msg.className = 'err';
+          return;
+        }
 
-/* ===== Boot ===== */
-document.addEventListener('DOMContentLoaded', () => {
-  showAppVersion();
-  initImportoOptions();
-  initDate();
-  initStations();
+        const payload = {
+          secret: SECRET,
+          data,
+          auto,
+          schedaCarburante,
+          importo,
+          prezzo: prezzoNorm,
+          litri: litriNorm,
+          stazione,
+          stazioneId,
+          km,
+        };
 
-  // POS live (prezzo 3 decimali, litri 2)
-  attachPosMoney(document.getElementById('prezzo'), 3);
-  attachPosMoney(document.getElementById('litri'), 2);
+        try {
+          setLoading(true);
+          const out = await sendForm(payload);
+          if (out.ok) {
+            msg.textContent = 'Salvato ✅';
+            msg.className = 'ok';
+            document.getElementById('prezzo').value = '';
+            document.getElementById('litri').value = '';
+            document.getElementById('importo').selectedIndex = 0;
+            document.getElementById('stazione').selectedIndex = 0;
+            schedaToggleEl.checked = false;
+            schedaToggleEl.setAttribute('aria-checked', 'false');
+          } else {
+            msg.textContent = 'Errore di rete o autorizzazione.';
+            msg.className = 'err';
+          }
+        } catch {
+          msg.textContent = 'Sei offline. Dato non inviato.';
+          msg.className = 'err';
+        } finally {
+          setLoading(false);
+        }
+      }
 
-  document.getElementById('saveBtn').addEventListener('click', onSaveClick);
+      /* ===== Boot ===== */
+      document.addEventListener('DOMContentLoaded', () => {
+        showAppVersion();
+        initImportoOptions();
+        initDate();
+        initStations();
 
-  // === Abilita toggle "Scheda carburante" solo per Volkswagen - T-Roc ===
-  const autoSel      = document.getElementById('auto');
-  const schedaToggle = document.getElementById('schedaToggle');
+        // POS live (prezzo 3 decimali, litri 2)
+        attachPosMoney(document.getElementById('prezzo'), 3);
+        attachPosMoney(document.getElementById('litri'), 2);
 
-  function syncSchedaToggle() {
-    const isVW = autoSel.value === 'Volkswagen - T-Roc';
+        document.getElementById('saveBtn').addEventListener('click', onSaveClick);
 
-    // se non è T-Roc, disabilita e spegni il toggle
-    if (!isVW) {
-      schedaToggle.checked = false;
-      schedaToggle.setAttribute('aria-checked', 'false');
-    }
+        // === Abilita toggle "Scheda carburante" solo per Volkswagen - T-Roc ===
+        const autoSel = document.getElementById('auto');
+        const schedaToggle = document.getElementById('schedaToggle');
 
-    schedaToggle.disabled = !isVW;
-    schedaToggle.setAttribute('aria-disabled', String(!isVW));
-  }
+        function syncSchedaToggle() {
+          const isVW = autoSel.value === 'Volkswagen - T-Roc';
 
-  // Mantiene aria-checked aggiornato quando l’utente clicca sul toggle
-  schedaToggle.addEventListener('change', () => {
-    schedaToggle.setAttribute('aria-checked', schedaToggle.checked ? 'true' : 'false');
-  });
+          // se non è T-Roc, disabilita e spegni il toggle
+          if (!isVW) {
+            schedaToggle.checked = false;
+            schedaToggle.setAttribute('aria-checked', 'false');
+          }
 
-  // Stato iniziale all’apertura della pagina
-  syncSchedaToggle();
+          schedaToggle.disabled = !isVW;
+          schedaToggle.setAttribute('aria-disabled', String(!isVW));
+        }
 
-  // Aggiorna il toggle quando cambio auto
-  autoSel.addEventListener('change', syncSchedaToggle);
-});
+        // Mantiene aria-checked aggiornato quando l’utente clicca sul toggle
+        schedaToggle.addEventListener('change', () => {
+          schedaToggle.setAttribute('aria-checked', schedaToggle.checked ? 'true' : 'false');
+        });
 
-/* Ricarica se riaperta da bfcache (come Pellet) */
-addEventListener('pageshow', e => e.persisted && location.reload());
-</script>
-</body>
+        // Stato iniziale all’apertura della pagina
+        syncSchedaToggle();
+
+        // Aggiorna il toggle quando cambio auto
+        autoSel.addEventListener('change', syncSchedaToggle);
+      });
+
+      /* Ricarica se riaperta da bfcache (come Pellet) */
+      addEventListener('pageshow', e => e.persisted && location.reload());
+    </script>
+  </body>
 </html>
-
-
-
-
