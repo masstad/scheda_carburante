@@ -18,7 +18,8 @@ pnpm-debug.log*
 ####################################
 .vscode/*
 !.vscode/settings.json
-!.vscode/extensions.json
+!.vscode/extensions.
+!.vscode/tasks.json
 
 ####################################
 # OS / editor
