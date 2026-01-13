@@ -880,7 +880,9 @@
         msg.className = '';
 
         const data = document.getElementById('data').value;
-        const auto = document.getElementById('auto').value;
+        const autoSel = document.getElementById('auto');
+        const idAuto = autoSel.value; // ✅ value = ID
+        const autoLabel = (autoSel.options[autoSel.selectedIndex]?.textContent || '').trim(); // ✅ testo visibile
         const prezzoNorm = parseMoneySmart(document.getElementById('prezzo').value, 3);
         const litriNorm = parseMoneySmart(document.getElementById('litri').value, 2);
 
@@ -899,7 +901,7 @@
           msg.className = 'err';
           return;
         }
-        if (!auto) {
+        if (!idAuto) {
           msg.textContent = "Seleziona un'auto.";
           msg.className = 'err';
           return;
@@ -928,7 +930,8 @@
         const payload = {
           secret: SECRET,
           data,
-          auto,
+          idAuto, // ✅ finisce in ID_AUTO
+          auto: autoLabel, // ✅ finisce in Auto (testo)
           schedaCarburante,
           importo,
           prezzo: prezzoNorm,
@@ -987,7 +990,8 @@
         const schedaToggle = document.getElementById('schedaToggle');
 
         function syncSchedaToggle() {
-          const isVW = autoSel.value === 'Volkswagen - T-Roc';
+          const label = (autoSel.options[autoSel.selectedIndex]?.textContent || '').trim();
+          const isVW = label === 'Volkswagen - T-Roc';
 
           // se non è T-Roc, disabilita e spegni il toggle
           if (!isVW) {
