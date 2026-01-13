@@ -355,6 +355,60 @@ header{
       letter-spacing: 0.2px;
     }
 
+    /* Selettore auto (home) */
+    .vehicle-card{
+      display:flex;
+      align-items:center;
+      gap: 12px;
+      padding: 12px 14px;
+    }
+    .veh-avatar{
+      width: 38px; height: 38px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: rgba(0,0,0,0.02);
+      display:grid;
+      place-items:center;
+      flex: 0 0 auto;
+      overflow:hidden;
+    }
+    html[data-theme="dark"] .veh-avatar{ background: rgba(255,255,255,0.04); }
+
+    .veh-main{ flex: 1 1 auto; min-width: 0; }
+    .veh-select{
+      width: 100%;
+      height: 44px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      box-shadow: var(--shadow);
+      padding: 10px 36px 10px 12px;
+      font-weight: 750;
+      letter-spacing: .2px;
+      /* ripristina raggio qui, non tocca gli altri input globali */
+    }
+    .veh-sub{
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 4px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .veh-right{
+      display:flex;
+      align-items:center;
+      gap: 6px;
+      color: var(--muted);
+      font-size: 12px;
+      flex: 0 0 auto;
+    }
+    .chev{
+      margin-left: -30px; /* sovrappone la freccia nativa in modo leggero */
+      pointer-events:none;
+      opacity:.6;
+    }
+
     /* 1) CTA Inserisci rifornimento */
     .cta-card{
       display: grid;
@@ -529,6 +583,32 @@ header{
     </header>
 
     <main class="stack">
+
+      <!-- 0) Selettore auto -->
+      <section class="card vehicle-card" id="cardVehicle" aria-label="Seleziona autoveicolo">
+        <div class="veh-avatar" aria-hidden="true">
+          <!-- car icon -->
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M14 16H9m10 0h1a2 2 0 0 0 2-2v-3a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v3a2 2 0 0 0 2 2h1"></path>
+            <path d="M6 16l-1.5 4M18 16l1.5 4"></path>
+            <circle cx="7.5" cy="16.5" r="1.5"></circle>
+            <circle cx="16.5" cy="16.5" r="1.5"></circle>
+          </svg>
+        </div>
+
+        <div class="veh-main">
+          <select id="autoSelect" class="veh-select" required aria-label="Autoveicolo">
+            <option value="" disabled selected>Seleziona auto…</option>
+          </select>
+          <div class="veh-sub" id="autoHint">—</div>
+        </div>
+
+        <div class="veh-right" title="Km ultimo rifornimento">
+          <span id="autoKm">—</span>
+          <span>km</span>
+        </div>
+      </section>
+
 
       <!-- 1) Card Inserisci rifornimento -->
       <section class="card cta-card">
@@ -987,6 +1067,8 @@ function addFallbackStations(sel){
       if (lEl) lEl.textContent = '—';
       if (kEl) kEl.textContent = '—';
       if (sEl) sEl.textContent = '—';
+      var kmMini0 = document.getElementById('autoKm');
+      if (kmMini0) kmMini0.textContent = '—';
       return;
     }
 
@@ -995,12 +1077,17 @@ function addFallbackStations(sel){
     if (pEl) pEl.textContent = (last.prezzo !== null && last.prezzo !== undefined) ? (fmtNum(last.prezzo, 3) + ' €/L') : '—';
     if (lEl) lEl.textContent = (last.litri !== null && last.litri !== undefined) ? (fmtNum(last.litri, 2) + ' L') : '—';
     if (kEl) kEl.textContent = last.km ? last.km : '—';
+
+    // aggiorna km nel selettore auto
+    var kmMini = document.getElementById('autoKm');
+    if (kmMini) kmMini.textContent = last.km ? String(last.km).replace(/\s+/g,'') : '—';
     if (sEl) sEl.textContent = last.stazione ? last.stazione : '—';
   }
 
-  async function loadLastRefuel(){
+  async function loadLastRefuel(idAuto){
     try{
       var url = ENDPOINT + '?action=last_refuel&secret=' + encodeURIComponent(SECRET);
+      if (idAuto) url += '&id_auto=' + encodeURIComponent(idAuto);
       var resp = await fetch(url, { method:'GET', cache:'no-store' });
       var json = await resp.json();
 
@@ -1017,7 +1104,12 @@ function addFallbackStations(sel){
   /* ====== NAV ====== */
   function bindNav(){
     var btnNew = document.getElementById('btnNewRefuel');
-    if (btnNew) btnNew.addEventListener('click', function(){ location.href = PAGES.newRefuel; });
+    if (btnNew) btnNew.addEventListener('click', function(){
+      var idAuto = getSelectedAutoId();
+      var url = PAGES.newRefuel;
+      if (idAuto) url += (url.indexOf('?')>=0 ? '&' : '?') + 'id_auto=' + encodeURIComponent(idAuto);
+      location.href = url;
+    });
 
     var btnSettings = document.getElementById('btnSettings');
     if (btnSettings) btnSettings.addEventListener('click', function(){ location.href = PAGES.settings; });
@@ -1035,9 +1127,91 @@ function addFallbackStations(sel){
     if (navSet) navSet.addEventListener('click', function(e){ e.preventDefault(); location.href = PAGES.settings; });
   }
 
+
+  /* ====== AUTOVEICOLI (switch) ====== */
+  var AUTOS_CACHE = null;
+
+  function getSelectedAutoId(){
+    try { return localStorage.getItem('selectedAutoId') || ''; } catch(e){ return ''; }
+  }
+  function setSelectedAutoId(id){
+    try { localStorage.setItem('selectedAutoId', String(id||'')); } catch(e){}
+  }
+
+  function setAutoHint(txt){
+    var el = document.getElementById('autoHint');
+    if (el) el.textContent = txt || '—';
+  }
+
+  async function loadAutos(){
+    try{
+      var url = ENDPOINT + '?action=autos&secret=' + encodeURIComponent(SECRET);
+      var resp = await fetch(url, { method:'GET', cache:'no-store' });
+      var json = await resp.json();
+      if (!json || !json.ok || !Array.isArray(json.autos)) throw new Error((json && json.error) ? json.error : 'Errore API autos');
+      AUTOS_CACHE = json.autos;
+      return AUTOS_CACHE;
+    }catch(err){
+      console.warn('[Home] loadAutos failed:', err);
+      AUTOS_CACHE = [];
+      return AUTOS_CACHE;
+    }
+  }
+
+  function populateAutoSelect(autos){
+    var sel = document.getElementById('autoSelect');
+    if (!sel) return;
+
+    // reset (mantiene placeholder)
+    sel.innerHTML = '<option value="" disabled>Seleziona auto…</option>';
+
+    (autos || []).forEach(function(a){
+      var opt = document.createElement('option');
+      opt.value = a.id;
+      opt.textContent = a.label || ((a.marca||'') + ' ' + (a.modello||'')).trim() || a.id;
+      opt.dataset.marca = a.marca || '';
+      opt.dataset.modello = a.modello || '';
+      sel.appendChild(opt);
+    });
+
+    // selezione iniziale
+    var saved = getSelectedAutoId();
+    if (saved && autos && autos.some(function(x){ return String(x.id) === String(saved); })) {
+      sel.value = saved;
+    } else if (autos && autos.length) {
+      sel.value = autos[0].id;
+      setSelectedAutoId(autos[0].id);
+    } else {
+      sel.value = '';
+    }
+
+    // hint
+    var current = (autos || []).find(function(x){ return sel.value && String(x.id) === String(sel.value); });
+    if (current) setAutoHint((current.marca || '') + ' ' + (current.modello || ''));
+    else setAutoHint('—');
+
+    sel.addEventListener('change', function(){
+      setSelectedAutoId(sel.value);
+      var cur = (autos || []).find(function(x){ return String(x.id) === String(sel.value); });
+      if (cur) setAutoHint((cur.marca || '') + ' ' + (cur.modello || ''));
+      else setAutoHint('—');
+
+      // ricarica cards in base all'auto selezionata
+      loadLastRefuel(sel.value);
+    });
+  }
+
   /* ====== INIT ====== */
   bindNav();
-  loadLastRefuel();
+
+  // autos + last refuel per auto selezionata
+  (async function(){
+    var autos = await loadAutos();
+    populateAutoSelect(autos);
+    var idAuto = getSelectedAutoId();
+    if (!idAuto && autos && autos.length) idAuto = autos[0].id;
+    loadLastRefuel(idAuto);
+  })();
 
 /* ===== Boot ===== */
 document.addEventListener('DOMContentLoaded', () => {
@@ -1086,7 +1260,3 @@ addEventListener('pageshow', e => e.persisted && location.reload());
 </script>
 </body>
 </html>
-
-
-
-
