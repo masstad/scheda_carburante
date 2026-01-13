@@ -1,0 +1,49 @@
+####################################
+# Node / npm
+####################################
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+####################################
+# Cache / tooling
+####################################
+.eslintcache
+.cache/
+
+####################################
+# VSCode (solo impostazioni condivise)
+####################################
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
+
+####################################
+# OS / editor
+####################################
+.DS_Store
+Thumbs.db
+desktop.ini
+
+####################################
+# Build / dist (se in futuro li aggiungi)
+####################################
+dist/
+build/
+
+####################################
+# Environment / config locali
+####################################
+.env
+.env.*
+config.local.js
+config.local.json
+
+####################################
+# Temporary files
+####################################
+*.tmp
+*.temp
+*.log
