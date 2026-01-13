@@ -80,10 +80,11 @@
         min-height: 100dvh;
         display: flex;
         flex-direction: column;
-        padding: var(--space);
+        padding: 0 var(--space) var(--space);
         font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
         background: var(--bg);
         color: var(--text);
+        padding-top: 5px;
       }
 
       h2 {
@@ -222,14 +223,28 @@
         box-shadow: none;
       }
 
-      /* Topbar 3 colonne (come Pellet) */
+      /* Topbar 3 colonne */
       .topbar {
+        position: sticky;
+        top: 0;
+        z-index: 1000;
+
         display: grid;
         grid-template-columns: 48px 1fr 48px;
         align-items: center;
-        height: 48px;
-        margin-bottom: 14px;
+
+        height: 75px; /* touch target corretto */
+        padding: 0 14px; /* spazio interno della barra */
+        margin: 0; /* ❌ niente spazio esterno */
+
+        background: var(--card);
+        border-bottom: 1px solid var(--border);
+        margin-bottom: 14px; /* oppure 10px / 12px */
+
+        box-shadow: none;
+        border: 1px solid var(--border);
       }
+
       .menu-btn {
         grid-column: 1;
         justify-self: start;
@@ -384,11 +399,6 @@
         z-index: 10;
       }
 
-      .title {
-        display: flex;
-        flex-direction: column;
-        line-height: 1.1;
-      }
       .title h1 {
         font-size: 18px;
         margin: 0;
@@ -449,20 +459,22 @@
         align-items: center;
       }
       .veh-avatar {
-        width: 38px;
-        height: 38px;
-        border-radius: 999px;
-        border: 1px solid var(--border);
-        background: rgba(0, 0, 0, 0.02);
+        width: 34px; /* solo per l’icona */
+        height: 34px;
+        border: none; /* ❌ via il bordo */
+        background: none; /* ❌ via lo sfondo */
+        border-radius: 0; /* ❌ via cerchio */
         display: grid;
         place-items: center;
-        flex: 0 0 auto;
-        overflow: hidden;
-        grid-column: 1;
-        grid-row: 1 / span 2;
+        overflow: visible;
+      }
+      .veh-icon {
+        width: 20px;
+        height: 20px;
+        display: block;
       }
       html[data-theme='dark'] .veh-avatar {
-        background: rgba(255, 255, 255, 0.04);
+        background: none;
       }
 
       .veh-main {
@@ -704,24 +716,7 @@
         <!-- 0) Selettore auto -->
         <section class="card vehicle-card" id="cardVehicle" aria-label="Seleziona autoveicolo">
           <div class="veh-avatar" aria-hidden="true">
-            <!-- car icon -->
-            <svg
-              width="20"
-              height="20"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            >
-              <path
-                d="M14 16H9m10 0h1a2 2 0 0 0 2-2v-3a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v3a2 2 0 0 0 2 2h1"
-              ></path>
-              <path d="M6 16l-1.5 4M18 16l1.5 4"></path>
-              <circle cx="7.5" cy="16.5" r="1.5"></circle>
-              <circle cx="16.5" cy="16.5" r="1.5"></circle>
-            </svg>
+            <img src="img/directions_car.svg" alt="" class="veh-icon" draggable="false" />
           </div>
 
           <div class="veh-main">
