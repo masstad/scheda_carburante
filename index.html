@@ -440,10 +440,13 @@
 
       /* Selettore auto (home) */
       .vehicle-card {
-        display: flex;
-        align-items: center;
-        gap: 12px;
+        display: grid;
+        grid-template-columns: 38px 1fr;
+        grid-template-rows: auto auto;
+        column-gap: 12px;
+        row-gap: 6px;
         padding: 12px 14px;
+        align-items: center;
       }
       .veh-avatar {
         width: 38px;
@@ -455,6 +458,8 @@
         place-items: center;
         flex: 0 0 auto;
         overflow: hidden;
+        grid-column: 1;
+        grid-row: 1 / span 2;
       }
       html[data-theme='dark'] .veh-avatar {
         background: rgba(255, 255, 255, 0.04);
@@ -463,6 +468,10 @@
       .veh-main {
         flex: 1 1 auto;
         min-width: 0;
+        display: flex;
+        flex-direction: column;
+        grid-column: 2;
+        grid-row: 1;
       }
       .veh-select {
         width: 100%;
@@ -491,6 +500,9 @@
         color: var(--muted);
         font-size: 12px;
         flex: 0 0 auto;
+        grid-column: 2;
+        grid-row: 2;
+        justify-self: end; /* a destra, oppure start */
       }
       .chev {
         margin-left: -30px; /* sovrappone la freccia nativa in modo leggero */
@@ -573,6 +585,13 @@
         color: var(--muted);
         font-size: 12px;
         background: rgba(0, 0, 0, 0.02);
+      }
+
+      .last-date-diff {
+        margin-top: 4px;
+        font-size: 11px;
+        color: var(--muted);
+        font-variant-numeric: tabular-nums;
       }
 
       html[data-theme='dark'] .pill {
@@ -661,6 +680,10 @@
         font-size: 13px;
         color: var(--muted);
       }
+
+      #cardLast .row {
+        margin-bottom: 12px; /* oppure 8px se lo vuoi più arioso */
+      }
     </style>
   </head>
 
@@ -672,33 +695,11 @@
       <span class="right-slot" aria-hidden="true"></span>
     </header>
 
-    <!-- Drawer identico a Pellet -->
+    <!-- Drawer -->
     <div id="backdrop"></div>
     <button id="menuBtnBottom" class="fab-menu" aria-label="Apri menu" title="Menu">☰</button>
 
     <div class="wrap">
-      <header>
-        <!-- Icona settings a destra (opzionale) -->
-        <button class="iconbtn" id="btnSettings" aria-label="Impostazioni" title="Impostazioni">
-          <!-- gear -->
-          <svg
-            width="20"
-            height="20"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          >
-            <path d="M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Z"></path>
-            <path
-              d="M19.4 15a7.7 7.7 0 0 0 .1-1l2-1.2-2-3.4-2.3.6a7.7 7.7 0 0 0-1.7-1L15 6.3h-6L8.7 8.8a7.7 7.7 0 0 0-1.7 1L4.7 9.2 2.7 12.6l2 1.2a7.7 7.7 0 0 0 .1 1l-2 1.2 2 3.4 2.3-.6a7.7 7.7 0 0 0 1.7 1L9 21.7h6l.3-2.5a7.7 7.7 0 0 0 1.7-1l2.3.6 2-3.4-2-1.2Z"
-            ></path>
-          </svg>
-        </button>
-      </header>
-
       <main class="stack">
         <!-- 0) Selettore auto -->
         <section class="card vehicle-card" id="cardVehicle" aria-label="Seleziona autoveicolo">
@@ -727,7 +728,7 @@
             <select id="autoSelect" class="veh-select" required aria-label="Autoveicolo">
               <option value="" disabled selected>Seleziona auto…</option>
             </select>
-            <div class="veh-sub" id="autoHint">—</div>
+            <!-- <div class="veh-sub" id="autoHint">—</div> -->
           </div>
 
           <div class="veh-right" title="Km ultimo rifornimento">
@@ -756,7 +757,10 @@
         <section class="card" id="cardLast">
           <div class="row">
             <h2 style="margin: 0">Ultimo rifornimento</h2>
-            <span class="pill" id="lastDatePill">—</span>
+            <div style="text-align: right">
+              <span class="pill" id="lastDatePill">—</span>
+              <div class="last-date-diff" id="lastDateDiff"></div>
+            </div>
           </div>
 
           <div class="kv">
@@ -956,6 +960,38 @@
         return `${d.getFullYear()}.${pad(d.getMonth() + 1)}.${pad(d.getDate())}-${pad(
           d.getHours()
         )}:${pad(d.getMinutes())}`;
+      }
+
+      function formatKm(value) {
+        if (value === null || value === undefined || value === '') return '';
+        const n = Number(value);
+        if (!Number.isFinite(n)) return value;
+        return new Intl.NumberFormat('it-IT', {
+          maximumFractionDigits: 0,
+        }).format(n);
+      }
+
+      function daysFromToday(dateStr) {
+        if (!dateStr) return '';
+
+        // atteso formato: DD/MM/YYYY
+        const parts = dateStr.split('/');
+        if (parts.length !== 3) return '';
+
+        const d = new Date(Number(parts[2]), Number(parts[1]) - 1, Number(parts[0]));
+
+        if (isNaN(d)) return '';
+
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        d.setHours(0, 0, 0, 0);
+
+        const diffMs = today - d;
+        const diffDays = Math.floor(diffMs / 86400000);
+
+        if (diffDays <= 0) return '';
+        if (diffDays === 1) return '1 giorno fa';
+        return diffDays + ' giorni fa';
       }
 
       function computeAppVersion() {
@@ -1281,12 +1317,21 @@
           if (lEl) lEl.textContent = '—';
           if (kEl) kEl.textContent = '—';
           if (sEl) sEl.textContent = '—';
+
           var kmMini0 = document.getElementById('autoKm');
           if (kmMini0) kmMini0.textContent = '—';
+
+          var diffEl0 = document.getElementById('lastDateDiff');
+          if (diffEl0) diffEl0.textContent = '';
+
           return;
         }
 
         if (dateEl) dateEl.textContent = last.data ? last.data : '—';
+        var diffEl = document.getElementById('lastDateDiff');
+        if (diffEl) {
+          diffEl.textContent = last.data ? daysFromToday(last.data) : '';
+        }
         if (aEl)
           aEl.textContent =
             last.importo !== null && last.importo !== undefined ? fmtEUR(last.importo) : '—';
@@ -1298,11 +1343,11 @@
         if (lEl)
           lEl.textContent =
             last.litri !== null && last.litri !== undefined ? fmtNum(last.litri, 2) + ' L' : '—';
-        if (kEl) kEl.textContent = last.km ? last.km : '—';
+        if (kEl) kEl.textContent = last.km ? formatKm(last.km) : '—';
 
         // aggiorna km nel selettore auto
         var kmMini = document.getElementById('autoKm');
-        if (kmMini) kmMini.textContent = last.km ? String(last.km).replace(/\s+/g, '') : '—';
+        if (kmMini) kmMini.textContent = last.km ? formatKm(last.km) : '—';
         if (sEl) sEl.textContent = last.stazione ? last.stazione : '—';
       }
 
