@@ -98,6 +98,16 @@
     opacity: 0;
     pointer-events: none;
   }
+
+  .menu-version{
+    margin-top: 12px;
+    font-size: 12px;
+    color: var(--muted);
+    text-align: left;
+  }
+  .menu-version .badge{
+    margin-left: 6px;
+  }
   `;
 
   function injectCssOnce() {
@@ -111,15 +121,20 @@
   /* =========================
      MARKUP (identico a index.html)
      ========================= */
-  const MENU_HTML = `
+  function getMenuHtml() {
+    const noFab = document.body && document.body.dataset && document.body.dataset.noFabMenu === '1';
+
+    return `
     <nav id="drawer">
       <h3 style="margin-top:0;">Menu</h3>
       <ul style="list-style:none;padding:0;margin:0;">
-         <li><a id="goHome" href="#">Home</a></li>
-         <hr>
-         <li><a id="goRifornimento" href="#">Rifornimento</a></li>
-         <hr>
+        <li><a id="goHome" href="#">Home</a></li>
+        <hr>
+        <li><a id="goRifornimento" href="#">Rifornimento</a></li>
+        <hr>
         <li><a id="goLista" href="#">Lista movimenti</a></li>
+        <hr>
+        <li><a id="goCostiGestione" href="#">Costi di gestione</a></li>
         <hr>
         <li><a id="goScheda" href="#">Scheda carburante</a></li>
         <hr>
@@ -132,22 +147,31 @@
         <li><button id="themeToggle" class="linklike" type="button">🌙 Tema scuro</button></li>
       </ul>
       <button id="drawerClose" aria-label="Chiudi menu" title="Chiudi">←</button>
+      <hr>
+      <div class="menu-version">
+        Versione <span id="menuAppVersion" class="badge"></span>
+      </div>
     </nav>
     <div id="backdrop"></div>
-    <button id="menuBtnBottom" class="fab-menu" aria-label="Apri menu" title="Menu">☰</button>
+    ${
+      noFab
+        ? ''
+        : '<button id="menuBtnBottom" class="fab-menu" aria-label="Apri menu" title="Menu">☰</button>'
+    }
 
     <iframe id="pageFrame" style="
       position:fixed; inset:0; width:100vw; height:100vh; border:0;
       display:none; background:var(--bg); z-index:9999;
     "></iframe>
   `;
+  }
 
   function injectMarkupOnce() {
     if (document.getElementById('drawer')) return;
 
     const root = document.createElement('div');
     root.id = 'menuAutoRoot';
-    root.innerHTML = MENU_HTML;
+    root.innerHTML = getMenuHtml();
     document.body.insertBefore(root, document.body.firstChild);
   }
 
@@ -197,6 +221,30 @@
   /* =========================
      Drawer + Theme + Frame (logica di index.html)
      ========================= */
+  function pad(n) {
+    return String(n).padStart(2, '0');
+  }
+
+  function formatVersionFromDate(d) {
+    return `${d.getFullYear()}.${pad(d.getMonth() + 1)}.${pad(d.getDate())}-${pad(
+      d.getHours()
+    )}:${pad(d.getMinutes())}`;
+  }
+
+  function computeAppVersion() {
+    const qs = new URLSearchParams(location.search);
+    const v = qs.get('v');
+    if (v) return v;
+
+    const d = new Date(document.lastModified);
+    return isNaN(d) ? 'dev' : formatVersionFromDate(d);
+  }
+
+  function showMenuVersion() {
+    const el = document.getElementById('menuAppVersion');
+    if (el) el.textContent = computeAppVersion();
+  }
+
   function setupLogic() {
     const btn = document.getElementById('menuBtn');
     const btnBottom = document.getElementById('menuBtnBottom');
@@ -262,6 +310,7 @@
     const urlHome = `index.html?v=${encodeURIComponent(vIndex)}`;
     const urlRifornimento = `add_rifornimento.html?v=${encodeURIComponent(vIndex)}`;
     const urlLista = `lista.html?v=${encodeURIComponent(vIndex)}`;
+    const urlCostiGestione = `costi_gestione.html?v=${encodeURIComponent(vIndex)}`;
     const urlScheda = `scheda_carburante.html?v=${encodeURIComponent(vIndex)}`;
     const urlForecast = `forecast_km.html?v=${encodeURIComponent(vIndex)}`;
     const urlImpianti = `impianti_vicini.html?v=${encodeURIComponent(vIndex)}`;
@@ -288,6 +337,7 @@
     const linkHome = document.getElementById('goHome');
     const linkRifornimento = document.getElementById('goRifornimento');
     const linkLista = document.getElementById('goLista');
+    const linkCostiGestione = document.getElementById('goCostiGestione');
     const linkScheda = document.getElementById('goScheda');
     const linkForecast = document.getElementById('goForecast');
     const linkImpianti = document.getElementById('goImpianti');
@@ -312,6 +362,13 @@
       linkLista.addEventListener('click', e => {
         e.preventDefault();
         openFrame(urlLista);
+      });
+    }
+    if (linkCostiGestione) {
+      linkCostiGestione.href = urlCostiGestione;
+      linkCostiGestione.addEventListener('click', e => {
+        e.preventDefault();
+        openFrame(urlCostiGestione);
       });
     }
     if (linkScheda) {
@@ -365,5 +422,6 @@
     injectMarkupOnce();
     ensureTopLeftButton();
     setupLogic();
+    showMenuVersion();
   });
 })();

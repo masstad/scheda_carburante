@@ -8,12 +8,18 @@
     <meta name="apple-mobile-web-app-title" content="Carburante" />
     <title>Scheda carburante • Carburante</title>
 
+    <link rel="stylesheet" href="css/header.css" />
+    <link rel="stylesheet" href="css/fab.css" />
+
     <!-- No-cache -->
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
     <meta http-equiv="Pragma" content="no-cache" />
     <meta http-equiv="Expires" content="0" />
 
     <script src="js/menu.js" defer></script>
+    <script src="js/fab.js" defer></script>
+    <script src="js/format.js" defer></script>
+    <script src="js/config.js"></script>
 
     <!-- Imposta il tema PRIMA del paint -->
     <script>
@@ -71,7 +77,8 @@
         min-height: 100dvh;
         display: flex;
         flex-direction: column;
-        padding: var(--space);
+        padding: 0 var(--space) var(--space);
+        padding-top: 5px;
         font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
         background: var(--bg);
         color: var(--text);
@@ -81,22 +88,6 @@
         width: 100%;
         max-width: 640px;
         margin: 0 auto;
-      }
-
-      /* HEADER: titolo sopra, Anno/Plafond sotto */
-      .topbar {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 16px;
-        margin-bottom: 18px;
-      }
-
-      .title {
-        margin: 0;
-        text-align: center;
-        font-size: 22px;
-        font-weight: 700;
       }
 
       .top-controls {
@@ -232,25 +223,28 @@
   </head>
   <body>
     <!-- HEADER -->
-    <header class="topbar container">
-      <h1 class="title">⛽️ Scheda carburante</h1>
-      <div class="top-controls">
-        <label class="top-field">
-          <span class="top-field-label">Anno</span>
-          <input
-            id="yearInput"
-            type="number"
-            class="sel sel-sm"
-            inputmode="numeric"
-            aria-label="Anno"
-          />
-        </label>
-        <div class="top-field">
-          <span class="top-field-label">Plafond</span>
-          <span id="plafondValue" class="top-field-value">—</span>
-        </div>
-      </div>
+    <header class="topbar">
+      <button id="menuBtn" class="menu-btn" aria-label="Apri menu">☰</button>
+      <h2 class="title">⛽️ Scheda carburante</h2>
+      <span class="right-slot" aria-hidden="true"></span>
     </header>
+
+    <div class="top-controls">
+      <label class="top-field">
+        <span class="top-field-label">Anno</span>
+        <input
+          id="yearInput"
+          type="number"
+          class="sel sel-sm"
+          inputmode="numeric"
+          aria-label="Anno"
+        />
+      </label>
+      <div class="top-field">
+        <span class="top-field-label">Plafond</span>
+        <span id="plafondValue" class="top-field-value">—</span>
+      </div>
+    </div>
 
     <main class="container" role="main">
       <!-- Residuo annuo -->
@@ -268,26 +262,12 @@
       <div id="status" class="muted"></div>
     </main>
 
-    <!-- AZIONI -->
-    <div class="actions-footer container">
-      <a
-        class="btn"
-        id="backBtn"
-        href="add_rifornimento.html"
-        target="_self"
-        aria-label="Torna all'inserimento"
-        >← Nuovo rifornimento</a
-      >
-    </div>
-
-    <!-- Versione -->
-    <div class="version-footer muted">Versione:<span id="appVersion" class="badge"></span></div>
+    <!-- Versione 
+    <div class="version-footer muted">Versione:<span id="appVersion" class="badge"></span></div> -->
 
     <script>
-      /* ====== CONFIG ====== */
-      const ENDPOINT =
-        'https://script.google.com/macros/s/AKfycbwPS8wxz9H8AKh0w81hEgl9UbAP_aChCvdRwaiJB-BrhSYKxNnh4dF9bGW_v3-sPdHl/exec';
-      const SECRET = 'aX4P-92kLq-55T8b-7Hc0Z';
+      const { ENDPOINT, SECRET } = window.APP_CONFIG;
+      fetch(`${ENDPOINT}?secret=${SECRET}`);
 
       /* ====== VERSIONE (come lista.html) ====== */
       function formatVersionFromDate(d) {
@@ -303,13 +283,12 @@
         const d = new Date(document.lastModified);
         return isNaN(d) ? 'dev' : formatVersionFromDate(d);
       }
-      document.getElementById('appVersion').textContent = computeAppVersion();
+      //document.getElementById('appVersion').textContent = computeAppVersion();
 
       /* ====== UTILS ====== */
-      const euro = x =>
-        Number(x || 0)
-          .toFixed(2)
-          .replace('.', ',');
+      function euro(x) {
+        return window.formatEuroIt ? window.formatEuroIt(x, 2) : String(x ?? '');
+      }
 
       // Mese corrente (per il residuo mensile)
       const CURRENT_MONTH = new Date().getMonth() + 1;
@@ -341,6 +320,9 @@
           const res = await fetch(url.toString(), { method: 'GET' });
           const json = await res.json();
 
+          console.log('RAW plafond:', json.plafond, 'typeof:', typeof json.plafond);
+          console.log('TEST format:', window.formatEuroIt(json.plafond, 2));
+
           if (!json.ok) {
             status.textContent = json.error || 'Errore nel calcolo dei residui.';
             return;
@@ -362,15 +344,16 @@
       });
 
       // Pulsante back: chiudi overlay se in iframe
-      document.getElementById('backBtn').addEventListener('click', e => {
-        if (window.top !== window.self) {
-          e.preventDefault();
-          // Usiamo lo stesso messaggio di lista.html, gestito da index.html
-          window.top.postMessage('close-lista', '*');
-        }
-      });
+      const backBtn = document.getElementById('backBtn');
+      if (backBtn) {
+        backBtn.addEventListener('click', e => {
+          if (window.top !== window.self) {
+            e.preventDefault();
+            window.top.postMessage('close-lista', '*');
+          }
+        });
+      }
 
-      /* ====== LINK CARDS -> LISTA ====== */
       /* ====== LINK CARDS -> LISTA ====== */
       function buildListaUrl(params) {
         // riuso l'eventuale parametro ?v= per la versione, se presente

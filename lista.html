@@ -6,7 +6,10 @@
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     <meta name="apple-mobile-web-app-title" content="Carburante" />
-    <title>Lista rifornimenti • Carburante</title>
+    <title>Elenco rifornimenti</title>
+
+    <link rel="stylesheet" href="css/header.css" />
+    <link rel="stylesheet" href="css/fab.css" />
 
     <!-- No-cache -->
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
@@ -14,6 +17,8 @@
     <meta http-equiv="Expires" content="0" />
 
     <script src="js/menu.js" defer></script>
+    <script src="js/fab.js" defer></script>
+    <script src="js/config.js"></script>
 
     <!-- Imposta il tema PRIMA del paint -->
     <script>
@@ -71,7 +76,8 @@
         min-height: 100dvh;
         display: flex;
         flex-direction: column;
-        padding: var(--space);
+        padding: 0 var(--space) var(--space);
+        padding-top: 5px;
         font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
         background: var(--bg);
         color: var(--text);
@@ -81,24 +87,6 @@
         width: 100%;
         max-width: 640px;
         margin: 0 auto;
-      }
-
-      /* Topbar con titolo centrato su griglia 3 colonne */
-      .topbar {
-        margin-bottom: 10px;
-      }
-      .topbar-inner {
-        display: grid;
-        grid-template-columns: 48px 1fr auto;
-        align-items: center;
-        height: 48px;
-      }
-      .title {
-        grid-column: 2;
-        text-align: center;
-        margin: 0;
-        font-size: 22px;
-        font-weight: 700;
       }
 
       /* Bottone filtri nell'header */
@@ -244,7 +232,10 @@
       /* DRAWER FILTRI */
       .drawer {
         position: fixed;
-        inset: 0;
+        top: var(--header-height); /* ✅ parte sotto l’header */
+        left: 0;
+        right: 0;
+        bottom: 0;
         z-index: 50;
         display: none;
       }
@@ -312,12 +303,11 @@
   <body>
     <!-- HEADER -->
     <header class="topbar">
-      <div class="topbar-inner container">
-        <h1 class="title">⛽️ Lista rifornimenti</h1>
-        <button id="openFilterDrawer" class="filter-btn" type="button">
-          <span aria-hidden="true">🔍</span><span>Filtri</span>
-        </button>
-      </div>
+      <button id="menuBtn" class="menu-btn" aria-label="Apri menu">☰</button>
+      <h2 class="title">⛽️ Elenco Rifornimenti</h2>
+      <button id="openFilterDrawer" class="filter-btn" type="button">
+        <span aria-hidden="true">🔍</span><span>Filtri</span>
+      </button>
     </header>
 
     <main class="container" role="main">
@@ -406,27 +396,17 @@
 
     <!-- AZIONI -->
     <div class="actions-footer container">
-      <a
-        class="btn"
-        id="backBtn"
-        href="add_rifornimento.html"
-        target="_self"
-        aria-label="Torna all'inserimento"
-        >← Nuovo rifornimento</a
-      >
       <button class="btn" id="refreshBtn" type="button" aria-label="Ricarica elenco">
         ⟳ Ricarica
       </button>
     </div>
 
-    <!-- Versione -->
-    <div class="version-footer muted">Versione: <span id="appVersion" class="badge"></span></div>
+    <!-- Versione 
+    <div class="version-footer muted">Versione: <span id="appVersion" class="badge"></span></div> -->
 
     <script>
-      /* ====== CONFIG ====== */
-      const ENDPOINT =
-        'https://script.google.com/macros/s/AKfycbzbqrHJempNcv0F9yY7FQ9wu5mZWLx1P1oSqvvTa-ztvBF167CGsQLfFokmx-yD4M3O/exec';
-      const SECRET = 'aX4P-92kLq-55T8b-7Hc0Z';
+      const { ENDPOINT, SECRET } = window.APP_CONFIG;
+      fetch(`${ENDPOINT}?secret=${SECRET}`);
 
       /* ====== VERSIONE ====== */
       function formatVersionFromDate(d) {
@@ -442,7 +422,7 @@
         const d = new Date(document.lastModified);
         return isNaN(d) ? 'dev' : formatVersionFromDate(d);
       }
-      document.getElementById('appVersion').textContent = computeAppVersion();
+      //document.getElementById('appVersion').textContent = computeAppVersion();
 
       /* ====== UTILS ====== */
       const euro = x =>
@@ -706,12 +686,15 @@
       });
 
       // Pulsante back: chiudi overlay se in iframe
-      document.getElementById('backBtn').addEventListener('click', e => {
-        if (window.top !== window.self) {
-          e.preventDefault();
-          window.top.postMessage('close-lista', '*');
-        }
-      });
+      const backBtn = document.getElementById('backBtn');
+      if (backBtn) {
+        backBtn.addEventListener('click', e => {
+          if (window.top !== window.self) {
+            e.preventDefault();
+            window.top.postMessage('close-lista', '*');
+          }
+        });
+      }
 
       // Apertura/chiusura drawer
       document.getElementById('openFilterDrawer').addEventListener('click', openFilterDrawer);

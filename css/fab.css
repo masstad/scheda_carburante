@@ -1,0 +1,33 @@
+.fab-add {
+  position: fixed;
+  left: 12px;
+  bottom: calc(12px + env(safe-area-inset-bottom));
+
+  width: 52px;
+  height: 52px;
+
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  box-shadow: var(--shadow);
+
+  font-size: 32px;
+  font-weight: 600;
+  line-height: 1;
+
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+
+  z-index: 10000;
+  transition: transform 0.1s ease, opacity 0.15s ease;
+}
+
+.fab-add:active { transform: scale(0.96); }
+
+/* se usi le stesse classi "drawer-open/frame-open" ovunque */
+body.drawer-open .fab-add,
+body.frame-open .fab-add {
+  opacity: 0;
+  pointer-events: none;
+}

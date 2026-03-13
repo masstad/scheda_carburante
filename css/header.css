@@ -1,0 +1,62 @@
+/* Fallback: add_rifornimento.html non definisce --card */
+:root {
+  --card: var(--surface);
+  --header-height: 72px;
+}
+
+/* Header */
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+
+  display: grid;
+  grid-template-columns: 48px 1fr 48px;
+  align-items: center;
+
+  height: 72px; /* se vuoi identico ovunque, tieni un solo valore */
+  padding: 0 14px;
+
+  background: var(--card);
+  border: 1px solid var(--border);
+  box-shadow: none;
+
+  margin-bottom: 14px;
+}
+
+.menu-btn {
+  grid-column: 1;
+  justify-self: start;
+
+  /* IMPORTANTISSIMO: annulla lo stile globale "button { width:100%; ... }" */
+  width: auto;
+  height: auto;
+  max-width: none;
+  margin: 0;
+  padding: 8px 12px;
+
+  background: none;
+  border: none;
+  box-shadow: none;
+
+  font-size: 22px;
+  line-height: 1;
+  cursor: pointer;
+  color: var(--text);
+}
+
+.title {
+  grid-column: 2;
+  margin: 0;
+  text-align: center;
+  font-size: 22px;
+}
+
+.right-slot {
+  grid-column: 3;
+}
+
+.topbar > :last-child {
+  grid-column: 3;
+  justify-self: end;
+}

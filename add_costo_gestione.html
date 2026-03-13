@@ -319,7 +319,7 @@
     <!-- Topbar identica -->
     <header class="topbar">
       <button id="menuBtn" class="menu-btn" aria-label="Apri menu">☰</button>
-      <h2 class="title">⛽️ Rifornimento</h2>
+      <h2 class="title">💶 Costo di gestione</h2>
       <span class="right-slot" aria-hidden="true"></span>
     </header>
 
@@ -335,40 +335,18 @@
       <option value="">Seleziona auto</option>
     </select>
 
-    <div class="form-row-5050">
-      <!-- 50% sinistra: Importo -->
-      <div>
-        <label for="importo">Importo (€)</label>
-        <select id="importo" required>
-          <option value="">Seleziona importo</option>
-          <!-- Le opzioni verranno comunque popolate via JS come già fai -->
-        </select>
-      </div>
-
-      <!-- 50% destra: label + toggle -->
-      <div class="toggle-col">
-        <label for="schedaToggle">Scheda carburante</label>
-        <label class="switch" aria-label="Scheda carburante on/off">
-          <input id="schedaToggle" type="checkbox" role="switch" aria-checked="false" />
-          <span class="track"><span class="thumb"></span></span>
-        </label>
-      </div>
-    </div>
-
-    <label>Prezzo al litro (€)</label>
-    <input id="prezzo" type="text" inputmode="numeric" placeholder="es. 1,619" required />
-
-    <label>Litri</label>
-    <input id="litri" type="text" inputmode="numeric" placeholder="es. 25,75" required />
-
-    <label>Stazione</label>
-    <select id="stazione" required>
-      <option value="">Seleziona stazione</option>
+    <label for="categoria">Categoria</label>
+    <select id="categoria" required>
+      <option value="">Seleziona categoria</option>
     </select>
 
-    <label>Km</label>
-    <input id="km" type="number" inputmode="numeric" placeholder="opzionale" />
+    <label for="sottocategoria">Sottocategoria</label>
+    <select id="sottocategoria" required disabled>
+      <option value="">Seleziona sottocategoria</option>
+    </select>
 
+    <label for="importo">Importo (€)</label>
+    <input id="importo" type="text" inputmode="numeric" placeholder="es. 120,00" required />
     <button id="saveBtn"><span class="btn-text">Salva</span></button>
     <div id="msg" role="status" aria-live="polite"></div>
 
@@ -444,7 +422,6 @@
             localStorage.setItem('theme', t);
           } catch (e) {}
           updateThemeToggleLabel();
-          // Propaga al frame, se aperto
           try {
             document.getElementById('pageFrame').contentWindow?.postMessage(`theme:${t}`, '*');
           } catch {}
@@ -537,7 +514,6 @@
             openFrame(urlLista);
           });
         }
-
         if (linkScheda) {
           linkScheda.href = urlScheda;
           linkScheda.setAttribute('target', '_self');
@@ -546,7 +522,6 @@
             openFrame(urlScheda, 'scheda');
           });
         }
-
         if (linkForecast) {
           linkForecast.href = urlForecast;
           linkForecast.setAttribute('target', '_self');
@@ -555,7 +530,6 @@
             openFrame(urlForecast, 'forecast');
           });
         }
-
         if (linkImpianti) {
           linkImpianti.href = urlImpianti;
           linkImpianti.setAttribute('target', '_self');
@@ -564,7 +538,6 @@
             openFrame(urlImpianti, 'impianti');
           });
         }
-
         if (linkImpiantiPreferiti) {
           linkImpiantiPreferiti.href = urlImpiantiPreferiti;
           linkImpiantiPreferiti.setAttribute('target', '_self');
@@ -574,7 +547,6 @@
           });
         }
 
-        // Colora il testo del <select> come placeholder quando è vuoto (fallback iOS)
         document.querySelectorAll('select[required]').forEach(sel => {
           const syncColor = () => {
             sel.style.color = sel.value ? 'var(--text)' : 'var(--muted)';
@@ -596,7 +568,7 @@
         });
       });
 
-      /* ===== POS helpers (prezzo 3 dec, litri 2) ===== */
+      /* ===== POS helpers (importo 2 dec) ===== */
       function formatPosFromDigits(digits, decimals) {
         if (!digits) return '';
         digits = digits.replace(/^0+/, '') || '0';
@@ -619,42 +591,6 @@
         if (!new RegExp(`^\\d+(\\.\\d{1,${maxDec}})?$`).test(s)) return null;
         return Number(s).toFixed(maxDec);
       }
-      /* ===== Calcolo automatico Litri = Importo / Prezzo ===== */
-      function formatFixedComma(num, decimals) {
-        if (!Number.isFinite(num)) return '';
-        return num.toFixed(decimals).replace('.', ',');
-      }
-
-      function calcAndSetLitri() {
-        const importoSel = document.getElementById('importo');
-        const prezzoEl = document.getElementById('prezzo');
-        const litriEl = document.getElementById('litri');
-
-        if (!importoSel || !prezzoEl || !litriEl) return;
-
-        // importo viene dal select (es. "10,00") -> normalizza
-        const importoRaw = String(importoSel.value || '').trim();
-        if (!importoRaw) return; // niente importo selezionato
-
-        const importoNum = Number(importoRaw.replace(',', '.'));
-        if (!Number.isFinite(importoNum) || importoNum <= 0) return;
-
-        // prezzo: usa la tua parse (3 decimali) => string "1.619"
-        const prezzoNorm = parseMoneySmart(prezzoEl.value, 3);
-        const prezzoNum = prezzoNorm !== null ? Number(prezzoNorm) : NaN;
-        if (!Number.isFinite(prezzoNum) || prezzoNum <= 0) return;
-
-        const litri = importoNum / prezzoNum;
-
-        // scrivo litri con 2 decimali e virgola
-        litriEl.value = formatFixedComma(litri, 2);
-
-        // trigger input per applicare eventuali listener/formatting
-        try {
-          litriEl.dispatchEvent(new Event('input', { bubbles: true }));
-        } catch (e) {}
-      }
-
       function attachPosMoney(el, decimals) {
         el.addEventListener('input', () => {
           const digits = (el.value || '').replace(/\D/g, '');
@@ -669,17 +605,6 @@
         });
       }
 
-      /* ===== Popola importi ===== */
-      function initImportoOptions() {
-        const select = document.getElementById('importo');
-        for (let i = 5; i <= 100; i += 5) {
-          const v = i.toFixed(2).replace('.', ',');
-          const opt = document.createElement('option');
-          opt.value = v;
-          opt.textContent = v;
-          select.appendChild(opt);
-        }
-      }
       /* ===== Data default ===== */
       function initDate() {
         const d = new Date();
@@ -688,52 +613,13 @@
           d.getDate()
         )}`;
       }
-      /* ===== Stazioni ===== */
-      async function initStations() {
-        const sel = document.getElementById('stazione');
-        sel.length = 1;
-        try {
-          const res = await fetch(
-            `${ENDPOINT}?action=stazioni&secret=${encodeURIComponent(SECRET)}`
-          );
-          const data = await res.json();
-          if (data && data.ok && Array.isArray(data.stations)) {
-            data.stations.forEach(st => {
-              const opt = document.createElement('option');
-              opt.value = st.label;
-              opt.textContent = st.label;
-              opt.dataset.id = st.id;
-              sel.appendChild(opt);
-            });
-            return;
-          }
-          addFallbackStations(sel);
-        } catch {
-          addFallbackStations(sel);
-        }
-      }
-      function addFallbackStations(sel) {
-        [
-          { id: 'ALTRO', label: 'Q8 - ALTRO' },
-          { id: 'ARDEATINA_558_ROMA', label: 'Q8 - VIA ARDEATINA 558 ROMA' },
-          { id: 'LANUVIO', label: 'Q8 - LANUVIO' },
-          { id: 'VELLETRI', label: 'Q8 - VELLETRI' },
-        ].forEach(st => {
-          const opt = document.createElement('option');
-          opt.value = st.label;
-          opt.textContent = st.label;
-          opt.dataset.id = st.id;
-          sel.appendChild(opt);
-        });
-      }
 
       /* ===== Auto (dinamiche) ===== */
       async function initAutos() {
         const sel = document.getElementById('auto');
         if (!sel) return;
 
-        // mantieni solo il placeholder
-        sel.length = 1;
+        sel.length = 1; // placeholder
 
         try {
           const res = await fetch(`${ENDPOINT}?action=autos&secret=${encodeURIComponent(SECRET)}`);
@@ -752,33 +638,85 @@
               sel.appendChild(opt);
             });
 
-            // preselezione: querystring -> localStorage
             const qs = new URLSearchParams(location.search);
             const pre =
               qs.get('id_auto') ||
               qs.get('idAuto') ||
-              (function () {
+              (() => {
                 try {
                   return localStorage.getItem('selectedAutoId');
-                } catch (e) {
+                } catch {
                   return '';
                 }
               })();
 
             if (pre) sel.value = pre;
 
-            // salva selezione
             sel.addEventListener('change', () => {
               try {
                 localStorage.setItem('selectedAutoId', sel.value || '');
-              } catch (e) {}
+              } catch {}
             });
+          }
+        } catch (e) {}
+      }
 
-            return;
+      /* ===== Categorie/Sottocategorie (Categorie_Costi) ===== */
+      let CATS = [];
+
+      async function initCategorieCosti() {
+        const catSel = document.getElementById('categoria');
+        const subSel = document.getElementById('sottocategoria');
+
+        catSel.length = 1;
+        subSel.length = 1;
+        subSel.disabled = true;
+
+        try {
+          const res = await fetch(
+            `${ENDPOINT}?action=categories_costi&secret=${encodeURIComponent(SECRET)}`
+          );
+          const data = await res.json();
+
+          if (data && data.ok && Array.isArray(data.categories)) {
+            CATS = data.categories;
+            CATS.forEach(c => {
+              const opt = document.createElement('option');
+              opt.value = c.id; // ID_CATEGORIA
+              opt.textContent = c.label;
+              catSel.appendChild(opt);
+            });
+          } else {
+            CATS = [];
           }
         } catch (e) {
-          // fallback: lascia solo placeholder
+          CATS = [];
         }
+      }
+
+      function syncSottocategorie() {
+        const catSel = document.getElementById('categoria');
+        const subSel = document.getElementById('sottocategoria');
+
+        const idCat = catSel.value;
+
+        subSel.length = 1;
+        subSel.value = '';
+        subSel.disabled = true;
+
+        if (!idCat) return;
+
+        const cat = CATS.find(c => c.id === idCat);
+        if (!cat || !Array.isArray(cat.items) || cat.items.length === 0) return;
+
+        cat.items.forEach(s => {
+          const opt = document.createElement('option');
+          opt.value = s.id; // ID_SOTTOCATEGORIA
+          opt.textContent = s.label;
+          subSel.appendChild(opt);
+        });
+
+        subSel.disabled = false;
       }
 
       /* ===== Loader ===== */
@@ -818,87 +756,49 @@
         });
         return res.json();
       }
+
       async function onSaveClick() {
         const msg = document.getElementById('msg');
         msg.textContent = '';
         msg.className = '';
 
         const data = document.getElementById('data').value;
-        const autoSel = document.getElementById('auto');
-        const idAuto = autoSel.value; // ✅ value = ID
-        const autoLabel = (autoSel.options[autoSel.selectedIndex]?.textContent || '').trim(); // ✅ testo visibile
-        const prezzoNorm = parseMoneySmart(document.getElementById('prezzo').value, 3);
-        const litriNorm = parseMoneySmart(document.getElementById('litri').value, 2);
+        const idAuto = document.getElementById('auto').value;
+        const idCategoria = document.getElementById('categoria').value;
+        const idSottocategoria = document.getElementById('sottocategoria').value;
+        const importoNorm = parseMoneySmart(document.getElementById('importo').value, 2);
 
-        let importo = String(document.getElementById('importo').value).replace(',', '.');
-
-        const stSel = document.getElementById('stazione');
-        const stazione = stSel.value;
-        const stazioneId = stSel.options[stSel.selectedIndex]?.dataset?.id || '';
-        const km = document.getElementById('km').value;
-        // campo: toggle "Scheda carburante"
-        const schedaToggleEl = document.getElementById('schedaToggle');
-        const schedaCarburante = schedaToggleEl.checked ? '1' : '0'; // oppure 'true'/'false'
-
-        if (!data) {
-          msg.textContent = 'Inserisci la data.';
-          msg.className = 'err';
-          return;
-        }
-        if (!idAuto) {
-          msg.textContent = "Seleziona un'auto.";
-          msg.className = 'err';
-          return;
-        }
-        if (!importo || Number(importo) <= 0) {
-          msg.textContent = 'Seleziona un importo.';
-          msg.className = 'err';
-          return;
-        }
-        if (prezzoNorm === null || Number(prezzoNorm) <= 0) {
-          msg.textContent = 'Prezzo non valido.';
-          msg.className = 'err';
-          return;
-        }
-        if (litriNorm === null || Number(litriNorm) <= 0) {
-          msg.textContent = 'Litri non validi.';
-          msg.className = 'err';
-          return;
-        }
-        if (!stazione) {
-          msg.textContent = 'Seleziona una stazione.';
-          msg.className = 'err';
-          return;
-        }
+        if (!data) return (msg.textContent = 'Inserisci la data.'), (msg.className = 'err');
+        if (!idAuto) return (msg.textContent = "Seleziona un'auto."), (msg.className = 'err');
+        if (!idCategoria)
+          return (msg.textContent = 'Seleziona una categoria.'), (msg.className = 'err');
+        if (!idSottocategoria)
+          return (msg.textContent = 'Seleziona una sottocategoria.'), (msg.className = 'err');
+        if (importoNorm === null || Number(importoNorm) <= 0)
+          return (msg.textContent = 'Importo non valido.'), (msg.className = 'err');
 
         const payload = {
           secret: SECRET,
+          action: 'save_costo_gestione',
           data,
-          idAuto, // ✅ finisce in ID_AUTO
-          auto: autoLabel, // ✅ finisce in Auto (testo)
-          schedaCarburante,
-          importo,
-          prezzo: prezzoNorm,
-          litri: litriNorm,
-          stazione,
-          stazioneId,
-          km,
+          idCategoria,
+          idSottocategoria,
+          importo: String(importoNorm).replace('.', ','),
+          idAuto,
         };
 
         try {
           setLoading(true);
           const out = await sendForm(payload);
-          if (out.ok) {
+          if (out && out.ok) {
             msg.textContent = 'Salvato ✅';
             msg.className = 'ok';
-            document.getElementById('prezzo').value = '';
-            document.getElementById('litri').value = '';
-            document.getElementById('importo').selectedIndex = 0;
-            document.getElementById('stazione').selectedIndex = 0;
-            schedaToggleEl.checked = false;
-            schedaToggleEl.setAttribute('aria-checked', 'false');
+            document.getElementById('importo').value = '';
+            document.getElementById('categoria').selectedIndex = 0;
+            document.getElementById('sottocategoria').selectedIndex = 0;
+            document.getElementById('sottocategoria').disabled = true;
           } else {
-            msg.textContent = 'Errore di rete o autorizzazione.';
+            msg.textContent = out && out.error ? out.error : 'Errore di rete o autorizzazione.';
             msg.className = 'err';
           }
         } catch {
@@ -912,59 +812,16 @@
       /* ===== Boot ===== */
       document.addEventListener('DOMContentLoaded', () => {
         showAppVersion();
-        initImportoOptions();
         initDate();
-        initStations();
 
-        // POS live (prezzo 3 decimali, litri 2)
-        attachPosMoney(document.getElementById('prezzo'), 3);
-        attachPosMoney(document.getElementById('litri'), 2);
+        attachPosMoney(document.getElementById('importo'), 2);
 
-        // Auto-calc litri quando cambia importo o prezzo
-        document.getElementById('importo').addEventListener('change', calcAndSetLitri);
-        document.getElementById('prezzo').addEventListener('input', calcAndSetLitri);
-
-        // Primo tentativo (se hai valori già presenti)
-        calcAndSetLitri();
+        initCategorieCosti();
+        document.getElementById('categoria').addEventListener('change', syncSottocategorie);
 
         document.getElementById('saveBtn').addEventListener('click', onSaveClick);
 
-        // === Abilita toggle "Scheda carburante" solo per Volkswagen - T-Roc ===
-        const autoSel = document.getElementById('auto');
-        const schedaToggle = document.getElementById('schedaToggle');
-
-        function syncSchedaToggle() {
-          const label = (autoSel.options[autoSel.selectedIndex]?.textContent || '').trim();
-          const isVW = label === 'Volkswagen - T-Roc';
-
-          // se non è T-Roc, disabilita e spegni il toggle
-          if (!isVW) {
-            schedaToggle.checked = false;
-            schedaToggle.setAttribute('aria-checked', 'false');
-          }
-
-          schedaToggle.disabled = !isVW;
-          schedaToggle.setAttribute('aria-disabled', String(!isVW));
-        }
-
-        // Mantiene aria-checked aggiornato quando l’utente clicca sul toggle
-        schedaToggle.addEventListener('change', () => {
-          schedaToggle.setAttribute('aria-checked', schedaToggle.checked ? 'true' : 'false');
-        });
-
-        // Stato iniziale all’apertura della pagina
-        syncSchedaToggle();
-
-        // Aggiorna il toggle quando cambio auto
-        autoSel.addEventListener('change', syncSchedaToggle);
-
-        // Popola elenco auto da Anagrafica_Auto (dopo aver definito syncSchedaToggle)
-        initAutos().then(() => {
-          // forza sync dopo popolamento/preselezione
-          try {
-            autoSel.dispatchEvent(new Event('change'));
-          } catch (e) {}
-        });
+        initAutos();
       });
 
       /* Ricarica se riaperta da bfcache (come Pellet) */

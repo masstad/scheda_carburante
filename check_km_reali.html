@@ -8,12 +8,17 @@
     <meta name="apple-mobile-web-app-title" content="Carburante" />
     <title>Check Km reali • Carburante</title>
 
+    <link rel="stylesheet" href="css/header.css" />
+    <link rel="stylesheet" href="css/fab.css" />
+
     <!-- No-cache -->
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
     <meta http-equiv="Pragma" content="no-cache" />
     <meta http-equiv="Expires" content="0" />
 
     <script src="js/menu.js" defer></script>
+    <script src="js/fab.js" defer></script>
+    <script src="js/config.js"></script>
 
     <!-- Imposta il tema PRIMA del paint -->
     <script>
@@ -71,7 +76,8 @@
         min-height: 100dvh;
         display: flex;
         flex-direction: column;
-        padding: var(--space);
+        padding: 0 var(--space) var(--space);
+        padding-top: 5px;
         font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
         background: var(--bg);
         color: var(--text);
@@ -81,22 +87,6 @@
         width: 100%;
         max-width: 640px;
         margin: 0 auto;
-      }
-
-      /* HEADER (come forecast_km) */
-      .topbar {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 8px;
-        margin-bottom: 18px;
-      }
-
-      .title {
-        margin: 0;
-        text-align: center;
-        font-size: 22px;
-        font-weight: 700;
       }
 
       .subtitle {
@@ -247,9 +237,10 @@
   </head>
   <body>
     <!-- HEADER -->
-    <header class="topbar container">
-      <h1 class="title">Check Km reali</h1>
-      <p class="subtitle">Elenco dei Km reali registrati sul foglio "Previsionale".</p>
+    <header class="topbar">
+      <button id="menuBtn" class="menu-btn" aria-label="Apri menu">☰</button>
+      <h2 class="title">⛽️ Check Km reali</h2>
+      <span class="right-slot" aria-hidden="true"></span>
     </header>
 
     <main class="container" role="main">
@@ -286,14 +277,12 @@
       </a>
     </div>
 
-    <!-- Versione -->
-    <div class="version-footer muted">Versione:<span id="appVersion" class="badge"></span></div>
+    <!-- Versione
+    <div class="version-footer muted">Versione:<span id="appVersion" class="badge"></span></div> -->
 
     <script>
-      /* ====== CONFIG ====== */
-      const ENDPOINT =
-        'https://script.google.com/macros/s/AKfycbwPS8wxz9H8AKh0w81hEgl9UbAP_aChCvdRwaiJB-BrhSYKxNnh4dF9bGW_v3-sPdHl/exec';
-      const SECRET = 'aX4P-92kLq-55T8b-7Hc0Z';
+      const { ENDPOINT, SECRET } = window.APP_CONFIG;
+      fetch(`${ENDPOINT}?secret=${SECRET}`);
 
       /* ====== VERSIONE (come forecast_km) ====== */
       function formatVersionFromDate(d) {
@@ -309,7 +298,7 @@
         const d = new Date(document.lastModified);
         return isNaN(d) ? 'dev' : formatVersionFromDate(d);
       }
-      document.getElementById('appVersion').textContent = computeAppVersion();
+      //document.getElementById('appVersion').textContent = computeAppVersion();
 
       /* ====== UTILS ====== */
       function escapeHtml(str) {

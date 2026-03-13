@@ -8,12 +8,17 @@
     <meta name="apple-mobile-web-app-title" content="Carburante" />
     <title>Forecast Km • Carburante</title>
 
+    <link rel="stylesheet" href="css/header.css" />
+    <link rel="stylesheet" href="css/fab.css" />
+
     <!-- No-cache -->
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
     <meta http-equiv="Pragma" content="no-cache" />
     <meta http-equiv="Expires" content="0" />
 
     <script src="js/menu.js" defer></script>
+    <script src="js/fab.js" defer></script>
+    <script src="js/config.js"></script>
 
     <!-- Imposta il tema PRIMA del paint -->
     <script>
@@ -71,7 +76,8 @@
         min-height: 100dvh;
         display: flex;
         flex-direction: column;
-        padding: var(--space);
+        padding: 0 var(--space) var(--space);
+        padding-top: 5px;
         font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
         background: var(--bg);
         color: var(--text);
@@ -81,22 +87,6 @@
         width: 100%;
         max-width: 640px;
         margin: 0 auto;
-      }
-
-      /* HEADER (stile come scheda_carburante) */
-      .topbar {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 16px;
-        margin-bottom: 18px;
-      }
-
-      .title {
-        margin: 0;
-        text-align: center;
-        font-size: 22px;
-        font-weight: 700;
       }
 
       .top-controls {
@@ -360,48 +350,50 @@
   </head>
   <body>
     <!-- HEADER -->
-    <header class="topbar container">
-      <h1 class="title">Forecast Km</h1>
-      <div class="top-controls">
-        <!-- Riga 1: data + forecast -->
-        <div class="top-row">
-          <label class="top-field">
-            <span class="top-field-label">Data attuale</span>
-            <input id="currentDate" type="date" class="sel sel-sm" aria-label="Data attuale" />
-          </label>
-          <div class="top-field">
-            <span class="top-field-label">Forecast (km)</span>
-            <input id="forecastValue" type="text" readonly />
-          </div>
-        </div>
-
-        <!-- Riga 2: 50% + 50% -->
-        <div class="top-row-50">
-          <div class="top-field">
-            <span class="top-field-label">Num. Giorni</span>
-            <input id="numGiorniValue" type="text" readonly />
-          </div>
-          <div class="top-field">
-            <span class="top-field-label">Giorni restanti</span>
-            <input id="giorniRestantiValue" type="text" readonly />
-          </div>
-        </div>
-      </div>
+    <header class="topbar">
+      <button id="menuBtn" class="menu-btn" aria-label="Apri menu">☰</button>
+      <h2 class="title">⛽️ Forecast Km</h2>
+      <span class="right-slot" aria-hidden="true"></span>
     </header>
 
-    <main class="container" role="main">
-      <div class="row-2">
-        <div class="field-half">
+    <div class="top-controls">
+      <!-- Riga 1: data + forecast -->
+      <div class="top-row">
+        <label class="top-field">
+          <span class="top-field-label">Data attuale</span>
+          <input id="currentDate" type="date" class="sel sel-sm" aria-label="Data attuale" />
+        </label>
+        <div class="top-field">
+          <span class="top-field-label">Forecast (km)</span>
+          <input id="forecastValue" type="text" readonly />
+        </div>
+      </div>
+
+      <!-- Riga 2: 50% + 50% -->
+      <div class="top-row-50">
+        <div class="top-field">
+          <span class="top-field-label">Num. Giorni</span>
+          <input id="numGiorniValue" type="text" readonly />
+        </div>
+        <div class="top-field">
+          <span class="top-field-label">Giorni restanti</span>
+          <input id="giorniRestantiValue" type="text" readonly />
+        </div>
+      </div>
+
+      <div class="top-row-50">
+        <div class="top-field">
           <label for="percentDays" class="field-label">Giorni passati (%)</label>
           <input id="percentDays" type="text" readonly />
         </div>
-
-        <div class="field-half">
+        <div class="top-field">
           <label for="percentKm" class="field-label">Km utilizzati (%)</label>
           <input id="percentKm" type="text" readonly />
         </div>
       </div>
+    </div>
 
+    <main class="container" role="main">
       <label for="kmAttuali" class="field-label">Km attuali</label>
       <div class="field-with-icon">
         <input id="kmAttuali" type="number" inputmode="numeric" min="0" step="1" required />
@@ -426,15 +418,6 @@
 
     <!-- AZIONI -->
     <div class="actions-footer container">
-      <a
-        class="btn"
-        id="backBtn"
-        href="add_rifornimento.html"
-        target="_self"
-        aria-label="Torna all'inserimento"
-        >← Nuovo rifornimento</a
-      >
-
       <!-- Nuovo bottone: Elenco check Km reali -->
       <a
         class="btn"
@@ -447,14 +430,12 @@
       </a>
     </div>
 
-    <!-- Versione -->
-    <div class="version-footer muted">Versione:<span id="appVersion" class="badge"></span></div>
+    <!-- Versione 
+    <div class="version-footer muted">Versione:<span id="appVersion" class="badge"></span></div> -->
 
     <script>
-      /* ====== CONFIG ====== */
-      const ENDPOINT =
-        'https://script.google.com/macros/s/AKfycbwPS8wxz9H8AKh0w81hEgl9UbAP_aChCvdRwaiJB-BrhSYKxNnh4dF9bGW_v3-sPdHl/exec';
-      const SECRET = 'aX4P-92kLq-55T8b-7Hc0Z';
+      const { ENDPOINT, SECRET } = window.APP_CONFIG;
+      fetch(`${ENDPOINT}?secret=${SECRET}`);
 
       /* Data fine per il calcolo dei giorni restanti: 27/06/2027 */
       const END_DATE = new Date(2027, 5, 27); // Mese 0-based: 5 = Giugno
@@ -478,7 +459,7 @@
         const d = new Date(document.lastModified);
         return isNaN(d) ? 'dev' : formatVersionFromDate(d);
       }
-      document.getElementById('appVersion').textContent = computeAppVersion();
+      //document.getElementById('appVersion').textContent = computeAppVersion();
 
       /* ====== STATE ====== */
       let currentForecastKm = null;
@@ -794,12 +775,15 @@
       document.getElementById('saveBtn').addEventListener('click', onRegisterClick);
 
       // Pulsante back: chiudi overlay se in iframe
-      document.getElementById('backBtn').addEventListener('click', e => {
-        if (window.top !== window.self) {
-          e.preventDefault();
-          window.top.postMessage('close-lista', '*');
-        }
-      });
+      const backBtn = document.getElementById('backBtn');
+      if (backBtn) {
+        backBtn.addEventListener('click', e => {
+          if (window.top !== window.self) {
+            e.preventDefault();
+            window.top.postMessage('close-lista', '*');
+          }
+        });
+      }
 
       /* ====== THEME SYNC (come scheda/lista) ====== */
       (function () {

@@ -1,0 +1,1025 @@
+<!DOCTYPE html>
+<html lang="it" data-theme="light">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Costi di gestione • Carburante</title>
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+
+    <!-- No-cache -->
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
+
+    <link rel="stylesheet" href="css/header.css" />
+    <link rel="stylesheet" href="css/fab.css" />
+
+    <script src="js/menu.js" defer></script>
+    <script src="js/fab.js" defer></script>
+    <script src="js/config.js"></script>
+
+    <!-- Tema prima del paint -->
+    <script>
+      (function () {
+        try {
+          const saved = localStorage.getItem('theme');
+          const prefersDark =
+            window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+          const theme = saved || (prefersDark ? 'dark' : 'light');
+          document.documentElement.setAttribute('data-theme', theme);
+        } catch (e) {}
+      })();
+    </script>
+
+    <style>
+      :root {
+        --space: 14px;
+        --bg: #ffffff;
+        --text: #111827;
+        --muted: #666666;
+        --surface: #ffffff;
+        --border: #dddddd;
+        --divider: #eeeeee;
+        --shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+        --btn-hover: #f7f7f7;
+        --spinner-track: rgba(0, 0, 0, 0.2);
+        --spinner-head: rgba(0, 0, 0, 0.7);
+      }
+      html[data-theme='dark'] {
+        --bg: #0f1115;
+        --text: #e5e7eb;
+        --muted: #9aa0a6;
+        --surface: #151922;
+        --border: #2a2f3a;
+        --divider: #222834;
+        --shadow: 0 2px 16px rgba(0, 0, 0, 0.35);
+        --btn-hover: #1b2130;
+        --spinner-track: rgba(255, 255, 255, 0.2);
+        --spinner-head: rgba(255, 255, 255, 0.8);
+      }
+      body {
+        color-scheme: light dark;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        width: 100%;
+        max-width: 100%;
+        overflow-x: hidden;
+        margin: 0;
+      }
+      body.app {
+        min-height: 100dvh;
+        display: flex;
+        flex-direction: column;
+        font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+        background: var(--bg);
+        color: var(--text);
+        padding: 0 var(--space) var(--space);
+        padding-top: 5px;
+      }
+
+      /* controlli stile "Pellet" */
+      input,
+      select,
+      button {
+        font-size: 16px;
+        padding: 10px;
+        color: var(--text);
+        background: var(--surface);
+        border: 1px solid var(--border);
+        box-shadow: var(--shadow);
+        border-radius: 0;
+        height: 44px;
+        line-height: 1.4;
+      }
+      input,
+      select {
+        width: 100%;
+        max-width: 100%;
+      }
+      select {
+        -webkit-appearance: none;
+        appearance: none;
+        padding-right: 34px;
+      }
+      button {
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        width: auto;
+      }
+      button:hover {
+        background: var(--btn-hover);
+      }
+      button[disabled] {
+        opacity: 0.7;
+        cursor: not-allowed;
+        box-shadow: none;
+      }
+
+      /* ---- Toolbar compatta ---- */
+      .toolbar {
+        margin-top: 8px;
+        padding: 10px 0 12px;
+        border-bottom: 1px solid var(--divider);
+        position: sticky;
+        top: 0;
+        background: var(--bg);
+        z-index: 10;
+      }
+
+      .toolbar-row {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      .spacer {
+        flex: 1;
+      }
+
+      .icon-btn {
+        height: 44px;
+        padding: 0 12px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .icon-btn.primary {
+        border-color: transparent;
+        background: var(--btn-hover);
+        font-weight: 800;
+        padding: 0 14px;
+      }
+
+      .summary {
+        margin-top: 10px;
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+      .summary .left {
+        color: var(--muted);
+        font-size: 13px;
+        font-variant-numeric: tabular-nums;
+      }
+      .summary .right {
+        font-weight: 900;
+        font-variant-numeric: tabular-nums;
+      }
+
+      #msg {
+        margin-top: 8px;
+        font-size: 14px;
+      }
+      .ok {
+        color: #22c55e;
+      }
+      .err {
+        color: #ef4444;
+      }
+
+      .chips {
+        margin-top: 10px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+      .chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 12px;
+        padding: 6px 10px;
+        border: 1px solid var(--border);
+        background: var(--surface);
+        box-shadow: var(--shadow);
+        font-variant-numeric: tabular-nums;
+      }
+      .chip .x {
+        width: auto;
+        height: auto;
+        padding: 0;
+        border: 0;
+        box-shadow: none;
+        background: transparent;
+        cursor: pointer;
+        font-size: 16px;
+        line-height: 1;
+      }
+
+      /* ---- Filtri: desktop pannello / mobile bottom sheet ---- */
+      .filters-backdrop {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.25);
+        display: none;
+        z-index: 50;
+      }
+
+      /* Desktop default */
+      .filters-panel {
+        display: none;
+        margin-top: 12px;
+        padding-top: 10px;
+        border-top: 1px solid var(--divider);
+      }
+      .filters-panel.open {
+        display: block;
+      }
+      .filters-head {
+        display: none;
+      }
+
+      .filters-grid {
+        display: grid;
+        grid-template-columns: 160px 1fr;
+        gap: 8px 12px;
+        align-items: center;
+      }
+      .filters-grid label {
+        margin: 0;
+        font-size: 14px;
+        color: var(--muted);
+      }
+
+      /* Mobile: bottom-sheet */
+      @media (max-width: 700px) {
+        #filtersBtnLabel {
+          display: none;
+        } /* sul bottone mostro “Filtri” corto */
+        .filters-panel {
+          position: fixed;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          background: var(--bg);
+          padding: 12px var(--space) calc(12px + env(safe-area-inset-bottom));
+          border-top: 1px solid var(--divider);
+          box-shadow: var(--shadow);
+          z-index: 60;
+
+          display: block; /* sempre “pronto”, ma traslato */
+          transform: translateY(110%);
+          transition: transform 0.18s ease;
+          max-height: 75dvh;
+          overflow: auto;
+        }
+        .filters-panel.open {
+          transform: translateY(0);
+        }
+        .filters-backdrop.open {
+          display: block;
+        }
+
+        .filters-head {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 10px;
+          margin-bottom: 10px;
+        }
+        .filters-head strong {
+          font-size: 16px;
+        }
+
+        .filters-grid {
+          grid-template-columns: 1fr;
+        }
+        .filters-grid label {
+          margin-top: 10px;
+        }
+      }
+
+      /* ---- Lista protagonista ---- */
+      .list {
+        flex: 1;
+        overflow: auto;
+        margin-top: 12px;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        padding-bottom: calc(10px + env(safe-area-inset-bottom));
+      }
+
+      .card {
+        border: 1px solid var(--border);
+        background: var(--surface);
+        box-shadow: var(--shadow);
+        padding: 10px;
+      }
+      .card-top {
+        display: flex;
+        justify-content: space-between;
+        gap: 10px;
+        align-items: baseline;
+      }
+      .card-date {
+        font-weight: 900;
+      }
+      .card-imp {
+        font-weight: 900;
+        font-variant-numeric: tabular-nums;
+      }
+      .card-sub {
+        margin-top: 8px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        color: var(--muted);
+        font-size: 13px;
+        line-height: 1.3;
+      }
+      .pill {
+        display: inline-block;
+        font-size: 12px;
+        padding: 4px 10px;
+        border: 1px solid var(--border);
+        background: var(--surface);
+      }
+      .empty {
+        color: var(--muted);
+        text-align: center;
+        padding: 18px 0;
+      }
+
+      /* loader overlay */
+      .loading-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.15);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        z-index: 9999;
+        backdrop-filter: blur(2px);
+      }
+      .loading-overlay[aria-hidden='false'] {
+        display: flex;
+      }
+      .spinner {
+        width: 38px;
+        height: 38px;
+        border: 3px solid var(--spinner-track);
+        border-top-color: var(--spinner-head);
+        border-radius: 50%;
+        animation: spin 0.9s linear infinite;
+      }
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+      .btn-spinner {
+        width: 16px;
+        height: 16px;
+        border: 2px solid var(--spinner-track);
+        border-top-color: var(--spinner-head);
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+      }
+    </style>
+  </head>
+
+  <body class="app">
+    <header class="topbar">
+      <button id="menuBtn" class="menu-btn" aria-label="Apri menu">☰</button>
+      <h2 class="title">📋 Costi di gestione</h2>
+      <span class="right-slot" aria-hidden="true"></span>
+    </header>
+
+    <section class="toolbar" aria-label="Azioni e riepilogo">
+      <div class="toolbar-row">
+        <button id="toggleFiltersBtn" class="icon-btn" type="button" aria-label="Filtri">
+          ☰ <span id="filtersBtnLabel">Filtri</span>
+        </button>
+
+        <div class="spacer" aria-hidden="true"></div>
+
+        <button id="refreshBtn" class="icon-btn" type="button" aria-label="Aggiorna">
+          <span class="btn-text">↻</span>
+        </button>
+
+        <button id="addBtn" class="icon-btn primary" type="button" aria-label="Nuovo costo">
+          ＋
+        </button>
+      </div>
+
+      <div class="summary" aria-live="polite">
+        <div class="left" id="summaryLeft">—</div>
+        <div class="right" id="summaryRight">—</div>
+      </div>
+
+      <div id="chips" class="chips" aria-live="polite"></div>
+
+      <div id="msg" role="status" aria-live="polite"></div>
+    </section>
+
+    <!-- Backdrop filtri (solo per bottom-sheet mobile) -->
+    <div id="filtersBackdrop" class="filters-backdrop" aria-hidden="true"></div>
+
+    <!-- Filtri (desktop pannello / mobile bottom-sheet) -->
+    <section
+      id="filtersPanel"
+      class="filters-panel"
+      aria-hidden="true"
+      role="dialog"
+      aria-label="Filtri"
+    >
+      <div class="filters-head">
+        <strong>Filtri</strong>
+        <button id="closeFiltersBtn" class="icon-btn" type="button" aria-label="Chiudi filtri">
+          ×
+        </button>
+      </div>
+
+      <div class="filters-grid">
+        <label for="mese">Mese</label>
+        <input id="mese" type="month" />
+
+        <label for="auto">Auto</label>
+        <select id="auto">
+          <option value="">Tutte le auto</option>
+        </select>
+
+        <label for="categoria">Categoria</label>
+        <select id="categoria">
+          <option value="">Tutte le categorie</option>
+        </select>
+
+        <label for="sottocategoria">Sottocategoria</label>
+        <select id="sottocategoria" disabled>
+          <option value="">Tutte le sottocategorie</option>
+        </select>
+      </div>
+    </section>
+
+    <main id="list" class="list" aria-live="polite" aria-label="Elenco costi"></main>
+
+    <div
+      id="loaderOverlay"
+      class="loading-overlay"
+      aria-hidden="true"
+      aria-live="polite"
+      aria-busy="false"
+    >
+      <div class="spinner" role="progressbar" aria-label="Caricamento in corso"></div>
+    </div>
+
+    <script>
+      const { ENDPOINT, SECRET } = window.APP_CONFIG || {};
+
+      try {
+        fetch(`${ENDPOINT}?secret=${encodeURIComponent(SECRET)}`);
+      } catch {}
+
+      /* ===== Utils ===== */
+      const moneyFmt = new Intl.NumberFormat('it-IT', {
+        style: 'currency',
+        currency: 'EUR',
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      });
+
+      function formatIsoToIt(iso) {
+        const m = String(iso || '').match(/^(\d{4})-(\d{2})-(\d{2})$/);
+        if (!m) return iso || '';
+        return `${m[3]}/${m[2]}/${m[1]}`;
+      }
+
+      function monthPretty(yyyyMm) {
+        const m = String(yyyyMm || '').match(/^(\d{4})-(\d{2})$/);
+        if (!m) return '';
+        const y = Number(m[1]);
+        const idx = Number(m[2]) - 1;
+        const mesi = [
+          'gennaio',
+          'febbraio',
+          'marzo',
+          'aprile',
+          'maggio',
+          'giugno',
+          'luglio',
+          'agosto',
+          'settembre',
+          'ottobre',
+          'novembre',
+          'dicembre',
+        ];
+        return `${mesi[idx]} ${y}`;
+      }
+
+      function pad2(n) {
+        return String(n).padStart(2, '0');
+      }
+      function computeV() {
+        const d = new Date(document.lastModified);
+        return isNaN(d)
+          ? 'dev'
+          : `${d.getFullYear()}.${pad2(d.getMonth() + 1)}.${pad2(d.getDate())}-${pad2(
+              d.getHours()
+            )}:${pad2(d.getMinutes())}`;
+      }
+
+      /* ===== Loader ===== */
+      const loaderOverlay = document.getElementById('loaderOverlay');
+      const refreshBtn = document.getElementById('refreshBtn');
+      const refreshText = refreshBtn.querySelector('.btn-text');
+
+      function setLoading(isLoading) {
+        loaderOverlay.setAttribute('aria-hidden', String(!isLoading));
+        loaderOverlay.setAttribute('aria-busy', String(isLoading));
+        refreshBtn.disabled = isLoading;
+
+        if (isLoading) {
+          if (!refreshBtn.querySelector('.btn-spinner')) {
+            const s = document.createElement('span');
+            s.className = 'btn-spinner';
+            s.setAttribute('aria-hidden', 'true');
+            refreshBtn.prepend(s);
+          }
+          refreshText.textContent = '…';
+        } else {
+          const s = refreshBtn.querySelector('.btn-spinner');
+          if (s) s.remove();
+          refreshText.textContent = '↻';
+        }
+
+        document
+          .querySelectorAll(
+            '#mese, #auto, #categoria, #sottocategoria, #addBtn, #toggleFiltersBtn, #closeFiltersBtn'
+          )
+          .forEach(el => {
+            if (el) el.disabled = isLoading;
+          });
+      }
+
+      /* ===== Data maps ===== */
+      const AUTOS_MAP = new Map(); // id -> label
+      let CATS = [];
+      const CAT_LABEL = new Map(); // idCat -> label
+      const SUB_LABEL = new Map(); // idCat::idSub -> label
+
+      /* ===== Filtri UI ===== */
+      const filtersPanel = document.getElementById('filtersPanel');
+      const filtersBackdrop = document.getElementById('filtersBackdrop');
+      const toggleFiltersBtn = document.getElementById('toggleFiltersBtn');
+      const closeFiltersBtn = document.getElementById('closeFiltersBtn');
+
+      function isMobile() {
+        return window.matchMedia && window.matchMedia('(max-width: 700px)').matches;
+      }
+
+      function setFiltersOpen(open) {
+        filtersPanel.classList.toggle('open', open);
+        filtersPanel.setAttribute('aria-hidden', String(!open));
+        toggleFiltersBtn.setAttribute('aria-expanded', String(open));
+        if (isMobile()) {
+          filtersBackdrop.classList.toggle('open', open);
+          filtersBackdrop.setAttribute('aria-hidden', String(!open));
+        }
+        try {
+          localStorage.setItem('costiGestioneFiltersOpen', open ? '1' : '0');
+        } catch {}
+      }
+
+      function initFiltersToggle() {
+        // default: chiusi (e memorizzati)
+        let open = false;
+        try {
+          open = localStorage.getItem('costiGestioneFiltersOpen') === '1';
+        } catch {}
+        setFiltersOpen(open);
+
+        toggleFiltersBtn.addEventListener('click', () => {
+          setFiltersOpen(!filtersPanel.classList.contains('open'));
+        });
+
+        if (closeFiltersBtn) {
+          closeFiltersBtn.addEventListener('click', () => setFiltersOpen(false));
+        }
+        if (filtersBackdrop) {
+          filtersBackdrop.addEventListener('click', () => setFiltersOpen(false));
+        }
+
+        // se cambi breakpoint, riallineo backdrop
+        window.addEventListener('resize', () => {
+          const openNow = filtersPanel.classList.contains('open');
+          if (!isMobile()) {
+            filtersBackdrop.classList.remove('open');
+            filtersBackdrop.setAttribute('aria-hidden', 'true');
+          } else {
+            filtersBackdrop.classList.toggle('open', openNow);
+            filtersBackdrop.setAttribute('aria-hidden', String(!openNow));
+          }
+        });
+      }
+
+      function syncSelectPlaceholderColor(sel) {
+        const sync = () => {
+          sel.style.color = sel.value ? 'var(--text)' : 'var(--muted)';
+        };
+        sync();
+        sel.addEventListener('change', sync);
+      }
+
+      function initMonth() {
+        const d = new Date();
+        document.getElementById('mese').value = `${d.getFullYear()}-${pad2(d.getMonth() + 1)}`;
+      }
+
+      async function initAutos() {
+        const sel = document.getElementById('auto');
+        sel.length = 1;
+
+        try {
+          const res = await fetch(`${ENDPOINT}?action=autos&secret=${encodeURIComponent(SECRET)}`);
+          const data = await res.json();
+
+          if (data && data.ok && Array.isArray(data.autos)) {
+            data.autos.forEach(a => {
+              const id = String(a.id || '').trim();
+              const marca = String(a.marca || '').trim();
+              const modello = String(a.modello || '').trim();
+              if (!id || !marca || !modello) return;
+
+              const label = `${marca} - ${modello}`;
+              AUTOS_MAP.set(id, label);
+
+              const opt = document.createElement('option');
+              opt.value = id;
+              opt.textContent = label;
+              sel.appendChild(opt);
+            });
+
+            const qs = new URLSearchParams(location.search);
+            const pre =
+              qs.get('id_auto') ||
+              qs.get('idAuto') ||
+              (() => {
+                try {
+                  return localStorage.getItem('selectedAutoId') || '';
+                } catch {
+                  return '';
+                }
+              })();
+            if (pre) sel.value = pre;
+
+            sel.addEventListener('change', () => {
+              try {
+                localStorage.setItem('selectedAutoId', sel.value || '');
+              } catch {}
+            });
+          }
+        } catch (e) {}
+      }
+
+      async function initCategorieCosti() {
+        const catSel = document.getElementById('categoria');
+        const subSel = document.getElementById('sottocategoria');
+
+        catSel.length = 1;
+        subSel.length = 1;
+        subSel.disabled = true;
+
+        try {
+          const res = await fetch(
+            `${ENDPOINT}?action=categories_costi&secret=${encodeURIComponent(SECRET)}`
+          );
+          const data = await res.json();
+
+          CATS = data && data.ok && Array.isArray(data.categories) ? data.categories : [];
+          CAT_LABEL.clear();
+          SUB_LABEL.clear();
+
+          CATS.forEach(c => {
+            CAT_LABEL.set(c.id, c.label);
+
+            const opt = document.createElement('option');
+            opt.value = c.id;
+            opt.textContent = c.label;
+            catSel.appendChild(opt);
+
+            (c.items || []).forEach(s => {
+              SUB_LABEL.set(`${c.id}::${s.id}`, s.label);
+            });
+          });
+        } catch (e) {
+          CATS = [];
+        }
+      }
+
+      function syncSottocategorie() {
+        const catSel = document.getElementById('categoria');
+        const subSel = document.getElementById('sottocategoria');
+        const idCat = catSel.value;
+
+        subSel.length = 1;
+        subSel.value = '';
+        subSel.disabled = true;
+
+        if (!idCat) return;
+
+        const cat = CATS.find(c => c.id === idCat);
+        if (!cat || !Array.isArray(cat.items) || cat.items.length === 0) return;
+
+        cat.items.forEach(s => {
+          const opt = document.createElement('option');
+          opt.value = s.id;
+          opt.textContent = s.label;
+          subSel.appendChild(opt);
+        });
+
+        subSel.disabled = false;
+      }
+
+      /* ===== Chips ===== */
+      function renderChips() {
+        const chips = document.getElementById('chips');
+        chips.innerHTML = '';
+
+        const monthVal = document.getElementById('mese').value;
+        const idAuto = document.getElementById('auto').value;
+        const idCat = document.getElementById('categoria').value;
+        const idSub = document.getElementById('sottocategoria').value;
+
+        const items = [];
+        if (monthVal) items.push({ label: monthPretty(monthVal), onClear: null }); // mese = contesto
+        if (idAuto)
+          items.push({
+            label: AUTOS_MAP.get(idAuto) || `Auto #${idAuto}`,
+            onClear: () => {
+              document.getElementById('auto').value = '';
+            },
+          });
+        if (idCat)
+          items.push({
+            label: CAT_LABEL.get(idCat) || idCat,
+            onClear: () => {
+              document.getElementById('categoria').value = '';
+              syncSottocategorie();
+            },
+          });
+        if (idSub)
+          items.push({
+            label: SUB_LABEL.get(`${idCat}::${idSub}`) || idSub,
+            onClear: () => {
+              document.getElementById('sottocategoria').value = '';
+            },
+          });
+
+        // se c'è solo il mese, non mostro chips
+        if (items.length <= 1) return;
+
+        items.forEach(it => {
+          const c = document.createElement('span');
+          c.className = 'chip';
+
+          const t = document.createElement('span');
+          t.textContent = it.label;
+          c.appendChild(t);
+
+          if (it.onClear) {
+            const x = document.createElement('button');
+            x.className = 'x';
+            x.type = 'button';
+            x.setAttribute('aria-label', 'Rimuovi filtro');
+            x.textContent = '×';
+            x.addEventListener('click', () => {
+              it.onClear();
+              if (!document.getElementById('categoria').value) {
+                document.getElementById('sottocategoria').value = '';
+                document.getElementById('sottocategoria').disabled = true;
+              }
+              loadList();
+            });
+            c.appendChild(x);
+          }
+
+          chips.appendChild(c);
+        });
+      }
+
+      /* ===== Lista ===== */
+      async function loadList() {
+        const msg = document.getElementById('msg');
+        msg.textContent = '';
+        msg.className = '';
+
+        const monthVal = document.getElementById('mese').value;
+        const idAuto = document.getElementById('auto').value;
+        const idCategoria = document.getElementById('categoria').value;
+        const idSottocategoria = document.getElementById('sottocategoria').value;
+
+        const qs = new URLSearchParams();
+        qs.set('action', 'costi_gestione_list');
+        qs.set('secret', SECRET);
+
+        if (monthVal) {
+          const m = monthVal.match(/^(\d{4})-(\d{2})$/);
+          if (m) {
+            qs.set('year', m[1]);
+            qs.set('month', String(Number(m[2])));
+          }
+        }
+        if (idAuto) qs.set('id_auto', idAuto);
+        if (idCategoria) qs.set('id_categoria', idCategoria);
+        if (idSottocategoria) qs.set('id_sottocategoria', idSottocategoria);
+
+        try {
+          setLoading(true);
+          const res = await fetch(`${ENDPOINT}?${qs.toString()}`);
+          const data = await res.json();
+
+          if (!data || !data.ok) {
+            msg.textContent = data && data.error ? data.error : 'Errore di rete o autorizzazione.';
+            msg.className = 'err';
+            renderList([]);
+            renderSummary(0, 0);
+            renderChips();
+            return;
+          }
+
+          const rows = Array.isArray(data.rows) ? data.rows : [];
+          renderList(rows);
+          renderSummary(rows.length, Number(data.spesa_totale || 0));
+          renderChips();
+        } catch (e) {
+          msg.textContent = 'Sei offline. Impossibile caricare i dati.';
+          msg.className = 'err';
+          renderList([]);
+          renderSummary(0, 0);
+          renderChips();
+        } finally {
+          setLoading(false);
+        }
+      }
+
+      function renderSummary(count, total) {
+        document.getElementById('summaryLeft').textContent = `${count} voci`;
+        document.getElementById('summaryRight').textContent = moneyFmt.format(Number(total || 0));
+      }
+
+      function renderList(rows) {
+        const el = document.getElementById('list');
+        el.innerHTML = '';
+
+        if (!rows || rows.length === 0) {
+          const d = document.createElement('div');
+          d.className = 'empty';
+          d.textContent = 'Nessun costo trovato con questi filtri.';
+          el.appendChild(d);
+          return;
+        }
+
+        rows.forEach(r => {
+          const iso = r.data;
+          const idAuto = String(r.id_auto || '');
+          const idCat = String(r.id_categoria || '');
+          const idSub = String(r.id_sottocategoria || '');
+          const imp = Number(r.importo || 0);
+
+          const autoLabel = AUTOS_MAP.get(idAuto) || (idAuto ? `Auto #${idAuto}` : '—');
+          const catLabel = CAT_LABEL.get(idCat) || idCat || '—';
+          const subLabel = SUB_LABEL.get(`${idCat}::${idSub}`) || idSub || '—';
+
+          const card = document.createElement('div');
+          card.className = 'card';
+
+          const top = document.createElement('div');
+          top.className = 'card-top';
+
+          const date = document.createElement('div');
+          date.className = 'card-date';
+          date.textContent = formatIsoToIt(iso);
+
+          const impEl = document.createElement('div');
+          impEl.className = 'card-imp';
+          impEl.textContent = moneyFmt.format(imp);
+
+          top.appendChild(date);
+          top.appendChild(impEl);
+
+          const sub = document.createElement('div');
+          sub.className = 'card-sub';
+          sub.innerHTML = `
+        <span class="pill">${autoLabel}</span>
+        <span class="pill">${catLabel}</span>
+        <span class="pill">${subLabel}</span>
+      `;
+
+          card.appendChild(top);
+          card.appendChild(sub);
+          el.appendChild(card);
+        });
+      }
+
+      /* ===== Frame full-screen: usa #pageFrame iniettato da menu.js ===== */
+      function openFrame(url) {
+        const frame = document.getElementById('pageFrame'); // creato da menu.js
+        const drawer = document.getElementById('drawer');
+        const backdrop = document.getElementById('backdrop');
+
+        if (!frame) {
+          location.href = url;
+          return;
+        }
+
+        try {
+          if (drawer) drawer.style.transform = 'translateX(-105%)';
+          if (backdrop) backdrop.style.display = 'none';
+          document.body.classList.remove('drawer-open');
+        } catch {}
+
+        frame.src = url;
+        frame.style.display = 'block';
+        document.body.classList.add('frame-open');
+        history.pushState({ page: 'frame' }, '', '#frame');
+      }
+
+      function closeFrame() {
+        const frame = document.getElementById('pageFrame');
+        if (!frame) return;
+        frame.style.display = 'none';
+        frame.src = 'about:blank';
+        document.body.classList.remove('frame-open');
+        if (location.hash === '#frame') history.back();
+      }
+
+      window.addEventListener('popstate', () => {
+        const frame = document.getElementById('pageFrame');
+        if (frame && frame.style.display === 'block') {
+          frame.style.display = 'none';
+          frame.src = 'about:blank';
+          document.body.classList.remove('frame-open');
+        }
+      });
+
+      window.addEventListener('message', ev => {
+        if (ev && ev.data === 'close-frame') closeFrame();
+      });
+
+      function openAddCosto() {
+        const idAuto =
+          document.getElementById('auto').value ||
+          (() => {
+            try {
+              return localStorage.getItem('selectedAutoId') || '';
+            } catch {
+              return '';
+            }
+          })();
+
+        const v = computeV();
+        const url = `add_costo_gestione.html?v=${encodeURIComponent(v)}${
+          idAuto ? `&id_auto=${encodeURIComponent(idAuto)}` : ''
+        }`;
+        openFrame(url);
+      }
+
+      /* ===== Boot ===== */
+      document.addEventListener('DOMContentLoaded', async () => {
+        if (!ENDPOINT || !SECRET) {
+          const msg = document.getElementById('msg');
+          msg.textContent = 'Config mancante: APP_CONFIG non trovato.';
+          msg.className = 'err';
+          return;
+        }
+
+        initMonth();
+        initFiltersToggle();
+
+        // placeholder colors
+        syncSelectPlaceholderColor(document.getElementById('auto'));
+        syncSelectPlaceholderColor(document.getElementById('categoria'));
+        syncSelectPlaceholderColor(document.getElementById('sottocategoria'));
+
+        await Promise.all([initAutos(), initCategorieCosti()]);
+        syncSottocategorie();
+
+        // listeners filtri
+        document.getElementById('categoria').addEventListener('change', () => {
+          syncSottocategorie();
+          loadList();
+        });
+        document.getElementById('sottocategoria').addEventListener('change', loadList);
+        document.getElementById('auto').addEventListener('change', loadList);
+        document.getElementById('mese').addEventListener('change', loadList);
+
+        document.getElementById('refreshBtn').addEventListener('click', loadList);
+        document.getElementById('addBtn').addEventListener('click', openAddCosto);
+
+        loadList();
+      });
+
+      addEventListener('pageshow', e => e.persisted && location.reload());
+    </script>
+  </body>
+</html>

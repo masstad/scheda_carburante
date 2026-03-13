@@ -8,12 +8,17 @@
     <meta name="apple-mobile-web-app-title" content="Carburante" />
     <title>Impianti preferiti • Carburante</title>
 
+    <link rel="stylesheet" href="css/header.css" />
+    <link rel="stylesheet" href="css/fab.css" />
+
     <!-- No-cache -->
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
     <meta http-equiv="Pragma" content="no-cache" />
     <meta http-equiv="Expires" content="0" />
 
     <script src="js/menu.js" defer></script>
+    <script src="js/fab.js" defer></script>
+    <script src="js/config.js"></script>
 
     <!-- Tema prima del paint (come scheda_carburante.html) -->
     <script>
@@ -70,7 +75,8 @@
         min-height: 100dvh;
         display: flex;
         flex-direction: column;
-        padding: var(--space);
+        padding: 0 var(--space) var(--space);
+        padding-top: 5px;
         font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
         background: var(--bg);
         color: var(--text);
@@ -80,22 +86,6 @@
         width: 100%;
         max-width: 640px;
         margin: 0 auto;
-      }
-
-      /* HEADER */
-      .topbar {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 8px;
-        margin-bottom: 18px;
-        text-align: center;
-      }
-
-      .title {
-        margin: 0;
-        font-size: 22px;
-        font-weight: 700;
       }
 
       /* Lista impianti: card come scheda_carburante */
@@ -253,9 +243,10 @@
   </head>
   <body>
     <!-- HEADER -->
-    <header class="topbar container">
-      <h1 class="title">⭐️ Impianti preferiti</h1>
-      <div class="muted">Elenco dal foglio “Stazioni” • Filtra per città e marchio</div>
+    <header class="topbar">
+      <button id="menuBtn" class="menu-btn" aria-label="Apri menu">☰</button>
+      <h2 class="title">⛽️ Impianti preferiti</h2>
+      <span class="right-slot" aria-hidden="true"></span>
     </header>
 
     <!-- CONTENUTO -->
@@ -308,14 +299,12 @@
       >
     </div>
 
-    <!-- Versione -->
-    <div class="version-footer muted">Versione:<span id="appVersion" class="badge"></span></div>
+    <!-- Versione 
+    <div class="version-footer muted">Versione:<span id="appVersion" class="badge"></span></div> -->
 
     <script>
-      /* ====== CONFIG BACKEND (STESSO DI impianti_vicini.html) ====== */
-      const ENDPOINT =
-        'https://script.google.com/macros/s/AKfycbzbqrHJempNcv0F9yY7FQ9wu5mZWLx1P1oSqvvTa-ztvBF167CGsQLfFokmx-yD4M3O/exec';
-      const SECRET = 'aX4P-92kLq-55T8b-7Hc0Z';
+      const { ENDPOINT, SECRET } = window.APP_CONFIG;
+      fetch(`${ENDPOINT}?secret=${SECRET}`);
 
       /* ====== VERSIONE (uguale allo stile esistente) ====== */
       function formatVersionFromDate(d) {
@@ -331,7 +320,7 @@
         const d = new Date(document.lastModified);
         return isNaN(d) ? 'dev' : formatVersionFromDate(d);
       }
-      document.getElementById('appVersion').textContent = computeAppVersion();
+      //document.getElementById('appVersion').textContent = computeAppVersion();
 
       /* ====== STATE (filtri persistenti) ====== */
       const LS_CITY = 'impiantiPreferiti_city';
